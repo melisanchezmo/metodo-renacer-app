@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#fbf6ea" />
+<meta name="theme-color" content="#e3e3e1" />
 <meta name="description" content="Método Renacer — guía práctica para reconstruirte, recuperar la calma y habitar con más sentido tu nueva vida lejos de casa." />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" />
@@ -37,15 +37,15 @@ window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 128000;
 </script>
 <style>
   :root{
-    /* Paleta basada en la portada del libro (pergamino cálido) con acentos vibrantes inspirados en el arcoíris, las alas y las nubes de atardecer */
-    --surface-1:#fbf6ea; --page:#f1e8d3;
+    /* Paleta exacta de Melissa: Amethyst Haze, Olive Mist, Dreamy Skies, Golden Dusk, sobre Blanco Mediterráneo */
+    --surface-1:#e3e3e1; --page:#d6d6d3;
     --text-primary:#26332b; --text-secondary:#5c5748; --text-muted:#948c76;
-    --grid:#e3d8bd; --baseline:#d8c9a3; --border:rgba(38,45,33,0.14);
-    --blue:#0c7a6e; --blue-dark:#095c54;
-    --rose:#c22e76; --rose-soft:#fce6f1;
-    --gold:#f2a93c; --gold-soft:#fdf1d9; --gold-dark:#b8730f;
-    --aqua:#0f7d4f; --aqua-soft:#e2f5e8;
-    --orange:#e8763a;
+    --grid:#d3d3d0; --baseline:#c5c5c1; --border:rgba(38,45,33,0.14);
+    --blue:#986FA1; --blue-dark:#6d4d78;
+    --rose:#986FA1; --rose-soft:#f1e9f4;
+    --gold:#ECC676; --gold-soft:#fbf1de; --gold-dark:#a9791c;
+    --aqua:#A4BED7; --aqua-soft:#eef4f9;
+    --orange:#9A9B43;
     --good:#0ca30c; --critical:#c0392b;
     --navy:#26392f;
     --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
@@ -71,7 +71,7 @@ window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 128000;
   }
   .tab-btn{transition: color .15s ease, transform .1s ease;}
   .tab-btn:active{transform:scale(0.92);}
-  .card{background:#fffdf7; border:1px solid var(--border); border-radius:16px;}
+  .card{background:#ffffff; border:1px solid var(--border); border-radius:16px;}
   .btn-primary{background:var(--rose); color:#fff; border:none; border-radius:14px; font-weight:600;}
   .btn-primary:active{opacity:0.85;}
   .btn-secondary{background:var(--rose-soft); color:var(--rose); border:none; border-radius:14px; font-weight:600;}
@@ -477,7 +477,8 @@ const MODULES = [{
   id: 'R1',
   letter: 'R',
   order: 1,
-  color: '#d43e5c',
+  color: '#986FA1',
+  textColor: '#fff',
   title: 'Reconoce tu duelo migratorio',
   subtitle: 'Lo que dejaste también necesita ser llorado',
   story: {
@@ -492,7 +493,8 @@ const MODULES = [{
   id: 'E1',
   letter: 'E',
   order: 2,
-  color: '#b85a17',
+  color: '#9A9B43',
+  textColor: '#26332b',
   title: 'Estabiliza tu sistema nervioso',
   subtitle: 'Cuando tu cuerpo vive en alerta',
   story: {
@@ -511,7 +513,8 @@ const MODULES = [{
   id: 'N1',
   letter: 'N',
   order: 3,
-  color: '#a86f0a',
+  color: '#A4BED7',
+  textColor: '#26332b',
   title: 'Nombra tu nueva identidad',
   subtitle: 'Ya no eres la misma, y eso no significa que te hayas perdido',
   story: {
@@ -530,7 +533,8 @@ const MODULES = [{
   id: 'A1',
   letter: 'A',
   order: 4,
-  color: '#238a5a',
+  color: '#ECC676',
+  textColor: '#26332b',
   title: 'Ancla hábitos en tu nuevo entorno',
   subtitle: 'Pequeñas rutinas para sostenerte cuando todo cambió',
   story: {
@@ -549,7 +553,8 @@ const MODULES = [{
   id: 'C1',
   letter: 'C',
   order: 5,
-  color: '#0c8078',
+  color: '#986FA1',
+  textColor: '#fff',
   title: 'Crea conexión y pertenencia',
   subtitle: 'No estás hecha para reconstruirte en soledad',
   story: {
@@ -568,7 +573,8 @@ const MODULES = [{
   id: 'E2',
   letter: 'E',
   order: 6,
-  color: '#3a63c2',
+  color: '#9A9B43',
+  textColor: '#26332b',
   title: 'Elige una vida con sentido',
   subtitle: 'No viniste solo a sobrevivir',
   story: {
@@ -587,7 +593,8 @@ const MODULES = [{
   id: 'R2',
   letter: 'R',
   order: 7,
-  color: '#7147ac',
+  color: '#A4BED7',
+  textColor: '#26332b',
   title: 'Revisa, repara y reinicia',
   subtitle: 'Cuando vuelvas a sentirte perdida',
   story: {
@@ -1272,7 +1279,7 @@ function TopBar({
       position: 'sticky',
       top: 0,
       zIndex: 20,
-      background: 'rgba(251,246,234,0.92)',
+      background: 'rgba(227,227,225,0.92)',
       backdropFilter: 'blur(6px)',
       borderBottom: '1px solid var(--border)'
     }
@@ -1325,26 +1332,26 @@ function LeafCorner({
     strokeLinecap: "round"
   }, /*#__PURE__*/React.createElement("path", {
     d: "M4 4 C 30 8, 46 22, 52 46",
-    stroke: "#238a5a",
+    stroke: "#9A9B43",
     strokeWidth: "1.6"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M10 8 C18 18, 20 28, 16 34 C10 28, 8 16, 10 8 Z",
-    fill: "#4dae7e",
+    fill: "#9A9B43",
     opacity: "0.55"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M22 16 C30 24, 33 33, 29 40 C22 34, 19 23, 22 16 Z",
-    fill: "#238a5a",
+    fill: "#986FA1",
     opacity: "0.5"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M36 30 C43 37, 46 45, 42 51 C35 46, 33 36, 36 30 Z",
-    fill: "#63c08a",
-    opacity: "0.45"
+    fill: "#A4BED7",
+    opacity: "0.55"
   }), /*#__PURE__*/React.createElement("circle", {
     cx: "50",
     cy: "45",
     r: "2",
-    fill: "#f2a93c",
-    opacity: "0.7"
+    fill: "#ECC676",
+    opacity: "0.9"
   })));
 }
 function KeyPhrase({
@@ -1975,7 +1982,7 @@ function Home({
   }, last && /*#__PURE__*/React.createElement(RadarChart, {
     size: 220,
     series: [{
-      color: '#0c7a6e',
+      color: '#986FA1',
       values: last.scores
     }]
   }), /*#__PURE__*/React.createElement("div", {
@@ -2159,7 +2166,7 @@ function ModulesList({
         height: 40,
         borderRadius: 12,
         background: m.color,
-        color: '#fff',
+        color: m.textColor || '#fff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -2183,7 +2190,7 @@ function ModulesList({
       }
     }, m.subtitle)), done && /*#__PURE__*/React.createElement("div", {
       style: {
-        color: 'var(--aqua)',
+        color: 'var(--rose)',
         fontSize: 18
       }
     }, "✓"));
@@ -2464,7 +2471,7 @@ function Plan30({
     }, p.d), done && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 10,
-        color: 'var(--aqua)'
+        color: 'var(--rose)'
       }
     }, "✓"));
   }))))), openDay && /*#__PURE__*/React.createElement(DayModal, {
@@ -2558,27 +2565,27 @@ function ToolsHome({
     id: 'aca',
     name: 'Pausa A.C.A.',
     desc: 'Respiración y regulación para momentos de alerta',
-    color: '#238a5a'
+    color: '#986FA1'
   }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
-    color: '#f2a93c'
+    color: '#9A9B43'
   }, {
     id: 'circulos',
     name: 'Tres Círculos',
     desc: 'Mapa de conexión y pertenencia',
-    color: '#0c8078'
+    color: '#A4BED7'
   }, {
     id: 'brujula',
     name: 'Brújula V.I.D.A.',
     desc: 'Valores, intención, decisión, acción',
-    color: '#b85a17'
+    color: '#ECC676'
   }, {
     id: '3r',
     name: 'Método 3R',
     desc: 'Revisa, repara y reinicia en días difíciles',
-    color: '#1f8a5c'
+    color: '#986FA1'
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
@@ -2826,7 +2833,7 @@ function BreathingTool({
       width: 140,
       height: 140,
       borderRadius: '50%',
-      background: phase === 'inhala' ? 'var(--aqua)' : 'var(--blue)',
+      background: phase === 'inhala' ? 'var(--rose)' : 'var(--blue-dark)',
       transform: `scale(${running ? scale : 1})`,
       display: 'flex',
       alignItems: 'center',
@@ -2970,7 +2977,7 @@ function HabitTool({
       borderRadius: 99,
       width: 34,
       height: 34,
-      background: h.done[today] ? 'var(--aqua)' : 'var(--grid)',
+      background: h.done[today] ? 'var(--rose)' : 'var(--grid)',
       color: '#fff',
       cursor: 'pointer'
     }
@@ -3069,8 +3076,8 @@ function CirclesTool({
     porConstruir: 'Círculo por construir'
   };
   const colors = {
-    seguro: '#1f8a5c',
-    posible: '#a86f0a',
+    seguro: '#986FA1',
+    posible: '#9A9B43',
     porConstruir: '#948c76'
   };
   const addTo = key => {
@@ -3897,13 +3904,13 @@ function Progress({
   }, /*#__PURE__*/React.createElement(RadarChart, {
     size: 240,
     series: first && first.id !== last.id ? [{
-      color: '#f2a93c',
+      color: '#ECC676',
       values: first.scores
     }, {
-      color: '#0c7a6e',
+      color: '#986FA1',
       values: last.scores
     }] : [{
-      color: '#0c7a6e',
+      color: '#986FA1',
       values: last.scores
     }]
   }), first && first.id !== last.id && /*#__PURE__*/React.createElement("div", {
@@ -3920,7 +3927,7 @@ function Progress({
       width: 8,
       height: 8,
       borderRadius: 99,
-      background: '#f2a93c',
+      background: '#ECC676',
       marginRight: 4
     }
   }), "Primera vez (", fmtDate(first.date), ")"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
@@ -3929,7 +3936,7 @@ function Progress({
       width: 8,
       height: 8,
       borderRadius: 99,
-      background: '#0c7a6e',
+      background: '#986FA1',
       marginRight: 4
     }
   }), "Ahora (", fmtDate(last.date), ")"))), /*#__PURE__*/React.createElement("button", {
@@ -4159,7 +4166,7 @@ function Community({
     className: "pill",
     style: {
       background: 'var(--aqua-soft)',
-      color: 'var(--aqua)'
+      color: 'var(--blue-dark)'
     }
   }, p.tag), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -4235,7 +4242,7 @@ function RealPostCard({
     className: "pill",
     style: {
       background: 'var(--aqua-soft)',
-      color: 'var(--aqua)'
+      color: 'var(--blue-dark)'
     }
   }, post.tag), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -4764,7 +4771,13 @@ function Subscribe({
       fontSize: 11,
       color: 'var(--text-muted)'
     }
-  }, provider === 'wompi' ? 'COP / mes' : 'USD / mes')), /*#__PURE__*/React.createElement("button", {
+  }, provider === 'wompi' ? 'COP / mes' : 'USD / mes'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10.5,
+      color: 'var(--text-muted)',
+      marginTop: 2
+    }
+  }, provider === 'wompi' ? '≈ $4.99 USD' : `≈ ${WOMPI_PRICE_MONTHLY_COP.toLocaleString('es-CO')} COP`)), /*#__PURE__*/React.createElement("button", {
     onClick: () => setPlan('annual'),
     className: "card",
     style: {
@@ -4791,7 +4804,13 @@ function Subscribe({
       fontSize: 11,
       color: 'var(--text-muted)'
     }
-  }, provider === 'wompi' ? 'COP / año · ahorras ~33%' : 'USD / año · ahorras ~33%'))), !auth.enabled || !PAYPAL_ENABLED && !WOMPI_ENABLED ? /*#__PURE__*/React.createElement("div", {
+  }, provider === 'wompi' ? 'COP / año · ahorras ~33%' : 'USD / año · ahorras ~33%'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10.5,
+      color: 'var(--text-muted)',
+      marginTop: 2
+    }
+  }, provider === 'wompi' ? '≈ $39.99 USD' : `≈ ${WOMPI_PRICE_ANNUAL_COP.toLocaleString('es-CO')} COP`))), !auth.enabled || !PAYPAL_ENABLED && !WOMPI_ENABLED ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 16,
