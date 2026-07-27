@@ -27,6 +27,13 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <script>
 window.__RENACER_SUPABASE_URL__ = "https://rbkndtajymcjmakbfmdk.supabase.co";
 window.__RENACER_SUPABASE_ANON_KEY__ = "sb_publishable_FCO2dNoH-aw8Pq190jYwiA_2mRipGR_";
+window.__RENACER_PAYPAL_CLIENT_ID__ = "";
+window.__RENACER_PAYPAL_PLAN_MONTHLY__ = "";
+window.__RENACER_PAYPAL_PLAN_ANNUAL__ = "";
+window.__RENACER_WOMPI_PUBLIC_KEY__ = "pub_prod_cNMSeytiZTut37Y8lkjptw6i48C7RaV6";
+window.__RENACER_WOMPI_API_BASE__ = "https://production.wompi.co/v1";
+window.__RENACER_WOMPI_PRICE_MONTHLY_COP__ = 16000;
+window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 128000;
 </script>
 <style>
   :root{
@@ -418,6 +425,15 @@ function nowISO() {
 const SUPABASE_URL = window.__RENACER_SUPABASE_URL__ || '';
 const SUPABASE_ANON_KEY = window.__RENACER_SUPABASE_ANON_KEY__ || '';
 const sbClient = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const PAYPAL_CLIENT_ID = window.__RENACER_PAYPAL_CLIENT_ID__ || '';
+const PAYPAL_PLAN_MONTHLY = window.__RENACER_PAYPAL_PLAN_MONTHLY__ || '';
+const PAYPAL_PLAN_ANNUAL = window.__RENACER_PAYPAL_PLAN_ANNUAL__ || '';
+const PAYPAL_ENABLED = !!(PAYPAL_CLIENT_ID && PAYPAL_PLAN_MONTHLY && PAYPAL_PLAN_ANNUAL);
+const WOMPI_PUBLIC_KEY = window.__RENACER_WOMPI_PUBLIC_KEY__ || '';
+const WOMPI_API_BASE = window.__RENACER_WOMPI_API_BASE__ || 'https://production.wompi.co/v1';
+const WOMPI_PRICE_MONTHLY_COP = Number(window.__RENACER_WOMPI_PRICE_MONTHLY_COP__) || 0;
+const WOMPI_PRICE_ANNUAL_COP = Number(window.__RENACER_WOMPI_PRICE_ANNUAL_COP__) || 0;
+const WOMPI_ENABLED = !!(WOMPI_PUBLIC_KEY && WOMPI_PRICE_MONTHLY_COP && WOMPI_PRICE_ANNUAL_COP);
 function fmtDate(iso) {
   try {
     const d = new Date(iso);
@@ -1018,8 +1034,9 @@ function CloudSync({
     setState
   } = useApp();
   const pulledForUser = useRef(null);
+  const isPlus = auth.authProfile && auth.authProfile.subscription_status === 'plus';
   useEffect(() => {
-    if (!auth.enabled || !auth.session) {
+    if (!auth.enabled || !auth.session || !isPlus) {
       pulledForUser.current = null;
       return;
     }
@@ -1050,9 +1067,9 @@ function CloudSync({
     return () => {
       cancelled = true;
     };
-  }, [auth.session && auth.session.user.id]);
+  }, [auth.session && auth.session.user.id, isPlus]);
   useEffect(() => {
-    if (!auth.enabled || !auth.session || pulledForUser.current !== auth.session.user.id) return;
+    if (!auth.enabled || !auth.session || !isPlus || pulledForUser.current !== auth.session.user.id) return;
     const userId = auth.session.user.id;
     const t = setTimeout(() => {
       sbClient.from('user_data').upsert({
@@ -1062,7 +1079,7 @@ function CloudSync({
       }).then(() => {});
     }, 1500);
     return () => clearTimeout(t);
-  }, [state]);
+  }, [state, isPlus]);
   return children;
 }
 function AuthModal({
@@ -1182,6 +1199,65 @@ function AuthModal({
       display: 'block'
     }
   }, mode === 'signup' ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Créala aquí'));
+}
+
+/* ============================= RENACER PLUS (freemium) ============================= */
+function useIsPlus() {
+  const auth = useAuth();
+  return !!(auth.enabled && auth.session && auth.authProfile && auth.authProfile.subscription_status === 'plus');
+}
+function UpsellCard({
+  title,
+  desc,
+  go
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 18,
+      textAlign: 'center',
+      margin: '20px 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22
+    }
+  }, "✦"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 15,
+      color: 'var(--navy)',
+      marginTop: 6
+    }
+  }, title || 'Esto es parte de Renacer Plus'), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: 'var(--text-secondary)',
+      lineHeight: 1.6,
+      margin: '8px 0 14px'
+    }
+  }, desc || 'Desbloquea esta herramienta y todo lo demás de Renacer Plus.'), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 13
+    },
+    onClick: () => go('subscribe')
+  }, "Conocer Renacer Plus"));
+}
+function PlusGate({
+  title,
+  desc,
+  go,
+  children
+}) {
+  const isPlus = useIsPlus();
+  if (isPlus) return children;
+  return /*#__PURE__*/React.createElement(UpsellCard, {
+    title: title,
+    desc: desc,
+    go: go
+  });
 }
 
 /* ============================= UI PRIMITIVES ============================= */
@@ -1839,11 +1915,15 @@ function Home({
   const {
     state
   } = useApp();
+  const isPlus = useIsPlus();
   const last = state.diagnostics[state.diagnostics.length - 1];
   const doneCount = Object.keys(state.moduleProgress).filter(k => state.moduleProgress[k]?.completed).length;
   const lowestArea = last ? AREAS.slice().sort((a, b) => last.scores[a.key] - last.scores[b.key])[0] : null;
   const planCompleted = Object.keys(state.planDone).length >= 30;
   const [showContinuo, setShowContinuo] = useState(false);
+  const openContinuo = () => {
+    if (isPlus) setShowContinuo(true);else go('subscribe');
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement("div", {
@@ -1916,7 +1996,7 @@ function Home({
       padding: '12px 20px 0'
     }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowContinuo(true),
+    onClick: openContinuo,
     className: "card",
     style: {
       width: '100%',
@@ -1932,7 +2012,7 @@ function Home({
       color: 'var(--blue-dark)',
       fontSize: 14
     }
-  }, planCompleted ? 'Tu renacer continúa ✦' : 'Sigue escribiendo tu historia'), /*#__PURE__*/React.createElement("div", {
+  }, planCompleted ? 'Tu renacer continúa ✦' : 'Sigue escribiendo tu historia', !isPlus && ' · Plus'), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: 'var(--text-secondary)',
@@ -2281,6 +2361,28 @@ function Plan30({
   } = useApp();
   const [openDay, setOpenDay] = useState(null);
   const weeks = [1, 2, 3, 4, 5];
+  const isPlus = useIsPlus();
+  if (!isPlus) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in"
+    }, /*#__PURE__*/React.createElement(TopBar, {
+      title: "Plan de 30 días",
+      onBack: back
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 20
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14.5,
+        lineHeight: 1.7
+      }
+    }, "El plan guiado de 30 días es parte de Renacer Plus."), /*#__PURE__*/React.createElement(UpsellCard, {
+      go: go,
+      title: "Plan de 30 días",
+      desc: "30 experiencias breves y guiadas para transformar el método en práctica diaria, con seguimiento de tu avance."
+    })));
+  }
   if (!state.planStart) {
     return /*#__PURE__*/React.createElement("div", {
       className: "scroll-area fade-in"
@@ -2521,10 +2623,43 @@ function ToolsHome({
     }
   }, t.desc))))));
 }
+const PLUS_ONLY_TOOLS = {
+  ancla: {
+    title: 'Fórmula A.N.C.L.A.',
+    desc: 'Diseña y da seguimiento a tus hábitos ancla en tu nuevo entorno.'
+  },
+  circulos: {
+    title: 'Tres Círculos',
+    desc: 'Mapea tu red de conexión y pertenencia.'
+  },
+  brujula: {
+    title: 'Brújula V.I.D.A.',
+    desc: 'Valores, intención, decisión y acción para una vida con sentido.'
+  }
+};
 function ToolScreen({
   id,
+  go,
   back
 }) {
+  const isPlus = useIsPlus();
+  if (PLUS_ONLY_TOOLS[id] && !isPlus) {
+    const info = PLUS_ONLY_TOOLS[id];
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in"
+    }, /*#__PURE__*/React.createElement(TopBar, {
+      title: info.title,
+      onBack: back
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 20
+      }
+    }, /*#__PURE__*/React.createElement(UpsellCard, {
+      go: go,
+      title: info.title,
+      desc: info.desc
+    })));
+  }
   if (id === 'aca') return /*#__PURE__*/React.createElement(BreathingTool, {
     back: back
   });
@@ -3521,14 +3656,19 @@ function MoodSparkline({
 
 /* ============================= DIARIO ============================= */
 function Journal({
+  go,
   back
 }) {
   const {
     state,
     setState
   } = useApp();
+  const isPlus = useIsPlus();
   const [filter, setFilter] = useState('todos');
   const [showContinuo, setShowContinuo] = useState(false);
+  const openContinuo = () => {
+    if (isPlus) setShowContinuo(true);else go('subscribe');
+  };
   const TYPE_LABELS = {
     todos: 'Todos',
     continuo: 'Seguimiento',
@@ -3566,14 +3706,14 @@ function Journal({
       padding: '12px 16px'
     }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowContinuo(true),
+    onClick: openContinuo,
     className: "btn-primary",
     style: {
       width: '100%',
       padding: 14,
       marginBottom: 12
     }
-  }, "✎ Escribir hoy"), /*#__PURE__*/React.createElement("div", {
+  }, "✎ Escribir hoy", !isPlus && ' (Plus)'), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
       color: 'var(--text-muted)',
@@ -4275,9 +4415,441 @@ function WorldMap({
   })))))));
 }
 
+/* ============================= SUSCRIPCIÓN RENACER PLUS ============================= */
+function WompiCardForm({
+  plan,
+  auth
+}) {
+  const [acceptance, setAcceptance] = useState(null);
+  const [form, setForm] = useState({
+    number: '',
+    holder: '',
+    expMonth: '',
+    expYear: '',
+    cvc: ''
+  });
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState('');
+  useEffect(() => {
+    fetch(`${WOMPI_API_BASE}/merchants/${WOMPI_PUBLIC_KEY}`).then(r => r.json()).then(data => {
+      setAcceptance({
+        acceptanceToken: data.data && data.data.presigned_acceptance && data.data.presigned_acceptance.acceptance_token,
+        acceptPersonalAuth: data.data && data.data.presigned_personal_data_auth && data.data.presigned_personal_data_auth.acceptance_token
+      });
+    }).catch(() => setStatus('No pudimos conectar con Wompi. Intenta de nuevo más tarde.'));
+  }, []);
+  const submit = async () => {
+    if (!form.number || !form.holder || !form.expMonth || !form.expYear || !form.cvc) {
+      setStatus('Completa todos los campos de la tarjeta.');
+      return;
+    }
+    if (!acceptance || !acceptance.acceptanceToken) {
+      setStatus('Espera un momento e intenta de nuevo.');
+      return;
+    }
+    setBusy(true);
+    setStatus('Procesando...');
+    try {
+      const tokenRes = await fetch(`${WOMPI_API_BASE}/tokens/cards`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${WOMPI_PUBLIC_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          number: form.number.replace(/\s+/g, ''),
+          cvc: form.cvc,
+          exp_month: form.expMonth,
+          exp_year: form.expYear,
+          card_holder: form.holder
+        })
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenRes.ok || !tokenData.data || !tokenData.data.id) {
+        setStatus('No pudimos validar la tarjeta: ' + (tokenData.error && tokenData.error.reason || 'revisa los datos.'));
+        setBusy(false);
+        return;
+      }
+      const amountInCents = (plan === 'monthly' ? WOMPI_PRICE_MONTHLY_COP : WOMPI_PRICE_ANNUAL_COP) * 100;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/wompi-charge-initial`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.session.access_token}`
+        },
+        body: JSON.stringify({
+          cardToken: tokenData.data.id,
+          customerEmail: auth.session.user.email,
+          acceptanceToken: acceptance.acceptanceToken,
+          acceptPersonalAuth: acceptance.acceptPersonalAuth,
+          plan,
+          amountInCents
+        })
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        setStatus('Hubo un problema: ' + (json.error || 'intenta de nuevo.'));
+        setBusy(false);
+        return;
+      }
+      setStatus('Confirmando tu pago...');
+      let tries = 0;
+      const poll = setInterval(async () => {
+        tries++;
+        await auth.refreshProfile(auth.session.user.id);
+        if (auth.authProfile && auth.authProfile.subscription_status === 'plus') {
+          clearInterval(poll);
+          setStatus('¡Listo! Ya tienes Renacer Plus 🎉');
+          setBusy(false);
+        } else if (tries > 8) {
+          clearInterval(poll);
+          setStatus('Tu pago está siendo procesado — puede tardar unos minutos. Vuelve a revisar tu Perfil en breve.');
+          setBusy(false);
+        }
+      }, 3000);
+    } catch (e) {
+      setStatus('No pudimos procesar el pago. Intenta de nuevo.');
+      setBusy(false);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement(MiniField, {
+    label: "Número de tarjeta",
+    value: form.number,
+    onChange: v => setForm({
+      ...form,
+      number: v
+    })
+  }), /*#__PURE__*/React.createElement(MiniField, {
+    label: "Nombre del titular",
+    value: form.holder,
+    onChange: v => setForm({
+      ...form,
+      holder: v
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement(MiniField, {
+    label: "Mes (MM)",
+    value: form.expMonth,
+    onChange: v => setForm({
+      ...form,
+      expMonth: v
+    })
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement(MiniField, {
+    label: "Año (YY)",
+    value: form.expYear,
+    onChange: v => setForm({
+      ...form,
+      expYear: v
+    })
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement(MiniField, {
+    label: "CVC",
+    value: form.cvc,
+    onChange: v => setForm({
+      ...form,
+      cvc: v
+    })
+  }))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 10.5,
+      color: 'var(--text-muted)',
+      lineHeight: 1.5
+    }
+  }, "Al continuar aceptas los términos y la autorización de datos personales de Wompi."), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 13,
+      marginTop: 6
+    },
+    disabled: busy,
+    onClick: submit
+  }, busy ? 'Procesando...' : 'Pagar y activar Renacer Plus'), status && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--rose)',
+      textAlign: 'center',
+      marginTop: 10
+    }
+  }, status));
+}
+function Subscribe({
+  back
+}) {
+  const auth = useAuth();
+  const isPlus = useIsPlus();
+  const [sdkReady, setSdkReady] = useState(false);
+  const [plan, setPlan] = useState('monthly');
+  const [provider, setProvider] = useState(PAYPAL_ENABLED ? 'paypal' : 'wompi');
+  const [status, setStatus] = useState('');
+  const [showAuth, setShowAuth] = useState(false);
+  useEffect(() => {
+    if (!PAYPAL_ENABLED || !auth.session || provider !== 'paypal') return;
+    if (window.paypal) {
+      setSdkReady(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&vault=true&intent=subscription`;
+    script.onload = () => setSdkReady(true);
+    script.onerror = () => setStatus('No pudimos cargar PayPal. Revisa tu conexión e intenta de nuevo.');
+    document.body.appendChild(script);
+  }, [auth.session, provider]);
+  useEffect(() => {
+    if (!sdkReady || !window.paypal || !auth.session || provider !== 'paypal') return;
+    const containerId = 'paypal-button-container';
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '';
+    window.paypal.Buttons({
+      style: {
+        shape: 'pill',
+        color: 'gold',
+        layout: 'vertical',
+        label: 'subscribe'
+      },
+      createSubscription: function (data, actions) {
+        const planId = plan === 'monthly' ? PAYPAL_PLAN_MONTHLY : PAYPAL_PLAN_ANNUAL;
+        return actions.subscription.create({
+          plan_id: planId
+        });
+      },
+      onApprove: async function (data) {
+        setStatus('Verificando tu suscripción...');
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-subscription`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${auth.session.access_token}`
+            },
+            body: JSON.stringify({
+              subscriptionID: data.subscriptionID
+            })
+          });
+          const json = await res.json();
+          if (json.ok) {
+            setStatus('¡Listo! Ya tienes Renacer Plus 🎉');
+            auth.refreshProfile(auth.session.user.id);
+          } else {
+            setStatus('Hubo un problema confirmando tu pago: ' + (json.error || 'intenta de nuevo o escríbenos.'));
+          }
+        } catch (e) {
+          setStatus('El pago pudo haberse realizado, pero no logramos confirmarlo aquí. Escríbenos si el cobro sí aparece en tu cuenta de PayPal.');
+        }
+      },
+      onError: function () {
+        setStatus('Ocurrió un error con PayPal. Intenta de nuevo.');
+      }
+    }).render(`#${containerId}`);
+  }, [sdkReady, plan, auth.session, provider]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Renacer Plus",
+    onBack: back
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, isPlus ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 20,
+      textAlign: 'center',
+      background: 'var(--gold-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24
+    }
+  }, "✦"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 16,
+      marginTop: 8,
+      color: 'var(--navy)'
+    }
+  }, "Ya eres parte de Renacer Plus"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: 'var(--text-secondary)',
+      marginTop: 6
+    }
+  }, "Gracias por sostener este proyecto. Tienes acceso al plan de 30 días, las herramientas avanzadas, el seguimiento continuo y la sincronización en la nube.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-secondary)',
+      lineHeight: 1.6
+    }
+  }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis siempre serán gratuitos. Renacer Plus añade el plan guiado de 30 días, las herramientas avanzadas (A.N.C.L.A., Tres Círculos, Brújula V.I.D.A.), el seguimiento continuo con gráfico de ánimo, y la sincronización de tu progreso entre dispositivos."), PAYPAL_ENABLED && WOMPI_ENABLED && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      margin: '14px 0 4px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setProvider('paypal'),
+    className: "pill",
+    style: {
+      flex: 1,
+      padding: '10px 0',
+      border: '1px solid var(--baseline)',
+      background: provider === 'paypal' ? 'var(--rose)' : '#fff',
+      color: provider === 'paypal' ? '#fff' : 'var(--text-secondary)',
+      cursor: 'pointer'
+    }
+  }, "PayPal"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setProvider('wompi'),
+    className: "pill",
+    style: {
+      flex: 1,
+      padding: '10px 0',
+      border: '1px solid var(--baseline)',
+      background: provider === 'wompi' ? 'var(--rose)' : '#fff',
+      color: provider === 'wompi' ? '#fff' : 'var(--text-secondary)',
+      cursor: 'pointer'
+    }
+  }, "Tarjeta (Wompi)")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      margin: '16px 0'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPlan('monthly'),
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 16,
+      textAlign: 'center',
+      cursor: 'pointer',
+      border: plan === 'monthly' ? '2px solid var(--blue)' : '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, "Mensual"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: 'var(--blue)',
+      margin: '4px 0'
+    }
+  }, provider === 'wompi' ? `${WOMPI_PRICE_MONTHLY_COP.toLocaleString('es-CO')}` : '$4.99'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text-muted)'
+    }
+  }, provider === 'wompi' ? 'COP / mes' : 'USD / mes')), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPlan('annual'),
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 16,
+      textAlign: 'center',
+      cursor: 'pointer',
+      border: plan === 'annual' ? '2px solid var(--blue)' : '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14
+    }
+  }, "Anual"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: 'var(--blue)',
+      margin: '4px 0'
+    }
+  }, provider === 'wompi' ? `${WOMPI_PRICE_ANNUAL_COP.toLocaleString('es-CO')}` : '$39.99'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text-muted)'
+    }
+  }, provider === 'wompi' ? 'COP / año · ahorras ~33%' : 'USD / año · ahorras ~33%'))), !auth.enabled || !PAYPAL_ENABLED && !WOMPI_ENABLED ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      textAlign: 'center',
+      color: 'var(--text-muted)',
+      fontSize: 13.5
+    }
+  }, "El pago estará disponible muy pronto.") : !auth.session ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowAuth(true),
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 14
+    }
+  }, "Crea tu cuenta para suscribirte") : provider === 'wompi' ? WOMPI_ENABLED ? /*#__PURE__*/React.createElement(WompiCardForm, {
+    plan: plan,
+    auth: auth
+  }) : /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      textAlign: 'center',
+      color: 'var(--text-muted)',
+      fontSize: 13.5
+    }
+  }, "El pago con tarjeta estará disponible muy pronto.") : PAYPAL_ENABLED ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    id: "paypal-button-container"
+  }), !sdkReady && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      color: 'var(--text-muted)',
+      fontSize: 13,
+      padding: 10
+    }
+  }, "Cargando PayPal...")) : /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      textAlign: 'center',
+      color: 'var(--text-muted)',
+      fontSize: 13.5
+    }
+  }, "El pago con PayPal estará disponible muy pronto."), status && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--rose)',
+      textAlign: 'center',
+      marginTop: 12
+    }
+  }, status))), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
+    onClose: () => setShowAuth(false)
+  }));
+}
+
 /* ============================= PERFIL ============================= */
 function Profile({
-  back
+  back,
+  go
 }) {
   const {
     state,
@@ -4468,14 +5040,21 @@ function Profile({
       fontSize: 13.5,
       color: 'var(--navy)'
     }
-  }, "✦ Renacer Plus (próximamente)"), /*#__PURE__*/React.createElement("p", {
+  }, "✦ ", isPlus ? 'Eres parte de Renacer Plus' : 'Renacer Plus'), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 12,
       color: 'var(--text-secondary)',
       lineHeight: 1.6,
-      margin: '6px 0 0'
+      margin: '6px 0 10px'
     }
-  }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis (Pausa A.C.A., Método 3R y el directorio de ayuda) siempre serán gratuitos. Renacer Plus añadirá el plan guiado de 30 días, las herramientas avanzadas, el seguimiento continuo con gráfico de ánimo y la sincronización entre dispositivos — con suscripción mensual o anual."))), /*#__PURE__*/React.createElement("div", {
+  }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis (Pausa A.C.A., Método 3R y el directorio de ayuda) siempre serán gratuitos.", isPlus ? ' Gracias por sostener este proyecto con tu suscripción.' : ' Renacer Plus incluye el plan guiado de 30 días, las herramientas avanzadas, el seguimiento continuo con gráfico de ánimo y la sincronización entre dispositivos.'), !isPlus && /*#__PURE__*/React.createElement("button", {
+    onClick: () => go('subscribe'),
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 12
+    }
+  }, "Conocer Renacer Plus"))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 28
     }
@@ -4619,6 +5198,7 @@ function Shell() {
     go: go
   });else if (screen === 'tool') content = /*#__PURE__*/React.createElement(ToolScreen, {
     id: param,
+    go: go,
     back: () => backTo(param === 'sos' ? 'home' : 'tools')
   });else if (screen === 'community') content = /*#__PURE__*/React.createElement(Community, {
     go: go,
@@ -4626,17 +5206,21 @@ function Shell() {
   });else if (screen === 'worldmap') content = /*#__PURE__*/React.createElement(WorldMap, {
     back: () => backTo('community')
   });else if (screen === 'journal') content = /*#__PURE__*/React.createElement(Journal, {
+    go: go,
     back: () => backTo('home')
   });else if (screen === 'progress') content = /*#__PURE__*/React.createElement(Progress, {
     back: () => backTo('home'),
     go: go
   });else if (screen === 'profile') content = /*#__PURE__*/React.createElement(Profile, {
-    back: () => backTo('home')
+    back: () => backTo('home'),
+    go: go
+  });else if (screen === 'subscribe') content = /*#__PURE__*/React.createElement(Subscribe, {
+    back: () => backTo('profile')
   });else content = /*#__PURE__*/React.createElement(Home, {
     go: go
   });
   const mainTabs = ['home', 'modules', 'plan', 'tools', 'community', 'journal'];
-  const activeTab = mainTabs.includes(screen) ? screen : screen === 'progress' || screen === 'profile' ? screen : screen === 'moduleDetail' ? 'modules' : screen === 'tool' && param !== 'sos' ? 'tools' : screen === 'worldmap' ? 'community' : 'home';
+  const activeTab = mainTabs.includes(screen) ? screen : screen === 'progress' || screen === 'profile' || screen === 'subscribe' ? 'profile' : screen === 'moduleDetail' ? 'modules' : screen === 'tool' && param !== 'sos' ? 'tools' : screen === 'worldmap' ? 'community' : 'home';
   return /*#__PURE__*/React.createElement("div", {
     className: "phone"
   }, content, /*#__PURE__*/React.createElement("div", {
