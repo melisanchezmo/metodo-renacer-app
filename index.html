@@ -37,15 +37,15 @@ window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 128000;
 </script>
 <style>
   :root{
-    /* Paleta basada en la portada del libro: pergamino cálido, verde bosque, dorado */
+    /* Paleta basada en la portada del libro (pergamino cálido) con acentos vibrantes inspirados en el arcoíris, las alas y las nubes de atardecer */
     --surface-1:#fbf6ea; --page:#f1e8d3;
     --text-primary:#26332b; --text-secondary:#5c5748; --text-muted:#948c76;
     --grid:#e3d8bd; --baseline:#d8c9a3; --border:rgba(38,45,33,0.14);
-    --blue:#146b45; --blue-dark:#1d4d38;
-    --rose:#a35a3a; --rose-soft:#f3e2d5;
-    --gold:#b8873a; --gold-soft:#f6ecd2;
-    --aqua:#4f7a5a; --aqua-soft:#e6ede1;
-    --orange:#c99a3f;
+    --blue:#0c7a6e; --blue-dark:#095c54;
+    --rose:#c22e76; --rose-soft:#fce6f1;
+    --gold:#f2a93c; --gold-soft:#fdf1d9; --gold-dark:#b8730f;
+    --aqua:#0f7d4f; --aqua-soft:#e2f5e8;
+    --orange:#e8763a;
     --good:#0ca30c; --critical:#c0392b;
     --navy:#26392f;
     --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
@@ -477,7 +477,7 @@ const MODULES = [{
   id: 'R1',
   letter: 'R',
   order: 1,
-  color: '#2f4a3b',
+  color: '#d43e5c',
   title: 'Reconoce tu duelo migratorio',
   subtitle: 'Lo que dejaste también necesita ser llorado',
   story: {
@@ -492,7 +492,7 @@ const MODULES = [{
   id: 'E1',
   letter: 'E',
   order: 2,
-  color: '#6f8a68',
+  color: '#b85a17',
   title: 'Estabiliza tu sistema nervioso',
   subtitle: 'Cuando tu cuerpo vive en alerta',
   story: {
@@ -511,7 +511,7 @@ const MODULES = [{
   id: 'N1',
   letter: 'N',
   order: 3,
-  color: '#a3603f',
+  color: '#a86f0a',
   title: 'Nombra tu nueva identidad',
   subtitle: 'Ya no eres la misma, y eso no significa que te hayas perdido',
   story: {
@@ -530,7 +530,7 @@ const MODULES = [{
   id: 'A1',
   letter: 'A',
   order: 4,
-  color: '#b8873a',
+  color: '#238a5a',
   title: 'Ancla hábitos en tu nuevo entorno',
   subtitle: 'Pequeñas rutinas para sostenerte cuando todo cambió',
   story: {
@@ -549,7 +549,7 @@ const MODULES = [{
   id: 'C1',
   letter: 'C',
   order: 5,
-  color: '#7c7a4a',
+  color: '#0c8078',
   title: 'Crea conexión y pertenencia',
   subtitle: 'No estás hecha para reconstruirte en soledad',
   story: {
@@ -568,7 +568,7 @@ const MODULES = [{
   id: 'E2',
   letter: 'E',
   order: 6,
-  color: '#c07a42',
+  color: '#3a63c2',
   title: 'Elige una vida con sentido',
   subtitle: 'No viniste solo a sobrevivir',
   story: {
@@ -587,7 +587,7 @@ const MODULES = [{
   id: 'R2',
   letter: 'R',
   order: 7,
-  color: '#35502e',
+  color: '#7147ac',
   title: 'Revisa, repara y reinicia',
   subtitle: 'Cuando vuelvas a sentirte perdida',
   story: {
@@ -1325,25 +1325,25 @@ function LeafCorner({
     strokeLinecap: "round"
   }, /*#__PURE__*/React.createElement("path", {
     d: "M4 4 C 30 8, 46 22, 52 46",
-    stroke: "#6f8a68",
+    stroke: "#238a5a",
     strokeWidth: "1.6"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M10 8 C18 18, 20 28, 16 34 C10 28, 8 16, 10 8 Z",
-    fill: "#7c8a6c",
+    fill: "#4dae7e",
     opacity: "0.55"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M22 16 C30 24, 33 33, 29 40 C22 34, 19 23, 22 16 Z",
-    fill: "#6f8a68",
+    fill: "#238a5a",
     opacity: "0.5"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M36 30 C43 37, 46 45, 42 51 C35 46, 33 36, 36 30 Z",
-    fill: "#8a9a72",
+    fill: "#63c08a",
     opacity: "0.45"
   }), /*#__PURE__*/React.createElement("circle", {
     cx: "50",
     cy: "45",
     r: "2",
-    fill: "#b8873a",
+    fill: "#f2a93c",
     opacity: "0.7"
   })));
 }
@@ -1975,7 +1975,7 @@ function Home({
   }, last && /*#__PURE__*/React.createElement(RadarChart, {
     size: 220,
     series: [{
-      color: '#146b45',
+      color: '#0c7a6e',
       values: last.scores
     }]
   }), /*#__PURE__*/React.createElement("div", {
@@ -2558,27 +2558,27 @@ function ToolsHome({
     id: 'aca',
     name: 'Pausa A.C.A.',
     desc: 'Respiración y regulación para momentos de alerta',
-    color: '#6f8a68'
+    color: '#238a5a'
   }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
-    color: '#b8873a'
+    color: '#f2a93c'
   }, {
     id: 'circulos',
     name: 'Tres Círculos',
     desc: 'Mapa de conexión y pertenencia',
-    color: '#7c7a4a'
+    color: '#0c8078'
   }, {
     id: 'brujula',
     name: 'Brújula V.I.D.A.',
     desc: 'Valores, intención, decisión, acción',
-    color: '#c07a42'
+    color: '#b85a17'
   }, {
     id: '3r',
     name: 'Método 3R',
     desc: 'Revisa, repara y reinicia en días difíciles',
-    color: '#35502e'
+    color: '#1f8a5c'
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
@@ -3069,8 +3069,8 @@ function CirclesTool({
     porConstruir: 'Círculo por construir'
   };
   const colors = {
-    seguro: '#4f7a5a',
-    posible: '#b8873a',
+    seguro: '#1f8a5c',
+    posible: '#a86f0a',
     porConstruir: '#948c76'
   };
   const addTo = key => {
@@ -3897,13 +3897,13 @@ function Progress({
   }, /*#__PURE__*/React.createElement(RadarChart, {
     size: 240,
     series: first && first.id !== last.id ? [{
-      color: '#c99a3f',
+      color: '#f2a93c',
       values: first.scores
     }, {
-      color: '#146b45',
+      color: '#0c7a6e',
       values: last.scores
     }] : [{
-      color: '#146b45',
+      color: '#0c7a6e',
       values: last.scores
     }]
   }), first && first.id !== last.id && /*#__PURE__*/React.createElement("div", {
@@ -3920,7 +3920,7 @@ function Progress({
       width: 8,
       height: 8,
       borderRadius: 99,
-      background: '#c99a3f',
+      background: '#f2a93c',
       marginRight: 4
     }
   }), "Primera vez (", fmtDate(first.date), ")"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
@@ -3929,7 +3929,7 @@ function Progress({
       width: 8,
       height: 8,
       borderRadius: 99,
-      background: '#146b45',
+      background: '#0c7a6e',
       marginRight: 4
     }
   }), "Ahora (", fmtDate(last.date), ")"))), /*#__PURE__*/React.createElement("button", {
@@ -5001,7 +5001,7 @@ function Profile({
   }, "Plan: ", /*#__PURE__*/React.createElement("span", {
     style: {
       fontWeight: 700,
-      color: isPlus ? 'var(--gold)' : 'var(--text-secondary)'
+      color: isPlus ? 'var(--gold-dark)' : 'var(--text-secondary)'
     }
   }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu progreso se sincroniza automáticamente."), /*#__PURE__*/React.createElement("label", {
     style: {
