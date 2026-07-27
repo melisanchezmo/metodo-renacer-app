@@ -3032,7 +3032,10 @@ function HabitTool({
 function MiniField({
   label,
   value,
-  onChange
+  onChange,
+  placeholder,
+  maxLength,
+  inputMode
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3047,6 +3050,9 @@ function MiniField({
   }, label), /*#__PURE__*/React.createElement("input", {
     value: value,
     onChange: e => onChange(e.target.value),
+    placeholder: placeholder,
+    maxLength: maxLength,
+    inputMode: inputMode,
     style: {
       width: '100%',
       padding: 10,
@@ -4457,6 +4463,11 @@ function WompiCardForm({
     setBusy(true);
     setStatus('Procesando...');
     try {
+      // Wompi espera el mes y el año de expiración en 2 dígitos (MM y YY). Normalizamos por si
+      // la persona escribió el año completo (ej. "2027" en vez de "27").
+      const expMonthClean = form.expMonth.replace(/\D/g, '').padStart(2, '0').slice(0, 2);
+      const expYearDigits = form.expYear.replace(/\D/g, '');
+      const expYearClean = expYearDigits.length > 2 ? expYearDigits.slice(-2) : expYearDigits.padStart(2, '0');
       const tokenRes = await fetch(`${WOMPI_API_BASE}/tokens/cards`, {
         method: 'POST',
         headers: {
@@ -4465,15 +4476,17 @@ function WompiCardForm({
         },
         body: JSON.stringify({
           number: form.number.replace(/\s+/g, ''),
-          cvc: form.cvc,
-          exp_month: form.expMonth,
-          exp_year: form.expYear,
+          cvc: form.cvc.replace(/\D/g, ''),
+          exp_month: expMonthClean,
+          exp_year: expYearClean,
           card_holder: form.holder
         })
       });
       const tokenData = await tokenRes.json();
       if (!tokenRes.ok || !tokenData.data || !tokenData.data.id) {
-        setStatus('No pudimos validar la tarjeta: ' + (tokenData.error && tokenData.error.reason || 'revisa los datos.'));
+        const err = tokenData.error || {};
+        const fieldMsgs = err.messages ? Object.values(err.messages).flat().join(' ') : '';
+        setStatus('No pudimos validar la tarjeta: ' + (fieldMsgs || err.reason || 'revisa los datos.'));
         setBusy(false);
         return;
       }
@@ -4530,14 +4543,18 @@ function WompiCardForm({
     onChange: v => setForm({
       ...form,
       number: v
-    })
+    }),
+    placeholder: "4242 4242 4242 4242",
+    maxLength: 19,
+    inputMode: "numeric"
   }), /*#__PURE__*/React.createElement(MiniField, {
     label: "Nombre del titular",
     value: form.holder,
     onChange: v => setForm({
       ...form,
       holder: v
-    })
+    }),
+    placeholder: "Como aparece en la tarjeta"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -4553,18 +4570,24 @@ function WompiCardForm({
     onChange: v => setForm({
       ...form,
       expMonth: v
-    })
+    }),
+    placeholder: "09",
+    maxLength: 2,
+    inputMode: "numeric"
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1
     }
   }, /*#__PURE__*/React.createElement(MiniField, {
-    label: "Año (YY)",
+    label: "Año (2 dígitos)",
     value: form.expYear,
     onChange: v => setForm({
       ...form,
       expYear: v
-    })
+    }),
+    placeholder: "27",
+    maxLength: 2,
+    inputMode: "numeric"
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1
@@ -4575,7 +4598,10 @@ function WompiCardForm({
     onChange: v => setForm({
       ...form,
       cvc: v
-    })
+    }),
+    placeholder: "123",
+    maxLength: 4,
+    inputMode: "numeric"
   }))), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 10.5,
