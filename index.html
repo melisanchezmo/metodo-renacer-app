@@ -980,7 +980,8 @@ function AuthProvider({
         data: {
           name,
           current_country: country
-        }
+        },
+        emailRedirectTo: window.location.origin + window.location.pathname
       }
     });
     if (error) setAuthError(error.message);
