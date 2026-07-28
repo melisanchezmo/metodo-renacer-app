@@ -2152,11 +2152,16 @@ function Home({
     style: {
       padding: '8px 20px'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => go('progress'),
     className: "card",
     style: {
+      width: '100%',
       padding: 16,
-      textAlign: 'center'
+      textAlign: 'center',
+      cursor: 'pointer',
+      border: '1px solid var(--border)',
+      background: '#fff'
     }
   }, last && /*#__PURE__*/React.createElement(RadarChart, {
     size: 220,
@@ -2177,7 +2182,14 @@ function Home({
       color: 'var(--rose)',
       fontWeight: 600
     }
-  }, "Hoy quizá necesite más cuidado: ", lowestArea.label))), /*#__PURE__*/React.createElement("div", {
+  }, "Hoy quizá necesite más cuidado: ", lowestArea.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      marginTop: 8,
+      color: 'var(--blue-dark)',
+      fontWeight: 700
+    }
+  }, "Ver mi progreso o repetir mi radiografía →"))), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 20px 0'
     }
@@ -5695,16 +5707,24 @@ function Shell() {
       fontWeight: 600,
       marginTop: 2
     }
-  }, t.label))), /*#__PURE__*/React.createElement("button", {
+  }, t.label))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      right: 4,
+      top: -46,
+      width: 56,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setScreen('progress');
       setParam(null);
     },
+    "aria-label": "Mi progreso",
     className: "tab-btn",
     style: {
-      position: 'absolute',
-      right: 6,
-      top: -46,
       background: 'var(--navy)',
       border: '3px solid #fff',
       borderRadius: 99,
@@ -5718,7 +5738,14 @@ function Shell() {
     style: {
       fontSize: 18
     }
-  }, "◔"))));
+  }, "◔")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9.5,
+      fontWeight: 600,
+      marginTop: 2,
+      color: screen === 'progress' ? 'var(--rose)' : 'var(--text-muted)'
+    }
+  }, "Progreso"))));
 }
 
 /* ============================= ROOT ============================= */
