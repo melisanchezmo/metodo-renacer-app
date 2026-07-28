@@ -4400,16 +4400,36 @@ function Community({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Comunidad",
     onBack: back,
-    right: /*#__PURE__*/React.createElement("button", {
-      onClick: () => go('worldmap'),
-      "aria-label": "Mapa de la comunidad",
+    right: /*#__PURE__*/React.createElement("div", {
       style: {
-        background: 'none',
-        border: 'none',
-        fontSize: 18,
-        cursor: 'pointer'
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
       }
-    }, "🌍")
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => go('worldmap'),
+      "aria-label": "Ver el mapa de la comunidad",
+      style: {
+        background: 'var(--aqua-soft)',
+        border: '1px solid var(--aqua)',
+        borderRadius: 99,
+        width: 34,
+        height: 34,
+        cursor: 'pointer',
+        fontSize: 16,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0
+      }
+    }, "🌍"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 9,
+        fontWeight: 600,
+        marginTop: 2,
+        color: 'var(--blue-dark)'
+      }
+    }, "Mapa"))
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 16
@@ -5839,17 +5859,7 @@ function Shell() {
       fontWeight: 600,
       marginTop: 2
     }
-  }, t.label))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      right: 4,
-      top: -46,
-      width: 56,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, t.label))), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setScreen('progress');
       setParam(null);
@@ -5857,6 +5867,9 @@ function Shell() {
     "aria-label": "Mi progreso",
     className: "tab-btn",
     style: {
+      position: 'absolute',
+      right: 6,
+      top: -46,
       background: 'var(--navy)',
       border: '3px solid #fff',
       borderRadius: 99,
@@ -5870,14 +5883,7 @@ function Shell() {
     style: {
       fontSize: 18
     }
-  }, "◔")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 9.5,
-      fontWeight: 600,
-      marginTop: 2,
-      color: screen === 'progress' ? 'var(--rose)' : 'var(--text-muted)'
-    }
-  }, "Progreso"))));
+  }, "◔"))));
 }
 
 /* ============================= ROOT ============================= */
