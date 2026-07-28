@@ -768,6 +768,30 @@ const WEEK_TITLES = {
   4: 'Habitar mi nueva vida con sentido',
   5: 'Integrar y continuar'
 };
+
+// Cada semana del plan usa un color distinto de la paleta de 4 colores (semana 5 = días 29-30, en blanco).
+const WEEK_COLORS = {
+  1: {
+    bg: 'var(--rose-soft)',
+    border: 'var(--rose)'
+  },
+  2: {
+    bg: 'var(--gold-soft)',
+    border: 'var(--gold)'
+  },
+  3: {
+    bg: 'var(--aqua-soft)',
+    border: 'var(--aqua)'
+  },
+  4: {
+    bg: '#f2f2e2',
+    border: 'var(--orange)'
+  },
+  5: {
+    bg: '#ffffff',
+    border: 'var(--border)'
+  }
+};
 const CRISIS_RESOURCES = [{
   country: 'Colombia',
   label: 'Línea 106',
@@ -2457,49 +2481,53 @@ function Plan30({
     style: {
       padding: 16
     }
-  }, weeks.map(w => /*#__PURE__*/React.createElement("div", {
-    key: w,
-    style: {
-      marginBottom: 18
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 13.5,
-      color: 'var(--rose)',
-      margin: '6px 0'
-    }
-  }, w === 5 ? 'Días 29-30' : `Semana ${w}`, " · ", WEEK_TITLES[w]), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(64px,1fr))',
-      gap: 8
-    }
-  }, PLAN_30.filter(p => p.w === w).map(p => {
-    const done = state.planDone[p.d];
-    return /*#__PURE__*/React.createElement("button", {
-      key: p.d,
-      onClick: () => setOpenDay(p),
-      className: "card",
+  }, weeks.map(w => {
+    // Cada semana tiene su propio color de la paleta: 1 lila, 2 amarillo, 3 azul, 4 verde/oliva, 5 (días 29-30) blanco.
+    const weekColor = WEEK_COLORS[w] || WEEK_COLORS[5];
+    return /*#__PURE__*/React.createElement("div", {
+      key: w,
       style: {
-        padding: '10px 4px',
-        textAlign: 'center',
-        cursor: 'pointer',
-        background: done ? 'var(--aqua-soft)' : '#fff',
-        border: done ? '1px solid var(--aqua)' : '1px solid var(--border)'
+        marginBottom: 18
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
-        fontWeight: 800,
-        fontSize: 15
+        fontWeight: 700,
+        fontSize: 13.5,
+        color: 'var(--rose)',
+        margin: '6px 0'
       }
-    }, p.d), done && /*#__PURE__*/React.createElement("div", {
+    }, w === 5 ? 'Días 29-30' : `Semana ${w}`, " · ", WEEK_TITLES[w]), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 10,
-        color: 'var(--rose)'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(64px,1fr))',
+        gap: 8
       }
-    }, "✓"));
-  }))))), openDay && /*#__PURE__*/React.createElement(DayModal, {
+    }, PLAN_30.filter(p => p.w === w).map(p => {
+      const done = state.planDone[p.d];
+      return /*#__PURE__*/React.createElement("button", {
+        key: p.d,
+        onClick: () => setOpenDay(p),
+        className: "card",
+        style: {
+          padding: '10px 4px',
+          textAlign: 'center',
+          cursor: 'pointer',
+          background: weekColor.bg,
+          border: `1px solid ${done ? weekColor.border : 'var(--border)'}`
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontWeight: 800,
+          fontSize: 15
+        }
+      }, p.d), done && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 10,
+          color: 'var(--rose)'
+        }
+      }, "✓"));
+    })));
+  })), openDay && /*#__PURE__*/React.createElement(DayModal, {
     day: openDay,
     onClose: () => setOpenDay(null)
   }));
