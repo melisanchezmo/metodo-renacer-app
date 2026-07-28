@@ -4443,26 +4443,45 @@ function WompiCardForm({
   });
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
-  useEffect(() => {
-    fetch(`${WOMPI_API_BASE}/merchants/${WOMPI_PUBLIC_KEY}`).then(r => r.json()).then(data => {
-      setAcceptance({
+
+  // Los tokens de aceptación de Wompi son de un solo uso: si se reutiliza uno de un intento
+  // anterior (por ejemplo al reintentar sin recargar la página), Wompi lo rechaza con
+  // "El token de aceptación ya fue usado". Por eso pedimos uno nuevo cada vez que se envía el pago,
+  // y no solo una vez al abrir el formulario.
+  const fetchAcceptance = async () => {
+    try {
+      const r = await fetch(`${WOMPI_API_BASE}/merchants/${WOMPI_PUBLIC_KEY}`);
+      const data = await r.json();
+      const fresh = {
         acceptanceToken: data.data && data.data.presigned_acceptance && data.data.presigned_acceptance.acceptance_token,
         acceptPersonalAuth: data.data && data.data.presigned_personal_data_auth && data.data.presigned_personal_data_auth.acceptance_token
-      });
-    }).catch(() => setStatus('No pudimos conectar con Wompi. Intenta de nuevo más tarde.'));
+      };
+      setAcceptance(fresh);
+      return fresh;
+    } catch (e) {
+      setStatus('No pudimos conectar con Wompi. Intenta de nuevo más tarde.');
+      return null;
+    }
+  };
+  useEffect(() => {
+    fetchAcceptance();
   }, []);
   const submit = async () => {
     if (!form.number || !form.holder || !form.expMonth || !form.expYear || !form.cvc) {
       setStatus('Completa todos los campos de la tarjeta.');
       return;
     }
-    if (!acceptance || !acceptance.acceptanceToken) {
-      setStatus('Espera un momento e intenta de nuevo.');
-      return;
-    }
     setBusy(true);
     setStatus('Procesando...');
     try {
+      // Pedimos un token de aceptación fresco justo antes de usarlo, para que los reintentos
+      // nunca reutilicen uno ya consumido.
+      const freshAcceptance = await fetchAcceptance();
+      if (!freshAcceptance || !freshAcceptance.acceptanceToken) {
+        setStatus('No pudimos conectar con Wompi. Intenta de nuevo.');
+        setBusy(false);
+        return;
+      }
       // Wompi espera el mes y el año de expiración en 2 dígitos (MM y YY). Normalizamos por si
       // la persona escribió el año completo (ej. "2027" en vez de "27").
       const expMonthClean = form.expMonth.replace(/\D/g, '').padStart(2, '0').slice(0, 2);
@@ -4500,8 +4519,8 @@ function WompiCardForm({
         body: JSON.stringify({
           cardToken: tokenData.data.id,
           customerEmail: auth.session.user.email,
-          acceptanceToken: acceptance.acceptanceToken,
-          acceptPersonalAuth: acceptance.acceptPersonalAuth,
+          acceptanceToken: freshAcceptance.acceptanceToken,
+          acceptPersonalAuth: freshAcceptance.acceptPersonalAuth,
           plan,
           amountInCents
         })
