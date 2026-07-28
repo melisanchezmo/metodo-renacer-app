@@ -4414,7 +4414,28 @@ function Community({
     style: {
       padding: 16
     }
-  }, !online && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginBottom: 14,
+      background: 'var(--rose-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      color: 'var(--rose)'
+    }
+  }, "Un espacio de contención y respeto 💛"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--text-secondary)',
+      marginTop: 4,
+      lineHeight: 1.5
+    }
+  }, "Aquí nos acompañamos entre todas: compartimos nuestro proceso y el de las demás, tanto en los días difíciles como cuando las cosas van mejor. Responde con cariño a quien comenta — este espacio se sostiene entre todas.")), !online && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 12,
@@ -4551,6 +4572,9 @@ function RealPostCard({
   const [comment, setComment] = useState('');
   const [risk, setRisk] = useState(false);
   const [showBox, setShowBox] = useState(false);
+  const [confirmDeletePost, setConfirmDeletePost] = useState(false);
+  const [confirmDeleteComment, setConfirmDeleteComment] = useState(null); // id del comentario o null
+  const isAdmin = auth.authProfile?.is_admin === true;
   const comments = (post.community_comments || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   const sendComment = async () => {
     if (!comment.trim()) return;
@@ -4567,6 +4591,16 @@ function RealPostCard({
     });
     setComment('');
     setShowBox(false);
+    onChanged();
+  };
+  const deletePost = async () => {
+    await sbClient.from('community_posts').delete().eq('id', post.id);
+    setConfirmDeletePost(false);
+    onChanged();
+  };
+  const deleteComment = async () => {
+    await sbClient.from('community_comments').delete().eq('id', confirmDeleteComment);
+    setConfirmDeleteComment(null);
     onChanged();
   };
   return /*#__PURE__*/React.createElement("div", {
@@ -4593,11 +4627,30 @@ function RealPostCard({
     }
   }, post.country || '')), /*#__PURE__*/React.createElement("div", {
     style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontWeight: 700,
       fontSize: 13,
       marginTop: 6
     }
-  }, post.author_label), /*#__PURE__*/React.createElement("div", {
+  }, post.author_label), isAdmin && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmDeletePost(true),
+    "aria-label": "Eliminar publicación",
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--critical)',
+      fontSize: 12,
+      cursor: 'pointer',
+      padding: 0,
+      marginTop: 6
+    }
+  }, "🗑")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13.5,
       marginTop: 2
@@ -4605,12 +4658,31 @@ function RealPostCard({
   }, post.text), comments.map(c => /*#__PURE__*/React.createElement("div", {
     key: c.id,
     style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 8,
       marginTop: 8,
       paddingLeft: 12,
-      borderLeft: '2px solid var(--grid)',
+      borderLeft: '2px solid var(--grid)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontSize: 12.5
     }
-  }, /*#__PURE__*/React.createElement("b", null, c.author_label, ":"), " ", c.text)), !showBox ? /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("b", null, c.author_label, ":"), " ", c.text), isAdmin && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmDeleteComment(c.id),
+    "aria-label": "Eliminar comentario",
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--critical)',
+      fontSize: 11.5,
+      cursor: 'pointer',
+      padding: 0,
+      flexShrink: 0
+    }
+  }, "🗑"))), !showBox ? /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowBox(true),
     style: {
       background: 'none',
@@ -4647,7 +4719,67 @@ function RealPostCard({
     }
   }, "Enviar")), risk && /*#__PURE__*/React.createElement(RiskModal, {
     onClose: () => setRisk(false)
-  }));
+  }), confirmDeletePost && /*#__PURE__*/React.createElement(Modal, {
+    onClose: () => setConfirmDeletePost(false)
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "¿Eliminar esta publicación?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--text-secondary)'
+    }
+  }, "Esto borrará la publicación y sus comentarios de forma permanente para todas las personas de la comunidad."), /*#__PURE__*/React.createElement("button", {
+    onClick: deletePost,
+    style: {
+      width: '100%',
+      padding: 14,
+      background: 'var(--critical)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 14,
+      fontWeight: 600,
+      marginBottom: 8
+    }
+  }, "Sí, eliminar"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmDeletePost(false),
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 14
+    }
+  }, "Cancelar")), confirmDeleteComment && /*#__PURE__*/React.createElement(Modal, {
+    onClose: () => setConfirmDeleteComment(null)
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "¿Eliminar este comentario?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--text-secondary)'
+    }
+  }, "Esto lo borrará de forma permanente para todas las personas de la comunidad."), /*#__PURE__*/React.createElement("button", {
+    onClick: deleteComment,
+    style: {
+      width: '100%',
+      padding: 14,
+      background: 'var(--critical)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 14,
+      fontWeight: 600,
+      marginBottom: 8
+    }
+  }, "Sí, eliminar"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmDeleteComment(null),
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 14
+    }
+  }, "Cancelar")));
 }
 
 /* ============================= MAPA MUNDIAL (agregado por país) ============================= */
