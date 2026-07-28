@@ -46,7 +46,7 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
     --rose:#986FA1; --rose-soft:#f1e9f4;
     --gold:#ECC676; --gold-soft:#fbf1de; --gold-dark:#a9791c;
     --aqua:#A4BED7; --aqua-soft:#eef4f9;
-    --orange:#9A9B43;
+    --orange:#9A9B43; --orange-soft:#eaeddd;
     --good:#0ca30c; --critical:#c0392b;
     --navy:#26392f;
     --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
@@ -2264,63 +2264,99 @@ function Home({
     onClick: () => go('modules'),
     className: "card",
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
       padding: 14,
       textAlign: 'left',
       cursor: 'pointer',
-      background: 'var(--orange)'
+      background: 'var(--orange-soft)',
+      border: '1px solid var(--orange)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      width: 10,
+      height: 10,
+      borderRadius: 99,
+      background: 'var(--orange)',
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontWeight: 700,
       fontSize: 14,
-      color: '#26332b'
+      color: 'var(--navy)'
     }
   }, "Módulos R·E·N·A·C·E·R"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
-      color: 'rgba(38,51,43,0.72)'
+      color: 'var(--text-secondary)'
     }
-  }, doneCount, " de 7 completados")), /*#__PURE__*/React.createElement("button", {
+  }, doneCount, " de 7 completados"))), /*#__PURE__*/React.createElement("button", {
     onClick: () => go('plan'),
     className: "card",
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
       padding: 14,
       textAlign: 'left',
       cursor: 'pointer',
-      background: 'var(--aqua)'
+      background: 'var(--aqua-soft)',
+      border: '1px solid var(--aqua)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      width: 10,
+      height: 10,
+      borderRadius: 99,
+      background: 'var(--aqua)',
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontWeight: 700,
       fontSize: 14,
-      color: '#26332b'
+      color: 'var(--navy)'
     }
   }, "Plan de 30 días"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
-      color: 'rgba(38,51,43,0.72)'
+      color: 'var(--text-secondary)'
     }
-  }, state.planStart ? `${Object.keys(state.planDone).length} de 30 días practicados` : 'Aún no lo has comenzado')), /*#__PURE__*/React.createElement("button", {
+  }, state.planStart ? `${Object.keys(state.planDone).length} de 30 días practicados` : 'Aún no lo has comenzado'))), /*#__PURE__*/React.createElement("button", {
     onClick: () => go('journal'),
     className: "card",
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
       padding: 14,
       textAlign: 'left',
       cursor: 'pointer',
-      background: 'var(--gold)'
+      background: 'var(--gold-soft)',
+      border: '1px solid var(--gold)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      width: 10,
+      height: 10,
+      borderRadius: 99,
+      background: 'var(--gold-dark)',
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontWeight: 700,
       fontSize: 14,
-      color: '#26332b'
+      color: 'var(--navy)'
     }
   }, "Mi cuaderno de trabajo"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
-      color: 'rgba(38,51,43,0.72)'
+      color: 'var(--text-secondary)'
     }
-  }, state.journal.length, " entradas guardadas")))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
+  }, state.journal.length, " entradas guardadas"))))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
   }));
 }
