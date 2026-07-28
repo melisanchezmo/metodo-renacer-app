@@ -1113,7 +1113,7 @@ function AuthModal({
       const {
         error
       } = await auth.signUp(email, password, state.profile.name, state.profile.currentCountry);
-      if (error) setNotice(error.message);else setNotice('Cuenta creada. Si tu proyecto pide confirmación por correo, revisa tu bandeja antes de iniciar sesión.');
+      if (error) setNotice(error.message);else setNotice('Cuenta creada. Revisa tu correo para confirmar tu cuenta antes de iniciar sesión (si no lo ves en tu bandeja de entrada en unos minutos, revisa también la carpeta de Spam o Correo no deseado).');
     } else {
       const {
         error
