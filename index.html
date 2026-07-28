@@ -34,6 +34,7 @@ window.__RENACER_WOMPI_PUBLIC_KEY__ = "pub_prod_cNMSeytiZTut37Y8lkjptw6i48C7RaV6
 window.__RENACER_WOMPI_API_BASE__ = "https://production.wompi.co/v1";
 window.__RENACER_WOMPI_PRICE_MONTHLY_COP__ = 16000;
 window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 128000;
+window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUcmJ3J9dzBut8q9WcNRAHRuNViKwVwgSopiT3r1NE1w-vaUQ";
 </script>
 <style>
   :root{
@@ -559,6 +560,16 @@ const WOMPI_API_BASE = window.__RENACER_WOMPI_API_BASE__ || 'https://production.
 const WOMPI_PRICE_MONTHLY_COP = Number(window.__RENACER_WOMPI_PRICE_MONTHLY_COP__) || 0;
 const WOMPI_PRICE_ANNUAL_COP = Number(window.__RENACER_WOMPI_PRICE_ANNUAL_COP__) || 0;
 const WOMPI_ENABLED = !!(WOMPI_PUBLIC_KEY && WOMPI_PRICE_MONTHLY_COP && WOMPI_PRICE_ANNUAL_COP);
+const VAPID_PUBLIC_KEY = window.__RENACER_VAPID_PUBLIC_KEY__ || '';
+// Convierte la llave pública VAPID (base64url) al formato binario que pide pushManager.subscribe().
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
 function fmtDate(iso) {
   try {
     const d = new Date(iso);
@@ -2530,6 +2541,123 @@ function ModuleDetail({
   }));
 }
 
+/* ============================= RECORDATORIOS DIARIOS (push) ============================= */
+function PlanReminderCard({
+  auth
+}) {
+  const [status, setStatus] = useState('checking'); // checking | offer | active | denied | unsupported | error
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window) || !VAPID_PUBLIC_KEY) {
+        if (!cancelled) setStatus('unsupported');
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        if (!cancelled) setStatus('denied');
+        return;
+      }
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (!cancelled) setStatus(sub ? 'active' : 'offer');
+      } catch (e) {
+        if (!cancelled) setStatus('offer');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const activar = async () => {
+    setBusy(true);
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        setStatus('denied');
+        setBusy(false);
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      const json = sub.toJSON();
+      await sbClient.from('push_subscriptions').upsert({
+        user_id: auth.session.user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth
+      }, {
+        onConflict: 'endpoint'
+      });
+      setStatus('active');
+    } catch (e) {
+      setStatus('error');
+    }
+    setBusy(false);
+  };
+  if (status === 'checking' || status === 'unsupported') return null;
+  if (status === 'active') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: '10px 14px',
+        marginBottom: 14,
+        fontSize: 12.5,
+        color: 'var(--text-secondary)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, "🔔 Recordatorios diarios activados — te avisaremos en la noche si aún no practicas el día.");
+  }
+  if (status === 'denied') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: '10px 14px',
+        marginBottom: 14,
+        fontSize: 12,
+        color: 'var(--text-muted)'
+      }
+    }, "Los recordatorios están bloqueados en este navegador. Puedes activarlos desde los permisos de notificaciones del sitio, en la configuración de tu navegador.");
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 13.5,
+      marginBottom: 4
+    }
+  }, "🔔 Recibe un recordatorio diario"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--text-secondary)',
+      margin: '0 0 10px'
+    }
+  }, "Te avisamos en la noche solo si todavía no has practicado el día — nada más."), /*#__PURE__*/React.createElement("button", {
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 10,
+      fontSize: 13
+    },
+    disabled: busy,
+    onClick: activar
+  }, busy ? 'Activando...' : status === 'error' ? 'Intentar de nuevo' : 'Activar recordatorios'));
+}
+
 /* ============================= PLAN 30 DIAS ============================= */
 function Plan30({
   go,
@@ -2540,6 +2668,7 @@ function Plan30({
     update,
     addJournalEntry
   } = useApp();
+  const auth = useAuth();
   const [openDay, setOpenDay] = useState(null);
   const weeks = [1, 2, 3, 4, 5];
   const isPlus = useIsPlus();
@@ -2592,9 +2721,16 @@ function Plan30({
         width: '100%',
         padding: 16
       },
-      onClick: () => update({
-        planStart: nowISO()
-      })
+      onClick: () => {
+        const startIso = nowISO();
+        update({
+          planStart: startIso
+        });
+        if (auth.enabled && auth.session) auth.updateAuthProfile({
+          plan_start_date: startIso,
+          plan_done_days: []
+        });
+      }
     }, "Comenzar mi plan de 30 días")));
   }
   return /*#__PURE__*/React.createElement("div", {
@@ -2606,7 +2742,9 @@ function Plan30({
     style: {
       padding: 16
     }
-  }, weeks.map(w => {
+  }, auth.enabled && auth.session && Object.keys(state.planDone).length < 30 && /*#__PURE__*/React.createElement(PlanReminderCard, {
+    auth: auth
+  }), weeks.map(w => {
     // Cada semana tiene su propio color de la paleta: 1 lila, 2 amarillo, 3 azul, 4 verde/oliva, 5 (días 29-30) blanco.
     const weekColor = WEEK_COLORS[w] || WEEK_COLORS[5];
     return /*#__PURE__*/React.createElement("div", {
@@ -2666,6 +2804,7 @@ function DayModal({
     update,
     addJournalEntry
   } = useApp();
+  const auth = useAuth();
   const [text, setText] = useState(state.planDone[day.d]?.text || '');
   const [risk, setRisk] = useState(false);
   const done = !!state.planDone[day.d];
@@ -2686,6 +2825,13 @@ function DayModal({
         [day.desc]: text
       }
     });
+    // Avisa a la nube qué día ya se practicó — así la función de recordatorios sabe no molestar hoy.
+    if (auth.enabled && auth.session) {
+      const doneDays = Array.from(new Set([...(auth.authProfile?.plan_done_days || []), day.d]));
+      auth.updateAuthProfile({
+        plan_done_days: doneDays
+      });
+    }
     if (containsRisk(text)) setRisk(true);else onClose();
   };
   return /*#__PURE__*/React.createElement(Modal, {
