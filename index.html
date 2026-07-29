@@ -83,6 +83,20 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
   .pill{border-radius:999px; font-size:16px; font-weight:700; padding:4px 10px;}
   input[type=range]{-webkit-appearance:none; height:6px; border-radius:999px; background:var(--grid);}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; border-radius:999px; background:var(--rose); border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.3); cursor:pointer;}
+
+  /* Fondos ilustrados por pantalla principal — imagen traslúcida detrás del contenido, siempre bajo un velo marfil para que el texto se siga leyendo perfecto. */
+  .bg-home, .bg-modules, .bg-plan, .bg-tools, .bg-community{
+    background-color: var(--page);
+    background-size: auto, cover;
+    background-repeat: no-repeat, no-repeat;
+    background-position: top, top center;
+    background-attachment: local, local;
+  }
+  .bg-home{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/home.jpg'); }
+  .bg-modules{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/modules.jpg'); }
+  .bg-plan{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/plan.jpg'); }
+  .bg-tools{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/tools.jpg'); }
+  .bg-community{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/community.jpg'); }
 </style>
 <script>
 /**
@@ -2106,7 +2120,7 @@ function Home({
     if (isPlus) setShowContinuo(true);else go('subscribe');
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in bg-home"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '20px 20px 8px',
@@ -2388,7 +2402,7 @@ function ModulesList({
     state
   } = useApp();
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in bg-modules"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Módulos R·E·N·A·C·E·R"
   }), /*#__PURE__*/React.createElement("div", {
@@ -2750,7 +2764,7 @@ function Plan30({
   while (state.planDone[nextUnlockedDay]) nextUnlockedDay++;
   if (!isPlus) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in"
+      className: "scroll-area fade-in bg-plan"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back
@@ -2771,7 +2785,7 @@ function Plan30({
   }
   if (!state.planStart) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in"
+      className: "scroll-area fade-in bg-plan"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back
@@ -2810,7 +2824,7 @@ function Plan30({
     }, "Comenzar mi plan de 30 días")));
   }
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in bg-plan"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Plan de 30 días",
     onBack: back
@@ -3017,7 +3031,7 @@ function ToolsHome({
     special: 'journal'
   }];
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in bg-tools"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Caja de herramientas"
   }), /*#__PURE__*/React.createElement("div", {
@@ -4501,7 +4515,7 @@ function Community({
     loadReal();
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in bg-community"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Comunidad",
     onBack: back,
