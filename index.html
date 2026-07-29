@@ -1312,6 +1312,7 @@ function AuthModal({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.5
     }
   }, mode === 'signup' ? 'Crea una cuenta para sincronizar tu diario y tu progreso entre dispositivos, y participar en la comunidad.' : 'Ingresa con tu correo y contraseña.'), /*#__PURE__*/React.createElement(MiniField, {
@@ -1405,6 +1406,7 @@ function UpsellCard({
     style: {
       fontSize: 15,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6,
       margin: '8px 0 14px'
     }
@@ -1628,6 +1630,7 @@ function SafetyModal({
     style: {
       fontSize: 15.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.5
     }
   }, "Método Renacer ofrece psicoeducación y no sustituye una evaluación, diagnóstico o tratamiento psicológico o médico. Si el malestar es intenso, interfiere con tu vida cotidiana, atraviesas violencia, o aparecen pensamientos de hacerte daño o de no querer vivir, busca apoyo profesional o los servicios de emergencia de tu país. Pedir ayuda no significa que hayas fracasado: significa que te estás tomando en serio."), /*#__PURE__*/React.createElement("div", {
@@ -1658,6 +1661,7 @@ function SafetyModal({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 2
     }
   }, r.detail), r.tel && /*#__PURE__*/React.createElement("a", {
@@ -1685,7 +1689,8 @@ function RiskModal({
     style: {
       fontSize: 16,
       lineHeight: 1.6,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Lo que escribiste suena a un momento muy difícil. Este espacio es de psicoeducación y no reemplaza ayuda profesional. Si en este momento tienes pensamientos de hacerte daño o de no querer vivir, por favor busca apoyo ahora mismo — no tienes que atravesar esto sola."), /*#__PURE__*/React.createElement(SafetyModalInline, null), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
@@ -1717,7 +1722,8 @@ function SafetyModalInline() {
   }, first.country, " — ", first.label), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, first.detail), first.tel && /*#__PURE__*/React.createElement("a", {
     href: `tel:${first.tel}`,
@@ -1736,7 +1742,7 @@ function RadarChart({
 }) {
   // series: [{label, color, values: {areaKey: 0-10}}]
   const n = AREAS.length;
-  const pad = 58;
+  const pad = 64;
   const w = size + pad * 2,
     h = size + pad * 2;
   const cx = w / 2,
@@ -1814,13 +1820,13 @@ function RadarChart({
       key: i,
       x: x,
       y: y,
-      fontSize: "10",
-      fontWeight: "600",
-      fill: "var(--text-secondary)",
+      fontSize: "13",
+      fontWeight: "800",
+      fill: "var(--text-primary)",
       textAnchor: anchor,
       dominantBaseline: "middle",
       style: {
-        fontFamily: 'system-ui'
+        fontFamily: 'var(--sans)'
       }
     }, SHORT[a.key]);
   }));
@@ -1921,6 +1927,7 @@ function Onboarding({
     style: {
       textAlign: 'center',
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       fontSize: 16,
       lineHeight: 1.6,
       padding: '0 8px'
@@ -1953,6 +1960,7 @@ function Onboarding({
   }, "Antes de empezar"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       fontSize: 16
     }
   }, "Esto nos ayuda a mostrarte recursos de apoyo relevantes para donde estás."), /*#__PURE__*/React.createElement("label", {
@@ -2021,6 +2029,7 @@ function Onboarding({
   }, "Tu punto de partida"), /*#__PURE__*/React.createElement("p", {
     style: {
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       fontSize: 15.5,
       lineHeight: 1.5
     }
@@ -2177,6 +2186,7 @@ function Home({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 4
     }
   }, "Tu radiografía actual · ", fmtDate(last.date)), lowestArea && /*#__PURE__*/React.createElement("div", {
@@ -2218,6 +2228,7 @@ function Home({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 2
     }
   }, planCompleted ? 'Terminaste el plan de 30 días — esto no acaba aquí. Escribe cuando lo necesites, sin límite.' : 'Una pregunta nueva cada día para tu cuaderno, sin límite de tiempo →'))), /*#__PURE__*/React.createElement("div", {
@@ -2245,6 +2256,7 @@ function Home({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 2
     }
   }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), /*#__PURE__*/React.createElement("div", {
@@ -2294,7 +2306,8 @@ function Home({
   }, "Módulos R·E·N·A·C·E·R"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, doneCount, " de 7 completados"))), /*#__PURE__*/React.createElement("button", {
     onClick: () => go('plan'),
@@ -2326,7 +2339,8 @@ function Home({
   }, "Plan de 30 días"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, state.planStart ? `${Object.keys(state.planDone).length} de 30 días practicados` : 'Aún no lo has comenzado'))), /*#__PURE__*/React.createElement("button", {
     onClick: () => go('journal'),
@@ -2358,7 +2372,8 @@ function Home({
   }, "Mi cuaderno de trabajo"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, state.journal.length, " entradas guardadas"))))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
@@ -2423,7 +2438,8 @@ function ModulesList({
     }, m.order, ". ", m.title), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 14.5,
-        color: 'var(--text-secondary)'
+        color: 'var(--text-secondary)',
+        fontWeight: 600
       }
     }, m.subtitle)), done && /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2491,6 +2507,7 @@ function ModuleDetail({
     style: {
       fontStyle: 'italic',
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       fontSize: 16,
       marginBottom: 16
     }
@@ -2510,6 +2527,7 @@ function ModuleDetail({
     style: {
       fontSize: 15.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6,
       marginTop: 4
     }
@@ -2663,6 +2681,7 @@ function PlanReminderCard({
         marginBottom: 14,
         fontSize: 14.5,
         color: 'var(--text-secondary)',
+        fontWeight: 600,
         display: 'flex',
         alignItems: 'center',
         gap: 8
@@ -2696,6 +2715,7 @@ function PlanReminderCard({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       margin: '0 0 10px'
     }
   }, "Te avisamos en la noche solo si todavía no has practicado el día — nada más."), /*#__PURE__*/React.createElement("button", {
@@ -2861,6 +2881,7 @@ function Plan30({
     style: {
       fontSize: 15.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6
     }
   }, "Este plan se recorre en orden, día por día — así cada experiencia se apoya en la anterior. Completa el día ", nextUnlockedDay, " para desbloquear el siguiente."), /*#__PURE__*/React.createElement("button", {
@@ -2928,6 +2949,7 @@ function DayModal({
     style: {
       fontSize: 16,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6
     }
   }, day.desc), /*#__PURE__*/React.createElement("textarea", {
@@ -3033,7 +3055,8 @@ function ToolsHome({
   }, t.name), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, t.desc))))));
 }
@@ -3135,7 +3158,8 @@ function SosTool({
   }, "Necesito calmarme ahora"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Abrir Pausa A.C.A. (respiración guiada)")), /*#__PURE__*/React.createElement("button", {
     className: "card",
@@ -3154,7 +3178,8 @@ function SosTool({
   }, "Siento que retrocedí"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Abrir el Método 3R")), /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -3253,7 +3278,8 @@ function BreathingTool({
     style: {
       marginTop: 20,
       fontSize: 15,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, running ? `Ciclo ${cycles + 1} de 8` : cycles > 0 ? `Completaste ${cycles} ciclos` : 'Inhala 3 segundos, exhala 5. Entre 5 y 8 repeticiones.'), /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
@@ -3375,7 +3401,8 @@ function HabitTool({
   }, h.accion), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Señal: ", h.senal || '—', " · Mínima: ", h.minima || '—')), /*#__PURE__*/React.createElement("button", {
     onClick: () => toggleToday(h),
@@ -3559,8 +3586,12 @@ function CirclesTool({
     x: "110",
     y: "114",
     textAnchor: "middle",
-    fontSize: "10",
-    fill: "var(--text-secondary)"
+    fontSize: "12",
+    fontWeight: "800",
+    fill: "var(--text-primary)",
+    style: {
+      fontFamily: 'var(--sans)'
+    }
   }, "seguro"))), ['seguro', 'posible', 'porConstruir'].map(key => /*#__PURE__*/React.createElement("div", {
     key: key,
     className: "card",
@@ -3904,6 +3935,7 @@ function ContinuousEntryModal({
       justifyContent: 'space-between',
       fontSize: 14,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 2
     }
   }, /*#__PURE__*/React.createElement("span", null, "Difícil"), /*#__PURE__*/React.createElement("span", {
@@ -3948,7 +3980,8 @@ function ContinuousEntryModal({
   }, "Prefiero otra pregunta →")) : /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 15,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Escribe lo que quieras hoy, sin pregunta guía."), /*#__PURE__*/React.createElement("textarea", {
     rows: 5,
@@ -4377,6 +4410,7 @@ function Progress({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginBottom: 8
     }
   }, "Llevas ", state.journal.length, " reflexiones guardadas desde el ", fmtDate(state.journal[state.journal.length - 1].date), "."), activity.length === 0 && /*#__PURE__*/React.createElement("div", {
@@ -4523,6 +4557,7 @@ function Community({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 4,
       lineHeight: 1.5
     }
@@ -4534,6 +4569,7 @@ function Community({
       border: 'none',
       fontSize: 14,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginBottom: 14
     }
   }, auth.enabled ? 'Estás viendo una vista previa simulada. ' : 'Vista previa de la comunidad (aún no hay cuenta configurada). ', auth.enabled && /*#__PURE__*/React.createElement("button", {
@@ -4819,7 +4855,8 @@ function RealPostCard({
   }, "¿Eliminar esta publicación?"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 15.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Esto borrará la publicación y sus comentarios de forma permanente para todas las personas de la comunidad."), /*#__PURE__*/React.createElement("button", {
     onClick: deletePost,
@@ -4849,7 +4886,8 @@ function RealPostCard({
   }, "¿Eliminar este comentario?"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 15.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Esto lo borrará de forma permanente para todas las personas de la comunidad."), /*#__PURE__*/React.createElement("button", {
     onClick: deleteComment,
@@ -4985,6 +5023,7 @@ function WorldMap({
     style: {
       fontSize: 15,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6
     }
   }, "Este mapa muestra únicamente el número de personas por país — nunca ubicaciones individuales."), !auth.enabled && /*#__PURE__*/React.createElement("div", {
@@ -5383,12 +5422,14 @@ function Subscribe({
     style: {
       fontSize: 15,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 6
     }
   }, "Gracias por sostener este proyecto. Tienes acceso al plan de 30 días, las herramientas avanzadas, el seguimiento continuo y la sincronización en la nube."), cancelRequested ? /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 14,
       background: '#fff',
       borderRadius: 12,
@@ -5414,18 +5455,21 @@ function Subscribe({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 14
     }
   }, "Como pagaste con PayPal, cancela directamente desde tu cuenta de PayPal (Configuración → Pagos → Pagos automáticos) — en cuanto lo hagas ahí, se refleja aquí automáticamente.") : /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 14
     }
   }, "Si quieres cancelar tu suscripción, escríbenos y te ayudamos.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6
     }
   }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis siempre serán gratuitos. Renacer Plus añade el plan guiado de 30 días, las herramientas avanzadas (A.N.C.L.A., Tres Círculos, Brújula V.I.D.A.), el seguimiento continuo con gráfico de ánimo, y la sincronización de tu progreso entre dispositivos."), PAYPAL_ENABLED && WOMPI_ENABLED && /*#__PURE__*/React.createElement("div", {
@@ -5591,7 +5635,8 @@ function Subscribe({
   }, "¿Cancelar tu suscripción?"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 15.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "No se te hará ningún cobro más", accessUntil ? /*#__PURE__*/React.createElement(React.Fragment, null, " y conservas tu acceso Plus hasta el ", /*#__PURE__*/React.createElement("b", null, fmtDate(accessUntil))) : '', ". Después de esa fecha, vuelves al plan gratuito (siempre puedes reactivar Plus cuando quieras)."), cancelError && /*#__PURE__*/React.createElement("p", {
     style: {
@@ -5733,7 +5778,8 @@ function Profile({
     style: {
       padding: 14,
       fontSize: 14.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Próximamente: crea una cuenta para sincronizar tu diario y progreso entre dispositivos, y participar en la comunidad. Por ahora tus datos se guardan solo en este dispositivo."), auth.enabled && !auth.session && /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowAuth(true),
@@ -5756,6 +5802,7 @@ function Profile({
     style: {
       fontSize: 14,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 2
     }
   }, "Sincroniza tu progreso y comenta en la comunidad")), auth.enabled && auth.session && /*#__PURE__*/React.createElement("div", {
@@ -5772,6 +5819,7 @@ function Profile({
     style: {
       fontSize: 13.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       marginTop: 2
     }
   }, "Plan: ", /*#__PURE__*/React.createElement("span", {
@@ -5820,6 +5868,7 @@ function Profile({
     style: {
       fontSize: 14,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6,
       margin: '6px 0 10px'
     }
@@ -5876,6 +5925,7 @@ function Profile({
     style: {
       fontSize: 14.5,
       color: 'var(--text-secondary)',
+      fontWeight: 600,
       lineHeight: 1.6
     }
   }, "Este libro ofrece psicoeducación, herramientas de autoexploración y estrategias prácticas basadas en evidencia psicológica. No sustituye una evaluación, diagnóstico ni tratamiento psicológico o médico."), /*#__PURE__*/React.createElement(SafetyBanner, null), /*#__PURE__*/React.createElement("p", {
@@ -5893,7 +5943,8 @@ function Profile({
   }, "¿Eliminar todos tus datos?"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 15.5,
-      color: 'var(--text-secondary)'
+      color: 'var(--text-secondary)',
+      fontWeight: 600
     }
   }, "Esto borrará tu diario, diagnósticos y progreso de este dispositivo de forma permanente."), /*#__PURE__*/React.createElement("button", {
     onClick: deleteAll,
