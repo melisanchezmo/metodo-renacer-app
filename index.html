@@ -5233,6 +5233,35 @@ function Subscribe({
   const [provider, setProvider] = useState(PAYPAL_ENABLED ? 'paypal' : 'wompi');
   const [status, setStatus] = useState('');
   const [showAuth, setShowAuth] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelError, setCancelError] = useState('');
+  const paymentProvider = auth.authProfile?.payment_provider;
+  const cancelRequested = auth.authProfile?.subscription_cancel_requested === true;
+  const accessUntil = auth.authProfile?.subscription_next_charge_at;
+  const cancelWompi = async () => {
+    setCancelBusy(true);
+    setCancelError('');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/cancel-subscription`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.session.access_token}`
+        }
+      });
+      const json = await res.json();
+      if (json.ok) {
+        await auth.refreshProfile(auth.session.user.id);
+        setConfirmCancel(false);
+      } else {
+        setCancelError(json.error || 'No pudimos procesar la cancelación. Intenta de nuevo o escríbenos.');
+      }
+    } catch (e) {
+      setCancelError('No pudimos conectar para procesar la cancelación. Intenta de nuevo.');
+    }
+    setCancelBusy(false);
+  };
   useEffect(() => {
     if (!PAYPAL_ENABLED || !auth.session || provider !== 'paypal') return;
     if (window.paypal) {
@@ -5327,7 +5356,44 @@ function Subscribe({
       color: 'var(--text-secondary)',
       marginTop: 6
     }
-  }, "Gracias por sostener este proyecto. Tienes acceso al plan de 30 días, las herramientas avanzadas, el seguimiento continuo y la sincronización en la nube.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "Gracias por sostener este proyecto. Tienes acceso al plan de 30 días, las herramientas avanzadas, el seguimiento continuo y la sincronización en la nube."), cancelRequested ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--text-secondary)',
+      marginTop: 14,
+      background: '#fff',
+      borderRadius: 12,
+      padding: 12
+    }
+  }, "Ya cancelaste la renovación automática. Conservas tu acceso Plus ", accessUntil ? `hasta el ${fmtDate(accessUntil)}` : 'hasta el final de tu ciclo actual', ", y no se hará ningún cobro después de esa fecha.") : paymentProvider === 'wompi' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setConfirmCancel(true);
+      setCancelError('');
+    },
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--critical)',
+      fontSize: 12.5,
+      fontWeight: 600,
+      textDecoration: 'underline',
+      cursor: 'pointer',
+      marginTop: 14,
+      padding: 0
+    }
+  }, "Cancelar mi suscripción")) : paymentProvider === 'paypal' ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--text-secondary)',
+      marginTop: 14
+    }
+  }, "Como pagaste con PayPal, cancela directamente desde tu cuenta de PayPal (Configuración → Pagos → Pagos automáticos) — en cuanto lo hagas ahí, se refleja aquí automáticamente.") : /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--text-secondary)',
+      marginTop: 14
+    }
+  }, "Si quieres cancelar tu suscripción, escríbenos y te ayudamos.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 14,
       color: 'var(--text-secondary)',
@@ -5485,7 +5551,46 @@ function Subscribe({
     }
   }, status))), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
-  }));
+  }), confirmCancel && /*#__PURE__*/React.createElement(Modal, {
+    onClose: () => {
+      if (!cancelBusy) setConfirmCancel(false);
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, "¿Cancelar tu suscripción?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--text-secondary)'
+    }
+  }, "No se te hará ningún cobro más", accessUntil ? /*#__PURE__*/React.createElement(React.Fragment, null, " y conservas tu acceso Plus hasta el ", /*#__PURE__*/React.createElement("b", null, fmtDate(accessUntil))) : '', ". Después de esa fecha, vuelves al plan gratuito (siempre puedes reactivar Plus cuando quieras)."), cancelError && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--critical)'
+    }
+  }, cancelError), /*#__PURE__*/React.createElement("button", {
+    onClick: cancelWompi,
+    disabled: cancelBusy,
+    style: {
+      width: '100%',
+      padding: 14,
+      background: 'var(--critical)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 14,
+      fontWeight: 600,
+      marginBottom: 8
+    }
+  }, cancelBusy ? 'Procesando...' : 'Sí, cancelar mi suscripción'), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmCancel(false),
+    disabled: cancelBusy,
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 14
+    }
+  }, "Volver")));
 }
 
 /* ============================= PERFIL ============================= */
@@ -5689,14 +5794,14 @@ function Profile({
       lineHeight: 1.6,
       margin: '6px 0 10px'
     }
-  }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis (Pausa A.C.A., Método 3R y el directorio de ayuda) siempre serán gratuitos.", isPlus ? ' Gracias por sostener este proyecto con tu suscripción.' : ' Renacer Plus incluye el plan guiado de 30 días, las herramientas avanzadas, el seguimiento continuo con gráfico de ánimo y la sincronización entre dispositivos.'), !isPlus && /*#__PURE__*/React.createElement("button", {
+  }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis (Pausa A.C.A., Método 3R y el directorio de ayuda) siempre serán gratuitos.", isPlus ? ' Gracias por sostener este proyecto con tu suscripción.' : ' Renacer Plus incluye el plan guiado de 30 días, las herramientas avanzadas, el seguimiento continuo con gráfico de ánimo y la sincronización entre dispositivos.'), /*#__PURE__*/React.createElement("button", {
     onClick: () => go('subscribe'),
     className: "btn-primary",
     style: {
       width: '100%',
       padding: 12
     }
-  }, "Conocer Renacer Plus"))), /*#__PURE__*/React.createElement("div", {
+  }, isPlus ? 'Gestionar mi suscripción' : 'Conocer Renacer Plus'))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 28
     }
