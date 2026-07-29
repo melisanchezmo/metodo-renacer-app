@@ -84,19 +84,13 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
   input[type=range]{-webkit-appearance:none; height:6px; border-radius:999px; background:var(--grid);}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; border-radius:999px; background:var(--rose); border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.3); cursor:pointer;}
 
-  /* Fondos ilustrados por pantalla principal — imagen traslúcida detrás del contenido, siempre bajo un velo marfil para que el texto se siga leyendo perfecto. */
-  .bg-home, .bg-modules, .bg-plan, .bg-tools, .bg-community{
-    background-color: var(--page);
-    background-size: auto, cover;
-    background-repeat: no-repeat, no-repeat;
-    background-position: top, top center;
-    background-attachment: local, local;
-  }
-  .bg-home{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/home.jpg'); }
-  .bg-modules{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/modules.jpg'); }
-  .bg-plan{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/plan.jpg'); }
-  .bg-tools{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/tools.jpg'); }
-  .bg-community{ background-image: linear-gradient(rgba(250,245,234,0.74), rgba(250,245,234,0.74)), url('backgrounds/community.jpg'); }
+  /* Fondos ilustrados por pantalla principal — la imagen va a toda su viveza; solo el texto que
+     queda directamente sobre ella (sin tarjeta debajo) lleva un halo suave para leerse perfecto. */
+  .screen-bg-wrap{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+  .screen-bg-wrap img{ width:100%; height:100%; object-fit:cover; object-position:top center; display:block; }
+  .screen-bg-fade{ position:absolute; left:0; right:0; bottom:0; height:120px; background:linear-gradient(rgba(250,245,234,0), var(--page)); }
+  .screen-content{ position:relative; z-index:1; }
+  .text-on-bg{ text-shadow: 0 1px 3px rgba(250,245,234,0.95), 0 1px 12px rgba(250,245,234,0.9), 0 0 2px rgba(250,245,234,0.9); }
 </style>
 <script>
 /**
@@ -1576,6 +1570,19 @@ function SafetyBanner({
     onClose: () => setOpen(false)
   }));
 }
+function ScreenBg({
+  src
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "screen-bg-wrap",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: src,
+    alt: ""
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "screen-bg-fade"
+  }));
+}
 function Modal({
   children,
   onClose
@@ -2120,7 +2127,14 @@ function Home({
     if (isPlus) setShowContinuo(true);else go('subscribe');
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in bg-home"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(ScreenBg, {
+    src: "backgrounds/home.jpg"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "screen-content"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '20px 20px 8px',
@@ -2129,6 +2143,7 @@ function Home({
       alignItems: 'flex-start'
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-on-bg",
     style: {
       fontSize: 18,
       color: 'var(--text-muted)'
@@ -2138,6 +2153,7 @@ function Home({
     day: 'numeric',
     month: 'long'
   })), /*#__PURE__*/React.createElement("h1", {
+    className: "text-on-bg",
     style: {
       color: 'var(--navy)',
       margin: '4px 0 0',
@@ -2278,6 +2294,7 @@ function Home({
       padding: '4px 20px 20px'
     }
   }, /*#__PURE__*/React.createElement("div", {
+    className: "text-on-bg",
     style: {
       fontSize: 18,
       fontWeight: 700,
@@ -2391,7 +2408,7 @@ function Home({
     }
   }, state.journal.length, " entradas guardadas"))))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
-  }));
+  })));
 }
 
 /* ============================= MODULES ============================= */
@@ -2402,7 +2419,14 @@ function ModulesList({
     state
   } = useApp();
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in bg-modules"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(ScreenBg, {
+    src: "backgrounds/modules.jpg"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "screen-content"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Módulos R·E·N·A·C·E·R"
   }), /*#__PURE__*/React.createElement("div", {
@@ -2461,7 +2485,7 @@ function ModulesList({
         fontSize: 23
       }
     }, "✓"));
-  })));
+  }))));
 }
 function ModuleDetail({
   id,
@@ -2764,7 +2788,14 @@ function Plan30({
   while (state.planDone[nextUnlockedDay]) nextUnlockedDay++;
   if (!isPlus) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in bg-plan"
+      className: "scroll-area fade-in",
+      style: {
+        position: 'relative'
+      }
+    }, /*#__PURE__*/React.createElement(ScreenBg, {
+      src: "backgrounds/plan.jpg"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "screen-content"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back
@@ -2781,11 +2812,18 @@ function Plan30({
       go: go,
       title: "Plan de 30 días",
       desc: "30 experiencias breves y guiadas para transformar el método en práctica diaria, con seguimiento de tu avance."
-    })));
+    }))));
   }
   if (!state.planStart) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in bg-plan"
+      className: "scroll-area fade-in",
+      style: {
+        position: 'relative'
+      }
+    }, /*#__PURE__*/React.createElement(ScreenBg, {
+      src: "backgrounds/plan.jpg"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "screen-content"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back
@@ -2821,10 +2859,17 @@ function Plan30({
           plan_done_days: []
         });
       }
-    }, "Comenzar mi plan de 30 días")));
+    }, "Comenzar mi plan de 30 días"))));
   }
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in bg-plan"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(ScreenBg, {
+    src: "backgrounds/plan.jpg"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "screen-content"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Plan de 30 días",
     onBack: back
@@ -2843,6 +2888,7 @@ function Plan30({
         marginBottom: 18
       }
     }, /*#__PURE__*/React.createElement("div", {
+      className: "text-on-bg",
       style: {
         fontWeight: 700,
         fontSize: 18.5,
@@ -2905,7 +2951,7 @@ function Plan30({
       width: '100%',
       padding: 14
     }
-  }, "Entendido")));
+  }, "Entendido"))));
 }
 function DayModal({
   day,
@@ -3031,7 +3077,14 @@ function ToolsHome({
     special: 'journal'
   }];
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in bg-tools"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(ScreenBg, {
+    src: "backgrounds/tools.jpg"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "screen-content"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Caja de herramientas"
   }), /*#__PURE__*/React.createElement("div", {
@@ -3072,7 +3125,7 @@ function ToolsHome({
       color: 'var(--text-secondary)',
       fontWeight: 600
     }
-  }, t.desc))))));
+  }, t.desc)))))));
 }
 const PLUS_ONLY_TOOLS = {
   ancla: {
@@ -4515,7 +4568,14 @@ function Community({
     loadReal();
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in bg-community"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(ScreenBg, {
+    src: "backgrounds/community.jpg"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "screen-content"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Comunidad",
     onBack: back,
@@ -4637,6 +4697,7 @@ function Community({
     },
     onClick: online ? postReal : postLocal
   }, "Publicar")), online ? realPosts === null ? /*#__PURE__*/React.createElement("div", {
+    className: "text-on-bg",
     style: {
       textAlign: 'center',
       color: 'var(--text-muted)',
@@ -4644,6 +4705,7 @@ function Community({
       padding: 20
     }
   }, "Cargando comunidad...") : realPosts.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-on-bg",
     style: {
       textAlign: 'center',
       color: 'var(--text-muted)',
@@ -4700,7 +4762,7 @@ function Community({
     onClose: () => setRisk(false)
   }), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
-  }));
+  })));
 }
 function RealPostCard({
   post,
