@@ -3050,6 +3050,12 @@ function ToolsHome({
   go
 }) {
   const tools = [{
+    id: 'journal',
+    name: 'Mi cuaderno de trabajo',
+    desc: 'Tu diario personal, con una pregunta nueva cada día',
+    color: '#ECC676',
+    special: 'journal'
+  }, {
     id: 'aca',
     name: 'Pausa A.C.A.',
     desc: 'Respiración y regulación para momentos de alerta',
@@ -3074,12 +3080,6 @@ function ToolsHome({
     name: 'Método 3R',
     desc: 'Revisa, repara y reinicia en días difíciles',
     color: '#986FA1'
-  }, {
-    id: 'journal',
-    name: 'Mi cuaderno de trabajo',
-    desc: 'Tu diario personal, con una pregunta nueva cada día',
-    color: '#ECC676',
-    special: 'journal'
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
