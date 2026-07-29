@@ -4544,7 +4544,7 @@ function Community({
   // --- Modo real (con cuenta): posts y comentarios en Supabase ---
   const [realPosts, setRealPosts] = useState(null); // null = cargando
   const loadReal = () => {
-    sbClient.from('community_posts').select('*, community_comments(*)').order('created_at', {
+    sbClient.from('community_posts').select('*, community_comments(*, community_comment_likes(user_id))').order('created_at', {
       ascending: false
     }).then(({
       data,
@@ -4813,6 +4813,21 @@ function RealPostCard({
     setConfirmDeleteComment(null);
     onChanged();
   };
+  const toggleLike = async c => {
+    if (!auth.enabled || !auth.session) return;
+    const likes = c.community_comment_likes || [];
+    const myId = auth.session.user.id;
+    const alreadyLiked = likes.some(l => l.user_id === myId);
+    if (alreadyLiked) {
+      await sbClient.from('community_comment_likes').delete().eq('comment_id', c.id).eq('user_id', myId);
+    } else {
+      await sbClient.from('community_comment_likes').insert({
+        comment_id: c.id,
+        user_id: myId
+      });
+    }
+    onChanged();
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -4865,34 +4880,63 @@ function RealPostCard({
       fontSize: 18.5,
       marginTop: 2
     }
-  }, post.text), comments.map(c => /*#__PURE__*/React.createElement("div", {
-    key: c.id,
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: 8,
-      marginTop: 8,
-      paddingLeft: 12,
-      borderLeft: '2px solid var(--grid)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18
-    }
-  }, /*#__PURE__*/React.createElement("b", null, c.author_label, ":"), " ", c.text), isAdmin && /*#__PURE__*/React.createElement("button", {
-    onClick: () => setConfirmDeleteComment(c.id),
-    "aria-label": "Eliminar comentario",
-    style: {
-      background: 'none',
-      border: 'none',
-      color: 'var(--critical)',
-      fontSize: 17,
-      cursor: 'pointer',
-      padding: 0,
-      flexShrink: 0
-    }
-  }, "🗑"))), !showBox ? /*#__PURE__*/React.createElement("button", {
+  }, post.text), comments.map(c => {
+    const likes = c.community_comment_likes || [];
+    const likedByMe = auth.enabled && auth.session && likes.some(l => l.user_id === auth.session.user.id);
+    return /*#__PURE__*/React.createElement("div", {
+      key: c.id,
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 8,
+        marginTop: 8,
+        paddingLeft: 12,
+        borderLeft: '2px solid var(--grid)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("b", null, c.author_label, ":"), " ", c.text), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => toggleLike(c),
+      "aria-label": likedByMe ? 'Quitar me gusta' : 'Me gusta',
+      style: {
+        background: 'none',
+        border: 'none',
+        color: likedByMe ? 'var(--rose)' : 'var(--text-muted)',
+        fontSize: 18,
+        cursor: 'pointer',
+        padding: 0,
+        lineHeight: 1
+      }
+    }, likedByMe ? '❤️' : '🤍'), likes.length > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 15,
+        color: 'var(--text-muted)',
+        fontWeight: 600
+      }
+    }, likes.length), isAdmin && /*#__PURE__*/React.createElement("button", {
+      onClick: () => setConfirmDeleteComment(c.id),
+      "aria-label": "Eliminar comentario",
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--critical)',
+        fontSize: 17,
+        cursor: 'pointer',
+        padding: 0
+      }
+    }, "🗑")));
+  }), !showBox ? /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowBox(true),
     style: {
       background: 'none',
