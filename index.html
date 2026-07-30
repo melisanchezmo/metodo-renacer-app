@@ -3233,32 +3233,38 @@ function ToolsHome({
     name: 'Mi cuaderno de trabajo',
     desc: 'Tu diario personal, con una pregunta nueva cada día',
     color: '#e4c6c6',
+    textColor: '#2f2420',
     special: 'journal'
   }, {
     id: 'aca',
     name: 'Pausa A.C.A.',
     desc: 'Respiración y regulación para momentos de alerta',
-    color: '#573529'
+    color: '#573529',
+    textColor: '#fff'
   }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
-    color: '#8a5f56'
+    color: '#8a5f56',
+    textColor: '#fff'
   }, {
     id: 'circulos',
     name: 'Tres Círculos',
     desc: 'Mapa de conexión y pertenencia',
-    color: '#c99a95'
+    color: '#c99a95',
+    textColor: '#2f2420'
   }, {
     id: 'brujula',
     name: 'Brújula V.I.D.A.',
     desc: 'Valores, intención, decisión, acción',
-    color: '#e4c6c6'
+    color: '#e4c6c6',
+    textColor: '#2f2420'
   }, {
     id: '3r',
     name: 'Método 3R',
     desc: 'Revisa, repara y reinicia en días difíciles',
-    color: '#573529'
+    color: '#573529',
+    textColor: '#fff'
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
@@ -3284,26 +3290,22 @@ function ToolsHome({
       gap: 12,
       padding: 16,
       textAlign: 'left',
-      cursor: 'pointer'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 10,
-      height: 10,
-      borderRadius: 99,
+      cursor: 'pointer',
       background: t.color,
-      flexShrink: 0
+      border: `1px solid ${t.color}`
     }
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
-      fontSize: 19.5
+      fontSize: 19.5,
+      color: t.textColor
     }
   }, t.name), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600
+      color: t.textColor,
+      fontWeight: 600,
+      opacity: 0.82
     }
   }, t.desc))))));
 }
