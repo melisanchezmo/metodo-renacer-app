@@ -2616,7 +2616,9 @@ function ModulesList({
         alignItems: 'center',
         padding: 14,
         textAlign: 'left',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        background: done ? 'var(--aqua)' : 'var(--rose-soft)',
+        border: done ? '1px solid var(--aqua)' : '1px solid var(--border)'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2649,8 +2651,9 @@ function ModulesList({
       }
     }, m.subtitle)), done && /*#__PURE__*/React.createElement("div", {
       style: {
-        color: 'var(--rose)',
-        fontSize: 23
+        color: 'var(--blue-dark)',
+        fontSize: 23,
+        fontWeight: 800
       }
     }, "✓"));
   })));
