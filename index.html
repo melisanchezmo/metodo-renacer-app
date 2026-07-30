@@ -2427,36 +2427,24 @@ function Home({
     className: "card",
     style: {
       width: '100%',
-      padding: 14,
-      textAlign: 'left',
+      padding: 16,
+      textAlign: 'center',
       cursor: 'pointer',
       border: '1px solid var(--border)',
-      background: '#fff',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12
+      background: '#fff'
     }
-  }, last && /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 145,
-      flexShrink: 0
-    }
-  }, /*#__PURE__*/React.createElement(RadarChart, {
+  }, last && /*#__PURE__*/React.createElement(RadarChart, {
     size: 220,
     series: [{
-      color: '#573529',
+      color: '#8a4a52',
       values: last.scores
     }]
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
       color: 'var(--text-secondary)',
-      fontWeight: 700
+      fontWeight: 700,
+      marginTop: 6
     }
   }, "Tu radiografía"), lowestArea && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2473,7 +2461,7 @@ function Home({
       color: 'var(--blue-dark)',
       fontWeight: 700
     }
-  }, "Ver mi progreso →")))), /*#__PURE__*/React.createElement("div", {
+  }, "Ver mi progreso →"))), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 20px 0'
     }
