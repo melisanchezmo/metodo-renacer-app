@@ -1755,6 +1755,98 @@ function SafetyModalInline() {
     }
   }, "Llamar ahora →"));
 }
+function PrivacyModal({
+  onClose
+}) {
+  return /*#__PURE__*/React.createElement(Modal, {
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      color: 'var(--navy)'
+    }
+  }, "Privacidad y seguridad"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      border: 'none',
+      background: 'none',
+      fontSize: 25
+    }
+  }, "✕")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16,
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--navy)',
+      fontSize: 18.5,
+      marginBottom: 2
+    }
+  }, "¿Dónde se guardan tus respuestas?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "Mientras no crees una cuenta, tus respuestas (diagnósticos, diario, progreso) se guardan solo en este dispositivo. Si creas una cuenta, también se guardan de forma segura en la nube para que puedas sincronizarlas entre dispositivos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--navy)',
+      fontSize: 18.5,
+      marginBottom: 2
+    }
+  }, "¿Melissa u otra persona puede leerlas?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "No. Tu diario y tus diagnósticos son privados: solo tú puedes acceder a ellos con tu cuenta. Ni Melissa ni el equipo de Renacer pueden verlos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--navy)',
+      fontSize: 18.5,
+      marginBottom: 2
+    }
+  }, "¿Cómo los elimino?"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "Cuando quieras, desde Perfil → \"Eliminar todos mis datos\" puedes borrarlos de forma permanente.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--navy)',
+      fontSize: 18.5,
+      marginBottom: 2
+    }
+  }, "Un recordatorio importante"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, "Método Renacer ofrece psicoeducación y no sustituye una evaluación, diagnóstico, tratamiento psicológico o atención de urgencias. Si necesitas ayuda inmediata, busca apoyo profesional o los servicios de emergencia de tu país."))));
+}
 
 /* ============================= RADAR CHART ============================= */
 function RadarChart({
@@ -1868,6 +1960,7 @@ function Onboarding({
   });
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
+  const [showPrivacy, setShowPrivacy] = useState(false);
   if (step === 0) return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
     style: {
@@ -1876,7 +1969,8 @@ function Onboarding({
       flexDirection: 'column',
       minHeight: '100%',
       position: 'relative',
-      overflow: 'hidden'
+      overflowX: 'hidden',
+      overflowY: 'auto'
     }
   }, /*#__PURE__*/React.createElement(LeafCorner, {
     style: {
@@ -1953,19 +2047,51 @@ function Onboarding({
       lineHeight: 1.6,
       padding: '0 8px'
     }
-  }, "Psicóloga, mujer migrante y creadora de este método. Este espacio no busca que llenes cada minuto de tu agenda ni que seas una \"mejor versión\" de ti misma rápidamente. Fue creado para acompañarte a comprender lo que te sucede y construir recursos que puedan sostenerte durante tu proceso migratorio."), /*#__PURE__*/React.createElement("p", {
+  }, "Psicóloga, mujer migrante y creadora de este método, pensado para acompañarte a comprender lo que sientes y sostenerte en tu proceso migratorio — sin prisa por ser una \"mejor versión\" de ti misma."), /*#__PURE__*/React.createElement("p", {
     style: {
       textAlign: 'center',
       fontStyle: 'italic',
       color: 'var(--rose)',
       fontSize: 19,
-      marginTop: 14
+      marginTop: 10
     }
-  }, "Raíces para honrar tu historia. Alas para habitar tu nueva vida.")), /*#__PURE__*/React.createElement("button", {
+  }, "Raíces para honrar tu historia. Alas para habitar tu nueva vida."), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 18,
+      padding: 16,
+      textAlign: 'left',
+      background: 'var(--aqua-soft)',
+      border: '1px solid var(--aqua)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--blue-dark)',
+      marginBottom: 4
+    }
+  }, "Dentro encontrarás:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.6
+    }
+  }, "Un recorrido práctico con 7 módulos, ejercicios para momentos difíciles, un plan de 30 días y un espacio para registrar tu proceso.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      fontSize: 17,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: 10
+    }
+  }, "Puedes explorar gratuitamente y avanzar a tu ritmo.")), /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
     style: {
       padding: 16,
-      fontSize: 20
+      fontSize: 20,
+      marginTop: 18
     },
     onClick: () => setStep(1)
   }, "Comenzar"));
@@ -2028,15 +2154,32 @@ function Onboarding({
   }, r.country)), /*#__PURE__*/React.createElement("option", {
     value: "Otro"
   }, "Otro")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowPrivacy(true),
+    style: {
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      textAlign: 'left',
+      display: 'block',
+      color: 'var(--blue)',
+      fontWeight: 700,
+      fontSize: 17.5,
+      textDecoration: 'underline',
+      cursor: 'pointer',
+      marginTop: 14
+    }
+  }, "🔒 Tus respuestas son privadas. Conoce cómo protegemos tus datos."), /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
     style: {
       padding: 16,
       fontSize: 20,
       width: '100%',
-      marginTop: 24
+      marginTop: 20
     },
     onClick: () => setStep(2)
-  }, "Continuar"));
+  }, "Continuar"), showPrivacy && /*#__PURE__*/React.createElement(PrivacyModal, {
+    onClose: () => setShowPrivacy(false)
+  }));
   if (step === 2) return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
     style: {
@@ -2251,16 +2394,30 @@ function Home({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontWeight: 700,
       color: 'var(--blue-dark)',
       fontSize: 19
     }
-  }, planCompleted ? 'Tu renacer continúa ✦' : 'Sigue escribiendo tu historia', !isPlus && ' · Plus'), /*#__PURE__*/React.createElement("div", {
+  }, planCompleted ? 'Tu renacer continúa ✦' : 'Cuaderno diario'), !isPlus && /*#__PURE__*/React.createElement("span", {
+    className: "pill",
+    style: {
+      background: 'var(--gold-soft)',
+      color: 'var(--gold-dark)',
+      border: '1px solid var(--gold)'
+    }
+  }, "Incluido en Renacer Plus")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       color: 'var(--text-secondary)',
       fontWeight: 600,
-      marginTop: 2
+      marginTop: 4
     }
   }, planCompleted ? 'Terminaste el plan de 30 días — esto no acaba aquí. Escribe cuando lo necesites, sin límite.' : 'Una pregunta nueva cada día para tu cuaderno, sin límite de tiempo →'))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4653,7 +4810,7 @@ function Community({
       fontWeight: 600,
       marginBottom: 14
     }
-  }, auth.enabled ? 'Estás viendo una vista previa simulada. ' : 'Vista previa de la comunidad (aún no hay cuenta configurada). ', auth.enabled && /*#__PURE__*/React.createElement("button", {
+  }, auth.enabled ? '📝 Las publicaciones marcadas como "Ejemplo" muestran cómo será la comunidad. ' : '📝 Ejemplo de cómo será la comunidad (aún no hay cuenta configurada). ', auth.enabled && /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowAuth(true),
     style: {
       background: 'none',
@@ -4723,49 +4880,72 @@ function Community({
     key: p.id,
     post: p,
     onChanged: loadReal
-  })) : localPosts.map(p => /*#__PURE__*/React.createElement("div", {
-    key: p.id,
-    className: "card",
-    style: {
-      padding: 14,
-      marginBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "pill",
-    style: {
-      background: 'var(--aqua-soft)',
-      color: 'var(--blue-dark)'
-    }
-  }, p.tag), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 16.5,
-      color: 'var(--text-muted)'
-    }
-  }, p.country)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18,
-      marginTop: 6
-    }
-  }, p.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18.5,
-      marginTop: 2
-    }
-  }, p.text), p.replies && p.replies.map((r, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      marginTop: 8,
-      paddingLeft: 12,
-      borderLeft: '2px solid var(--grid)',
-      fontSize: 18
-    }
-  }, /*#__PURE__*/React.createElement("b", null, r.name, ":"), " ", r.text))))), risk && /*#__PURE__*/React.createElement(RiskModal, {
+  })) : localPosts.map(p => {
+    const isExample = !p.mine;
+    return /*#__PURE__*/React.createElement("div", {
+      key: p.id,
+      className: "card",
+      style: isExample ? {
+        padding: 14,
+        marginBottom: 10,
+        border: '1.5px dashed var(--border)',
+        background: 'var(--page)',
+        boxShadow: 'none'
+      } : {
+        padding: 14,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 6,
+        alignItems: 'center',
+        flexWrap: 'wrap'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "pill",
+      style: {
+        background: 'var(--aqua-soft)',
+        color: 'var(--blue-dark)'
+      }
+    }, p.tag), isExample && /*#__PURE__*/React.createElement("span", {
+      className: "pill",
+      style: {
+        background: 'var(--text-muted)',
+        color: '#fff'
+      }
+    }, "Ejemplo")), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 16.5,
+        color: 'var(--text-muted)'
+      }
+    }, p.country)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 18,
+        marginTop: 6
+      }
+    }, p.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18.5,
+        marginTop: 2
+      }
+    }, p.text), p.replies && p.replies.map((r, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        marginTop: 8,
+        paddingLeft: 12,
+        borderLeft: '2px solid var(--grid)',
+        fontSize: 18
+      }
+    }, /*#__PURE__*/React.createElement("b", null, r.name, ":"), " ", r.text)));
+  })), risk && /*#__PURE__*/React.createElement(RiskModal, {
     onClose: () => setRisk(false)
   }), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
@@ -5592,14 +5772,66 @@ function Subscribe({
       fontWeight: 600,
       marginTop: 14
     }
-  }, "Si quieres cancelar tu suscripción, escríbenos y te ayudamos.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "Si quieres cancelar tu suscripción, escríbenos y te ayudamos.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 19,
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10,
+      marginTop: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--navy)',
+      marginBottom: 8
+    }
+  }, "Gratis"), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      margin: 0,
+      paddingLeft: 18,
+      fontSize: 16.5,
       color: 'var(--text-secondary)',
       fontWeight: 600,
-      lineHeight: 1.6
+      lineHeight: 1.7
     }
-  }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis siempre serán gratuitos. Renacer Plus añade el plan guiado de 30 días, las herramientas avanzadas (A.N.C.L.A., Tres Círculos, Brújula V.I.D.A.), el seguimiento continuo con gráfico de ánimo, y la sincronización de tu progreso entre dispositivos."), PAYPAL_ENABLED && WOMPI_ENABLED && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("li", null, "Diagnóstico (radiografía)"), /*#__PURE__*/React.createElement("li", null, "7 módulos R·E·N·A·C·E·R"), /*#__PURE__*/React.createElement("li", null, "Diario básico"), /*#__PURE__*/React.createElement("li", null, "Pausa A.C.A. y Método 3R"), /*#__PURE__*/React.createElement("li", null, "Directorio de ayuda"))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      border: '2px solid var(--gold)',
+      background: 'var(--gold-soft)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--gold-dark)',
+      marginBottom: 8
+    }
+  }, "Renacer Plus"), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      margin: 0,
+      paddingLeft: 18,
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.7
+    }
+  }, /*#__PURE__*/React.createElement("li", null, "Todo lo gratuito, y además:"), /*#__PURE__*/React.createElement("li", null, "Plan guiado de 30 días"), /*#__PURE__*/React.createElement("li", null, "Herramientas avanzadas (A.N.C.L.A., Tres Círculos, Brújula V.I.D.A.)"), /*#__PURE__*/React.createElement("li", null, "Cuaderno sin límite + gráfico de ánimo"), /*#__PURE__*/React.createElement("li", null, "Sincronización entre dispositivos")))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: 10,
+      textAlign: 'center'
+    }
+  }, "Es una suscripción (mensual o anual, no un pago único) — puedes cancelarla cuando quieras."), PAYPAL_ENABLED && WOMPI_ENABLED && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -5809,6 +6041,7 @@ function Profile({
   const [country, setCountry] = useState(state.profile.currentCountry);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const isPlus = auth.authProfile && auth.authProfile.subscription_status === 'plus';
   const toggleShareLocation = val => {
     update(prev => ({
@@ -6018,6 +6251,16 @@ function Profile({
       marginBottom: 10
     }
   }, "Privacidad y datos"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowPrivacy(true),
+    className: "card",
+    style: {
+      width: '100%',
+      padding: 14,
+      textAlign: 'left',
+      marginBottom: 8,
+      cursor: 'pointer'
+    }
+  }, "🔒 Privacidad y seguridad"), /*#__PURE__*/React.createElement("button", {
     onClick: exportData,
     className: "card",
     style: {
@@ -6094,6 +6337,8 @@ function Profile({
     }
   }, "Cancelar")), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
+  }), showPrivacy && /*#__PURE__*/React.createElement(PrivacyModal, {
+    onClose: () => setShowPrivacy(false)
   }));
 }
 
