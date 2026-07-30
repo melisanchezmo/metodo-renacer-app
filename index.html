@@ -1471,11 +1471,13 @@ function TopBar({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '14px 16px'
+      padding: '14px 16px',
+      gap: 8
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 36
+      minWidth: 36,
+      flexShrink: 0
     }
   }, onBack && /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -1484,22 +1486,36 @@ function TopBar({
     style: {
       background: 'none',
       border: 'none',
-      fontSize: 25,
+      fontSize: 17.5,
+      fontWeight: 700,
       cursor: 'pointer',
-      color: 'var(--text-primary)'
+      color: 'var(--text-primary)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 4,
+      padding: 0,
+      whiteSpace: 'nowrap'
     }
-  }, "←")), /*#__PURE__*/React.createElement("h1", {
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 22,
+      lineHeight: 1
+    }
+  }, "←"), "Volver")), /*#__PURE__*/React.createElement("h1", {
     style: {
       fontFamily: 'var(--serif)',
       fontWeight: 800,
       fontSize: 21.5,
       color: 'var(--navy)',
-      margin: 0
+      margin: 0,
+      flex: 1,
+      textAlign: 'center'
     }
   }, title), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 36,
-      textAlign: 'right'
+      minWidth: 36,
+      textAlign: 'right',
+      flexShrink: 0
     }
   }, right)));
 }
@@ -2587,7 +2603,8 @@ function Home({
 
 /* ============================= MODULES ============================= */
 function ModulesList({
-  go
+  go,
+  back
 }) {
   const {
     state
@@ -2595,7 +2612,9 @@ function ModulesList({
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
-    title: "Módulos R·E·N·A·C·E·R"
+    title: "Módulos R·E·N·A·C·E·R",
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 16,
@@ -3204,7 +3223,8 @@ function DayModal({
 
 /* ============================= HERRAMIENTAS ============================= */
 function ToolsHome({
-  go
+  go,
+  back
 }) {
   const tools = [{
     id: 'journal',
@@ -3241,7 +3261,9 @@ function ToolsHome({
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
-    title: "Caja de herramientas"
+    title: "Caja de herramientas",
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 16,
@@ -5359,7 +5381,39 @@ function WorldMap({
   }, [auth.enabled]);
   const total = rows ? rows.reduce((a, r) => a + Number(r.user_count), 0) : 0;
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      zIndex: 0,
+      overflow: 'hidden'
+    },
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "backgrounds/worldmap.jpg",
+    alt: "",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      objectPosition: 'top center',
+      display: 'block'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      background: 'rgba(255,255,255,0.55)'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      zIndex: 1
+    }
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mapa de la comunidad",
     onBack: back,
@@ -5420,7 +5474,7 @@ function WorldMap({
     }
   }, total, " personas en ", rows.length, " países"), /*#__PURE__*/React.createElement(CommunityGlobe, {
     rows: rows
-  }))));
+  })))));
 }
 
 /* ============================= SUSCRIPCIÓN RENACER PLUS ============================= */
@@ -6453,7 +6507,8 @@ function Shell() {
   if (screen === 'home') content = /*#__PURE__*/React.createElement(Home, {
     go: go
   });else if (screen === 'modules') content = /*#__PURE__*/React.createElement(ModulesList, {
-    go: go
+    go: go,
+    back: () => backTo('home')
   });else if (screen === 'moduleDetail') content = /*#__PURE__*/React.createElement(ModuleDetail, {
     id: param,
     go: go,
@@ -6462,7 +6517,8 @@ function Shell() {
     go: go,
     back: () => backTo('home')
   });else if (screen === 'tools') content = /*#__PURE__*/React.createElement(ToolsHome, {
-    go: go
+    go: go,
+    back: () => backTo('home')
   });else if (screen === 'tool') content = /*#__PURE__*/React.createElement(ToolScreen, {
     id: param,
     go: go,
