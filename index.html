@@ -2367,34 +2367,6 @@ function Home({
       action: openContinuo
     };
   }
-  const secondaryRowStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    textAlign: 'left',
-    cursor: 'pointer',
-    background: '#fff',
-    border: '1px solid var(--border)'
-  };
-  const secondaryTitleStyle = {
-    fontWeight: 700,
-    fontSize: 18,
-    color: 'var(--navy)'
-  };
-  const secondaryDescStyle = {
-    fontSize: 16.5,
-    color: 'var(--text-secondary)',
-    fontWeight: 600,
-    marginTop: 1
-  };
-  const dot = color => ({
-    width: 9,
-    height: 9,
-    borderRadius: 99,
-    background: color,
-    flexShrink: 0
-  });
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
     style: {
@@ -2465,7 +2437,50 @@ function Home({
     d: "M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"
   })))), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '10px 20px 0'
+      padding: '8px 20px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => go('progress'),
+    className: "card",
+    style: {
+      width: '100%',
+      padding: 16,
+      textAlign: 'center',
+      cursor: 'pointer',
+      border: '1px solid var(--border)',
+      background: '#fff'
+    }
+  }, last && /*#__PURE__*/React.createElement(RadarChart, {
+    size: 220,
+    series: [{
+      color: '#986FA1',
+      values: last.scores
+    }]
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 4
+    }
+  }, "Tu radiografía actual · ", fmtDate(last.date)), lowestArea && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      marginTop: 6,
+      color: 'var(--rose)',
+      fontWeight: 600
+    }
+  }, "Hoy quizá necesite más cuidado: ", lowestArea.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      marginTop: 8,
+      color: 'var(--blue-dark)',
+      fontWeight: 700
+    }
+  }, "Ver mi progreso o repetir mi radiografía →"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px 20px 0'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -2506,7 +2521,7 @@ function Home({
     }
   }, nextStep.desc, " →"))), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '12px 20px 0'
+      padding: '12px 20px 20px'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -2533,90 +2548,7 @@ function Home({
       fontWeight: 600,
       marginTop: 2
     }
-  }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '4px 20px 20px'
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      fontFamily: 'var(--sans)',
-      letterSpacing: 'normal',
-      fontSize: 16,
-      fontWeight: 700,
-      color: 'var(--text-muted)',
-      margin: '16px 0 8px',
-      textTransform: 'uppercase'
-    }
-  }, "Explorar más"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => go('progress'),
-    className: "card",
-    style: secondaryRowStyle
-  }, /*#__PURE__*/React.createElement("div", {
-    style: dot('#986FA1')
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: secondaryTitleStyle
-  }, "Tu radiografía"), /*#__PURE__*/React.createElement("div", {
-    style: secondaryDescStyle
-  }, last ? `Actualizada el ${fmtDate(last.date)}${lowestArea ? ` · Cuida: ${lowestArea.label}` : ''}` : 'Descubre tu punto de partida'))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: openContinuo,
-    className: "card",
-    style: secondaryRowStyle
-  }, /*#__PURE__*/React.createElement("div", {
-    style: dot('var(--blue)')
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: secondaryTitleStyle
-  }, planCompleted ? 'Tu renacer continúa ✦' : 'Cuaderno diario', !isPlus && /*#__PURE__*/React.createElement("span", {
-    className: "pill",
-    style: {
-      marginLeft: 6,
-      background: 'var(--gold-soft)',
-      color: 'var(--gold-dark)',
-      border: '1px solid var(--gold)'
-    }
-  }, "Plus")), /*#__PURE__*/React.createElement("div", {
-    style: secondaryDescStyle
-  }, planCompleted ? 'Escribe cuando lo necesites, sin límite' : 'Una pregunta nueva cada día, sin límite de tiempo'))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => go('modules'),
-    className: "card",
-    style: secondaryRowStyle
-  }, /*#__PURE__*/React.createElement("div", {
-    style: dot('var(--orange)')
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: secondaryTitleStyle
-  }, "Módulos R·E·N·A·C·E·R"), /*#__PURE__*/React.createElement("div", {
-    style: secondaryDescStyle
-  }, doneCount, " de 7 completados"))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => go('plan'),
-    className: "card",
-    style: secondaryRowStyle
-  }, /*#__PURE__*/React.createElement("div", {
-    style: dot('var(--aqua)')
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: secondaryTitleStyle
-  }, "Plan de 30 días"), /*#__PURE__*/React.createElement("div", {
-    style: secondaryDescStyle
-  }, state.planStart ? `${Object.keys(state.planDone).length} de 30 días practicados` : 'Aún no lo has comenzado'))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => go('journal'),
-    className: "card",
-    style: secondaryRowStyle
-  }, /*#__PURE__*/React.createElement("div", {
-    style: dot('var(--gold-dark)')
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: secondaryTitleStyle
-  }, "Mi cuaderno de trabajo"), /*#__PURE__*/React.createElement("div", {
-    style: secondaryDescStyle
-  }, state.journal.length, " entradas guardadas"))))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
+  }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
   })));
 }
