@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#faf5ea" />
+<meta name="theme-color" content="#efece3" />
 <meta name="description" content="Método Renacer — guía práctica para reconstruirte, recuperar la calma y habitar con más sentido tu nueva vida lejos de casa." />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" />
@@ -41,17 +41,17 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
 </script>
 <style>
   :root{
-    /* Paleta exacta de Melissa: Amethyst Haze, Olive Mist, Dreamy Skies, Golden Dusk, sobre Blanco Mediterráneo (marfil) */
-    --surface-1:#faf5ea; --page:#efe6d1;
-    --text-primary:#26332b; --text-secondary:#5c5748; --text-muted:#948c76;
-    --grid:#e3d9c1; --baseline:#d9cbae; --border:rgba(60,50,30,0.16);
-    --blue:#986FA1; --blue-dark:#6d4d78;
-    --rose:#986FA1; --rose-soft:#f1e9f4;
-    --gold:#ECC676; --gold-soft:#fbf1de; --gold-dark:#a9791c;
-    --aqua:#A4BED7; --aqua-soft:#eef4f9;
-    --orange:#9A9B43; --orange-soft:#eaeddd;
+    /* Paleta de Melissa: Dusty Rose, Buttermilk y Chocolate, sobre fondo blanco */
+    --surface-1:#ffffff; --page:#efece3;
+    --text-primary:#2f2420; --text-secondary:#6b5850; --text-muted:#9c8880;
+    --grid:#e8dcd6; --baseline:#dcc9c4; --border:rgba(87,53,41,0.16);
+    --blue:#573529; --blue-dark:#3f2015;
+    --rose:#573529; --rose-soft:#f6e9ea;
+    --gold:#e4c6c6; --gold-soft:#f6e9ea; --gold-dark:#8a4a52;
+    --aqua:#c99a95; --aqua-soft:#f3e3e1;
+    --orange:#8a5f56; --orange-soft:#f1e5e1;
     --good:#0ca30c; --critical:#c0392b;
-    --navy:#26392f;
+    --navy:#2b1710;
     --serif: 'Fraunces', Georgia, 'Iowan Old Style', 'Times New Roman', serif;
     --sans: 'Nunito', -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
   }
@@ -92,11 +92,6 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
 
   /* Fondos ilustrados por pantalla principal — la imagen va a toda su viveza; solo el texto que
      queda directamente sobre ella (sin tarjeta debajo) lleva un halo suave para leerse perfecto. */
-  .screen-bg-wrap{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
-  .screen-bg-wrap img{ width:100%; height:100%; object-fit:cover; object-position:top center; display:block; }
-  .screen-bg-fade{ position:absolute; left:0; right:0; bottom:0; height:120px; background:linear-gradient(rgba(250,245,234,0), var(--page)); }
-  .screen-content{ position:relative; z-index:1; }
-  .text-on-bg{ display:inline-block; background:rgba(255,255,255,0.92); padding:4px 12px; border-radius:10px; box-shadow:0 1px 5px rgba(60,50,30,0.15); }
 </style>
 <script>
 /**
@@ -632,7 +627,7 @@ const MODULES = [{
   id: 'R1',
   letter: 'R',
   order: 1,
-  color: '#986FA1',
+  color: '#573529',
   textColor: '#fff',
   title: 'Reconoce tu duelo migratorio',
   subtitle: 'Lo que dejaste también necesita ser llorado',
@@ -648,8 +643,8 @@ const MODULES = [{
   id: 'E1',
   letter: 'E',
   order: 2,
-  color: '#9A9B43',
-  textColor: '#26332b',
+  color: '#8a5f56',
+  textColor: '#fff',
   title: 'Estabiliza tu sistema nervioso',
   subtitle: 'Cuando tu cuerpo vive en alerta',
   story: {
@@ -668,8 +663,8 @@ const MODULES = [{
   id: 'N1',
   letter: 'N',
   order: 3,
-  color: '#A4BED7',
-  textColor: '#26332b',
+  color: '#c99a95',
+  textColor: '#2f2420',
   title: 'Nombra tu nueva identidad',
   subtitle: 'Ya no eres la misma, y eso no significa que te hayas perdido',
   story: {
@@ -688,8 +683,8 @@ const MODULES = [{
   id: 'A1',
   letter: 'A',
   order: 4,
-  color: '#ECC676',
-  textColor: '#26332b',
+  color: '#e4c6c6',
+  textColor: '#2f2420',
   title: 'Ancla hábitos en tu nuevo entorno',
   subtitle: 'Pequeñas rutinas para sostenerte cuando todo cambió',
   story: {
@@ -708,7 +703,7 @@ const MODULES = [{
   id: 'C1',
   letter: 'C',
   order: 5,
-  color: '#986FA1',
+  color: '#573529',
   textColor: '#fff',
   title: 'Crea conexión y pertenencia',
   subtitle: 'No estás hecha para reconstruirte en soledad',
@@ -728,8 +723,8 @@ const MODULES = [{
   id: 'E2',
   letter: 'E',
   order: 6,
-  color: '#9A9B43',
-  textColor: '#26332b',
+  color: '#8a5f56',
+  textColor: '#fff',
   title: 'Elige una vida con sentido',
   subtitle: 'No viniste solo a sobrevivir',
   story: {
@@ -748,8 +743,8 @@ const MODULES = [{
   id: 'R2',
   letter: 'R',
   order: 7,
-  color: '#A4BED7',
-  textColor: '#26332b',
+  color: '#c99a95',
+  textColor: '#2f2420',
   title: 'Revisa, repara y reinicia',
   subtitle: 'Cuando vuelvas a sentirte perdida',
   story: {
@@ -939,7 +934,7 @@ const WEEK_COLORS = {
     border: 'var(--aqua)'
   },
   4: {
-    bg: '#f2f2e2',
+    bg: '#f5ebe6',
     border: 'var(--orange)'
   },
   5: {
@@ -1523,25 +1518,25 @@ function LeafCorner({
     strokeLinecap: "round"
   }, /*#__PURE__*/React.createElement("path", {
     d: "M4 4 C 30 8, 46 22, 52 46",
-    stroke: "#9A9B43",
+    stroke: "#8a5f56",
     strokeWidth: "1.6"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M10 8 C18 18, 20 28, 16 34 C10 28, 8 16, 10 8 Z",
-    fill: "#9A9B43",
+    fill: "#8a5f56",
     opacity: "0.55"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M22 16 C30 24, 33 33, 29 40 C22 34, 19 23, 22 16 Z",
-    fill: "#986FA1",
+    fill: "#573529",
     opacity: "0.5"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M36 30 C43 37, 46 45, 42 51 C35 46, 33 36, 36 30 Z",
-    fill: "#A4BED7",
+    fill: "#c99a95",
     opacity: "0.55"
   }), /*#__PURE__*/React.createElement("circle", {
     cx: "50",
     cy: "45",
     r: "2",
-    fill: "#ECC676",
+    fill: "#e4c6c6",
     opacity: "0.9"
   })));
 }
@@ -1585,27 +1580,6 @@ function SafetyBanner({
     }
   }, compact ? 'Ayuda' : 'Necesito ayuda ahora'), open && /*#__PURE__*/React.createElement(SafetyModal, {
     onClose: () => setOpen(false)
-  }));
-}
-function ScreenBg({
-  src,
-  overlay
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "screen-bg-wrap",
-    "aria-hidden": "true"
-  }, /*#__PURE__*/React.createElement("img", {
-    src: src,
-    alt: ""
-  }), overlay ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      background: 'var(--page)',
-      opacity: overlay
-    }
-  }) : null, /*#__PURE__*/React.createElement("div", {
-    className: "screen-bg-fade"
   }));
 }
 function Modal({
@@ -2387,16 +2361,7 @@ function Home({
     };
   }
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      position: 'relative',
-      zIndex: 0
-    }
-  }, /*#__PURE__*/React.createElement(ScreenBg, {
-    src: "backgrounds/home.jpg",
-    overlay: 0.75
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "screen-content"
+    className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '20px 20px 8px',
@@ -2405,7 +2370,6 @@ function Home({
       alignItems: 'flex-start'
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "text-on-bg",
     style: {
       fontSize: 18,
       color: 'var(--text-muted)'
@@ -2415,7 +2379,6 @@ function Home({
     day: 'numeric',
     month: 'long'
   })), /*#__PURE__*/React.createElement("h1", {
-    className: "text-on-bg",
     style: {
       color: 'var(--navy)',
       margin: '4px 0 0',
@@ -2432,7 +2395,7 @@ function Home({
       width: 38,
       height: 38,
       cursor: 'pointer',
-      color: '#5C7FA0',
+      color: '#573529',
       marginTop: 2,
       display: 'flex',
       alignItems: 'center',
@@ -2473,7 +2436,7 @@ function Home({
   }, last && /*#__PURE__*/React.createElement(RadarChart, {
     size: 220,
     series: [{
-      color: '#986FA1',
+      color: '#573529',
       values: last.scores
     }]
   }), /*#__PURE__*/React.createElement("div", {
@@ -2569,7 +2532,7 @@ function Home({
     }
   }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
-  })));
+  }));
 }
 
 /* ============================= MODULES ============================= */
@@ -2580,15 +2543,7 @@ function ModulesList({
     state
   } = useApp();
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      position: 'relative',
-      zIndex: 0
-    }
-  }, /*#__PURE__*/React.createElement(ScreenBg, {
-    src: "backgrounds/modules.jpg"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "screen-content"
+    className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Módulos R·E·N·A·C·E·R"
   }), /*#__PURE__*/React.createElement("div", {
@@ -2648,7 +2603,7 @@ function ModulesList({
         fontSize: 23
       }
     }, "✓"));
-  }))));
+  })));
 }
 function ModuleDetail({
   id,
@@ -2956,15 +2911,7 @@ function Plan30({
   while (state.planDone[nextUnlockedDay]) nextUnlockedDay++;
   if (!isPlus) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in",
-      style: {
-        position: 'relative',
-        zIndex: 0
-      }
-    }, /*#__PURE__*/React.createElement(ScreenBg, {
-      src: "backgrounds/plan.jpg"
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "screen-content"
+      className: "scroll-area fade-in"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back,
@@ -2982,19 +2929,11 @@ function Plan30({
       go: go,
       title: "Plan de 30 días",
       desc: "30 experiencias breves y guiadas para transformar el método en práctica diaria, con seguimiento de tu avance."
-    }))));
+    })));
   }
   if (!state.planStart) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in",
-      style: {
-        position: 'relative',
-        zIndex: 0
-      }
-    }, /*#__PURE__*/React.createElement(ScreenBg, {
-      src: "backgrounds/plan.jpg"
-    }), /*#__PURE__*/React.createElement("div", {
-      className: "screen-content"
+      className: "scroll-area fade-in"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back,
@@ -3032,18 +2971,10 @@ function Plan30({
           plan_done_days: []
         });
       }
-    }, "Comenzar mi plan de 30 días"))));
+    }, "Comenzar mi plan de 30 días")));
   }
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      position: 'relative',
-      zIndex: 0
-    }
-  }, /*#__PURE__*/React.createElement(ScreenBg, {
-    src: "backgrounds/plan.jpg"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "screen-content"
+    className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Plan de 30 días",
     onBack: back,
@@ -3063,7 +2994,6 @@ function Plan30({
         marginBottom: 18
       }
     }, /*#__PURE__*/React.createElement("div", {
-      className: "text-on-bg",
       style: {
         fontWeight: 700,
         fontSize: 18.5,
@@ -3128,7 +3058,7 @@ function Plan30({
       width: '100%',
       padding: 14
     }
-  }, "Entendido"))));
+  }, "Entendido")));
 }
 function DayModal({
   day,
@@ -3227,44 +3157,36 @@ function ToolsHome({
     id: 'journal',
     name: 'Mi cuaderno de trabajo',
     desc: 'Tu diario personal, con una pregunta nueva cada día',
-    color: '#ECC676',
+    color: '#e4c6c6',
     special: 'journal'
   }, {
     id: 'aca',
     name: 'Pausa A.C.A.',
     desc: 'Respiración y regulación para momentos de alerta',
-    color: '#986FA1'
+    color: '#573529'
   }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
-    color: '#9A9B43'
+    color: '#8a5f56'
   }, {
     id: 'circulos',
     name: 'Tres Círculos',
     desc: 'Mapa de conexión y pertenencia',
-    color: '#A4BED7'
+    color: '#c99a95'
   }, {
     id: 'brujula',
     name: 'Brújula V.I.D.A.',
     desc: 'Valores, intención, decisión, acción',
-    color: '#ECC676'
+    color: '#e4c6c6'
   }, {
     id: '3r',
     name: 'Método 3R',
     desc: 'Revisa, repara y reinicia en días difíciles',
-    color: '#986FA1'
+    color: '#573529'
   }];
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      position: 'relative',
-      zIndex: 0
-    }
-  }, /*#__PURE__*/React.createElement(ScreenBg, {
-    src: "backgrounds/tools.jpg"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "screen-content"
+    className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Caja de herramientas"
   }), /*#__PURE__*/React.createElement("div", {
@@ -3306,7 +3228,7 @@ function ToolsHome({
       color: 'var(--text-secondary)',
       fontWeight: 600
     }
-  }, t.desc)))))));
+  }, t.desc))))));
 }
 const PLUS_ONLY_TOOLS = {
   ancla: {
@@ -3775,9 +3697,9 @@ function CirclesTool({
     porConstruir: 'Círculo por construir'
   };
   const colors = {
-    seguro: '#986FA1',
-    posible: '#9A9B43',
-    porConstruir: '#948c76'
+    seguro: '#573529',
+    posible: '#8a5f56',
+    porConstruir: '#9c8880'
   };
   const addTo = key => {
     if (!draft[key]) return;
@@ -4634,13 +4556,13 @@ function Progress({
   }, /*#__PURE__*/React.createElement(RadarChart, {
     size: 240,
     series: first && first.id !== last.id ? [{
-      color: '#ECC676',
+      color: '#c99a95',
       values: first.scores
     }, {
-      color: '#986FA1',
+      color: '#573529',
       values: last.scores
     }] : [{
-      color: '#986FA1',
+      color: '#573529',
       values: last.scores
     }]
   }), first && first.id !== last.id && /*#__PURE__*/React.createElement("div", {
@@ -4657,7 +4579,7 @@ function Progress({
       width: 8,
       height: 8,
       borderRadius: 99,
-      background: '#ECC676',
+      background: '#c99a95',
       marginRight: 4
     }
   }), "Primera vez (", fmtDate(first.date), ")"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("span", {
@@ -4666,7 +4588,7 @@ function Progress({
       width: 8,
       height: 8,
       borderRadius: 99,
-      background: '#986FA1',
+      background: '#573529',
       marginRight: 4
     }
   }), "Ahora (", fmtDate(last.date), ")"))), /*#__PURE__*/React.createElement("button", {
@@ -4786,15 +4708,7 @@ function Community({
     loadReal();
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      position: 'relative',
-      zIndex: 0
-    }
-  }, /*#__PURE__*/React.createElement(ScreenBg, {
-    src: "backgrounds/community.jpg"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "screen-content"
+    className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Comunidad",
     onBack: back,
@@ -4927,7 +4841,6 @@ function Community({
     },
     onClick: online ? postReal : postLocal
   }, "Publicar")), online ? realPosts === null ? /*#__PURE__*/React.createElement("div", {
-    className: "text-on-bg",
     style: {
       textAlign: 'center',
       color: 'var(--text-muted)',
@@ -4935,7 +4848,6 @@ function Community({
       padding: 20
     }
   }, "Cargando comunidad...") : realPosts.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "text-on-bg",
     style: {
       textAlign: 'center',
       color: 'var(--text-muted)',
@@ -5015,7 +4927,7 @@ function Community({
     onClose: () => setRisk(false)
   }), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
-  })));
+  }));
 }
 function RealPostCard({
   post,
