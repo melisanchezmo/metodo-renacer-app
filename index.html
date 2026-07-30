@@ -4428,7 +4428,7 @@ function Journal({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mi cuaderno de trabajo",
     onBack: back,
-    backLabel: "Volver a inicio"
+    backLabel: "Volver a herramientas"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 16px'
@@ -6534,7 +6534,7 @@ function Shell() {
     back: () => backTo('community')
   });else if (screen === 'journal') content = /*#__PURE__*/React.createElement(Journal, {
     go: go,
-    back: () => backTo('home')
+    back: () => backTo('tools')
   });else if (screen === 'progress') content = /*#__PURE__*/React.createElement(Progress, {
     back: () => backTo('home'),
     go: go
