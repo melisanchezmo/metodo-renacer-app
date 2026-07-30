@@ -64,7 +64,7 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
     position:relative; box-shadow:0 0 40px rgba(0,0,0,0.08);
     display:flex; flex-direction:column;
   }
-  .scroll-area{flex:1; overflow-y:auto; padding-bottom:88px; -webkit-overflow-scrolling:touch;}
+  .scroll-area{flex:1; overflow-y:auto; padding-bottom:100px; -webkit-overflow-scrolling:touch;}
   .safe-top{padding-top:env(safe-area-inset-top);}
   ::-webkit-scrollbar{width:0px; background:transparent;}
   button{font-family:inherit;}
@@ -1309,6 +1309,7 @@ function AuthModal({
       color: 'var(--navy)'
     }
   }, mode === 'signup' ? 'Crear cuenta' : 'Iniciar sesión'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onClose,
     style: {
       border: 'none',
@@ -1341,6 +1342,7 @@ function AuthModal({
     type: "password",
     value: password,
     onChange: e => setPassword(e.target.value),
+    "aria-label": "Contraseña",
     style: {
       width: '100%',
       padding: 10,
@@ -1356,6 +1358,7 @@ function AuthModal({
       marginBottom: 8
     }
   }, notice), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -1364,6 +1367,7 @@ function AuthModal({
     disabled: busy,
     onClick: submit
   }, busy ? 'Un momento...' : mode === 'signup' ? 'Crear mi cuenta' : 'Entrar'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => {
       setMode(mode === 'signup' ? 'login' : 'signup');
       setNotice('');
@@ -1419,6 +1423,7 @@ function UpsellCard({
       margin: '8px 0 14px'
     }
   }, desc || 'Desbloquea esta herramienta y todo lo demás de Renacer Plus.'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -1446,6 +1451,7 @@ function PlusGate({
 function TopBar({
   title,
   onBack,
+  backLabel,
   right
 }) {
   return /*#__PURE__*/React.createElement("div", {
@@ -1470,7 +1476,9 @@ function TopBar({
       width: 36
     }
   }, onBack && /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onBack,
+    "aria-label": backLabel || 'Volver',
     style: {
       background: 'none',
       border: 'none',
@@ -1478,12 +1486,13 @@ function TopBar({
       cursor: 'pointer',
       color: 'var(--text-primary)'
     }
-  }, "←")), /*#__PURE__*/React.createElement("div", {
+  }, "←")), /*#__PURE__*/React.createElement("h1", {
     style: {
       fontFamily: 'var(--serif)',
       fontWeight: 800,
       fontSize: 21.5,
-      color: 'var(--navy)'
+      color: 'var(--navy)',
+      margin: 0
     }
   }, title), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1555,6 +1564,7 @@ function SafetyBanner({
 }) {
   const [open, setOpen] = useState(false);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setOpen(true),
     style: {
       background: 'none',
@@ -1571,7 +1581,8 @@ function SafetyBanner({
   }));
 }
 function ScreenBg({
-  src
+  src,
+  overlay
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: "screen-bg-wrap",
@@ -1579,7 +1590,14 @@ function ScreenBg({
   }, /*#__PURE__*/React.createElement("img", {
     src: src,
     alt: ""
-  }), /*#__PURE__*/React.createElement("div", {
+  }), overlay ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      background: 'var(--page)',
+      opacity: overlay
+    }
+  }) : null, /*#__PURE__*/React.createElement("div", {
     className: "screen-bg-fade"
   }));
 }
@@ -1641,6 +1659,7 @@ function SafetyModal({
       color: 'var(--navy)'
     }
   }, "Recursos de ayuda"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onClose,
     style: {
       border: 'none',
@@ -1714,6 +1733,7 @@ function RiskModal({
       fontWeight: 600
     }
   }, "Lo que escribiste suena a un momento muy difícil. Este espacio es de psicoeducación y no reemplaza ayuda profesional. Si en este momento tienes pensamientos de hacerte daño o de no querer vivir, por favor busca apoyo ahora mismo — no tienes que atravesar esto sola."), /*#__PURE__*/React.createElement(SafetyModalInline, null), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onClose,
     className: "btn-secondary",
     style: {
@@ -1772,6 +1792,7 @@ function PrivacyModal({
       color: 'var(--navy)'
     }
   }, "Privacidad y seguridad"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onClose,
     style: {
       border: 'none',
@@ -1785,12 +1806,15 @@ function PrivacyModal({
       gap: 16,
       marginTop: 12
     }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
     style: {
       fontWeight: 700,
       color: 'var(--navy)',
       fontSize: 18.5,
-      marginBottom: 2
+      marginBottom: 2,
+      marginTop: 0,
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal'
     }
   }, "¿Dónde se guardan tus respuestas?"), /*#__PURE__*/React.createElement("p", {
     style: {
@@ -1800,12 +1824,15 @@ function PrivacyModal({
       lineHeight: 1.6,
       margin: 0
     }
-  }, "Mientras no crees una cuenta, tus respuestas (diagnósticos, diario, progreso) se guardan solo en este dispositivo. Si creas una cuenta, también se guardan de forma segura en la nube para que puedas sincronizarlas entre dispositivos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, "Mientras no crees una cuenta, tus respuestas (diagnósticos, diario, progreso) se guardan solo en este dispositivo. Si creas una cuenta, también se guardan de forma segura en la nube para que puedas sincronizarlas entre dispositivos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
     style: {
       fontWeight: 700,
       color: 'var(--navy)',
       fontSize: 18.5,
-      marginBottom: 2
+      marginBottom: 2,
+      marginTop: 0,
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal'
     }
   }, "¿Melissa u otra persona puede leerlas?"), /*#__PURE__*/React.createElement("p", {
     style: {
@@ -1815,12 +1842,15 @@ function PrivacyModal({
       lineHeight: 1.6,
       margin: 0
     }
-  }, "No. Tu diario y tus diagnósticos son privados: solo tú puedes acceder a ellos con tu cuenta. Ni Melissa ni el equipo de Renacer pueden verlos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, "No. Tu diario y tus diagnósticos son privados: solo tú puedes acceder a ellos con tu cuenta. Ni Melissa ni el equipo de Renacer pueden verlos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
     style: {
       fontWeight: 700,
       color: 'var(--navy)',
       fontSize: 18.5,
-      marginBottom: 2
+      marginBottom: 2,
+      marginTop: 0,
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal'
     }
   }, "¿Cómo los elimino?"), /*#__PURE__*/React.createElement("p", {
     style: {
@@ -1830,12 +1860,15 @@ function PrivacyModal({
       lineHeight: 1.6,
       margin: 0
     }
-  }, "Cuando quieras, desde Perfil → \"Eliminar todos mis datos\" puedes borrarlos de forma permanente.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, "Cuando quieras, desde Perfil → \"Eliminar todos mis datos\" puedes borrarlos de forma permanente.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
     style: {
       fontWeight: 700,
       color: 'var(--navy)',
       fontSize: 18.5,
-      marginBottom: 2
+      marginBottom: 2,
+      marginTop: 0,
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal'
     }
   }, "Un recordatorio importante"), /*#__PURE__*/React.createElement("p", {
     style: {
@@ -2073,12 +2106,15 @@ function Onboarding({
       background: 'var(--aqua-soft)',
       border: '1px solid var(--aqua)'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
       color: 'var(--blue-dark)',
-      marginBottom: 4
+      marginBottom: 4,
+      marginTop: 0
     }
   }, "Todo lo que necesitas para volver a sentirte tú misma"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2096,6 +2132,7 @@ function Onboarding({
       marginTop: 12
     }
   }, "Empieza gratis. Avanza cuando estés lista.")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       padding: 16,
@@ -2129,6 +2166,7 @@ function Onboarding({
     value: name,
     onChange: e => setName(e.target.value),
     placeholder: "Tu nombre",
+    "aria-label": "¿Cómo te gustaría que te llamemos?",
     style: {
       width: '100%',
       padding: 12,
@@ -2147,6 +2185,7 @@ function Onboarding({
   }, "País donde vives actualmente"), /*#__PURE__*/React.createElement("select", {
     value: country,
     onChange: e => setCountry(e.target.value),
+    "aria-label": "País donde vives actualmente",
     style: {
       width: '100%',
       padding: 12,
@@ -2163,6 +2202,7 @@ function Onboarding({
   }, r.country)), /*#__PURE__*/React.createElement("option", {
     value: "Otro"
   }, "Otro")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setShowPrivacy(true),
     style: {
       background: 'none',
@@ -2178,6 +2218,7 @@ function Onboarding({
       marginTop: 14
     }
   }, "🔒 Tus respuestas son privadas. Conoce cómo protegemos tus datos."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       padding: 16,
@@ -2218,7 +2259,9 @@ function Onboarding({
       fontSize: 18.5,
       fontWeight: 600
     }
-  }, /*#__PURE__*/React.createElement("span", null, a.label), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", {
+    id: `area-label-onb-${a.key}`
+  }, a.label), /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--rose)'
     }
@@ -2231,11 +2274,14 @@ function Onboarding({
       ...scores,
       [a.key]: Number(e.target.value)
     }),
+    "aria-labelledby": `area-label-onb-${a.key}`,
+    "aria-valuetext": `${scores[a.key]} de 10`,
     style: {
       width: '100%',
       marginTop: 6
     }
   }))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       padding: 16,
@@ -2278,6 +2324,77 @@ function Home({
   const openContinuo = () => {
     if (isPlus) setShowContinuo(true);else go('subscribe');
   };
+
+  // --- Una sola recomendación principal, para reducir la indecisión ---
+  const nextModule = MODULES.find(m => !state.moduleProgress[m.id]?.completed);
+  let nextStep;
+  if (nextModule) {
+    nextStep = {
+      eyebrow: doneCount === 0 ? 'Empieza aquí' : 'Tu siguiente paso',
+      title: `Módulo ${nextModule.order} · ${nextModule.title}`,
+      desc: 'Aproximadamente 8 minutos',
+      action: () => go('moduleDetail', nextModule.id)
+    };
+  } else if (!isPlus) {
+    nextStep = {
+      eyebrow: 'Tu siguiente paso',
+      title: 'Descubre el plan guiado de 30 días',
+      desc: 'Un paso pequeño cada día · Renacer Plus',
+      action: () => go('subscribe')
+    };
+  } else if (!state.planStart) {
+    nextStep = {
+      eyebrow: 'Tu siguiente paso',
+      title: 'Comienza tu plan guiado de 30 días',
+      desc: 'Aproximadamente 10 minutos',
+      action: () => go('plan')
+    };
+  } else if (!planCompleted) {
+    let nextUnlockedDay = 1;
+    while (state.planDone[nextUnlockedDay]) nextUnlockedDay++;
+    const dayInfo = PLAN_30.find(p => p.d === nextUnlockedDay);
+    nextStep = {
+      eyebrow: 'Tu siguiente paso',
+      title: `Día ${nextUnlockedDay} · ${dayInfo ? dayInfo.t : 'Continúa tu plan'}`,
+      desc: 'Aproximadamente 10 minutos',
+      action: () => go('plan')
+    };
+  } else {
+    nextStep = {
+      eyebrow: 'Tu siguiente paso',
+      title: 'Escribe en tu cuaderno diario',
+      desc: 'Aproximadamente 3 minutos',
+      action: openContinuo
+    };
+  }
+  const secondaryRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    textAlign: 'left',
+    cursor: 'pointer',
+    background: '#fff',
+    border: '1px solid var(--border)'
+  };
+  const secondaryTitleStyle = {
+    fontWeight: 700,
+    fontSize: 18,
+    color: 'var(--navy)'
+  };
+  const secondaryDescStyle = {
+    fontSize: 16.5,
+    color: 'var(--text-secondary)',
+    fontWeight: 600,
+    marginTop: 1
+  };
+  const dot = color => ({
+    width: 9,
+    height: 9,
+    borderRadius: 99,
+    background: color,
+    flexShrink: 0
+  });
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
     style: {
@@ -2285,7 +2402,8 @@ function Home({
       zIndex: 0
     }
   }, /*#__PURE__*/React.createElement(ScreenBg, {
-    src: "backgrounds/home.jpg"
+    src: "backgrounds/home.jpg",
+    overlay: 0.75
   }), /*#__PURE__*/React.createElement("div", {
     className: "screen-content"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2313,6 +2431,7 @@ function Home({
       fontSize: 27
     }
   }, "Hola", state.profile.name ? `, ${state.profile.name}` : '')), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => go('profile'),
     "aria-label": "Perfil",
     style: {
@@ -2346,93 +2465,51 @@ function Home({
     d: "M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"
   })))), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '8px 20px'
+      padding: '10px 20px 0'
     }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => go('progress'),
-    className: "card",
-    style: {
-      width: '100%',
-      padding: 16,
-      textAlign: 'center',
-      cursor: 'pointer',
-      border: '1px solid var(--border)',
-      background: '#fff'
-    }
-  }, last && /*#__PURE__*/React.createElement(RadarChart, {
-    size: 220,
-    series: [{
-      color: '#986FA1',
-      values: last.scores
-    }]
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600,
-      marginTop: 4
-    }
-  }, "Tu radiografía actual · ", fmtDate(last.date)), lowestArea && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      marginTop: 6,
-      color: 'var(--rose)',
-      fontWeight: 600
-    }
-  }, "Hoy quizá necesite más cuidado: ", lowestArea.label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      marginTop: 8,
-      color: 'var(--blue-dark)',
-      fontWeight: 700
-    }
-  }, "Ver mi progreso o repetir mi radiografía →"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '12px 20px 0'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: openContinuo,
+    type: "button",
+    onClick: nextStep.action,
     className: "card",
     style: {
       width: '100%',
       textAlign: 'left',
-      padding: 16,
-      border: '1px solid var(--blue)',
-      background: 'var(--aqua-soft)',
-      cursor: 'pointer'
+      padding: 18,
+      cursor: 'pointer',
+      background: 'var(--navy)',
+      border: 'none',
+      boxShadow: '0 6px 18px rgba(38,57,47,0.28)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      flexWrap: 'wrap'
+      fontSize: 14.5,
+      fontWeight: 800,
+      color: 'rgba(255,255,255,0.75)',
+      textTransform: 'uppercase',
+      letterSpacing: 1
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, nextStep.eyebrow), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontWeight: 700,
-      color: 'var(--blue-dark)',
-      fontSize: 19
+      fontSize: 21,
+      fontWeight: 800,
+      color: '#fff',
+      marginTop: 6,
+      lineHeight: 1.3,
+      fontFamily: 'var(--serif)'
     }
-  }, planCompleted ? 'Tu renacer continúa ✦' : 'Cuaderno diario'), !isPlus && /*#__PURE__*/React.createElement("span", {
-    className: "pill",
+  }, nextStep.title), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: 'var(--gold-soft)',
-      color: 'var(--gold-dark)',
-      border: '1px solid var(--gold)'
-    }
-  }, "Incluido en Renacer Plus")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      color: 'var(--text-secondary)',
+      fontSize: 17,
+      color: 'rgba(255,255,255,0.88)',
       fontWeight: 600,
-      marginTop: 4
+      marginTop: 8
     }
-  }, planCompleted ? 'Terminaste el plan de 30 días — esto no acaba aquí. Escribe cuando lo necesites, sin límite.' : 'Una pregunta nueva cada día para tu cuaderno, sin límite de tiempo →'))), /*#__PURE__*/React.createElement("div", {
+  }, nextStep.desc, " →"))), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 20px 0'
     }
   }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => go('tool', 'sos'),
     className: "card",
     style: {
@@ -2460,119 +2537,85 @@ function Home({
     style: {
       padding: '4px 20px 20px'
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-on-bg",
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
-      fontSize: 18,
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
+      fontSize: 16,
       fontWeight: 700,
-      color: 'var(--text-secondary)',
-      margin: '12px 0 8px'
+      color: 'var(--text-muted)',
+      margin: '16px 0 8px',
+      textTransform: 'uppercase'
     }
-  }, "Continúa tu camino"), /*#__PURE__*/React.createElement("div", {
+  }, "Explorar más"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
-      gap: 10
+      gap: 8
     }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => go('modules'),
+    type: "button",
+    onClick: () => go('progress'),
     className: "card",
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      padding: 14,
-      textAlign: 'left',
-      cursor: 'pointer',
-      background: 'var(--orange-soft)',
-      border: '1px solid var(--orange)'
-    }
+    style: secondaryRowStyle
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 10,
-      height: 10,
-      borderRadius: 99,
-      background: 'var(--orange)',
-      flexShrink: 0
-    }
+    style: dot('#986FA1')
   }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 19,
-      color: 'var(--navy)'
-    }
-  }, "Módulos R·E·N·A·C·E·R"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600
-    }
-  }, doneCount, " de 7 completados"))), /*#__PURE__*/React.createElement("button", {
-    onClick: () => go('plan'),
+    style: secondaryTitleStyle
+  }, "Tu radiografía"), /*#__PURE__*/React.createElement("div", {
+    style: secondaryDescStyle
+  }, last ? `Actualizada el ${fmtDate(last.date)}${lowestArea ? ` · Cuida: ${lowestArea.label}` : ''}` : 'Descubre tu punto de partida'))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: openContinuo,
     className: "card",
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      padding: 14,
-      textAlign: 'left',
-      cursor: 'pointer',
-      background: 'var(--aqua-soft)',
-      border: '1px solid var(--aqua)'
-    }
+    style: secondaryRowStyle
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 10,
-      height: 10,
-      borderRadius: 99,
-      background: 'var(--aqua)',
-      flexShrink: 0
-    }
+    style: dot('var(--blue)')
   }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: secondaryTitleStyle
+  }, planCompleted ? 'Tu renacer continúa ✦' : 'Cuaderno diario', !isPlus && /*#__PURE__*/React.createElement("span", {
+    className: "pill",
     style: {
-      fontWeight: 700,
-      fontSize: 19,
-      color: 'var(--navy)'
-    }
-  }, "Plan de 30 días"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600
-    }
-  }, state.planStart ? `${Object.keys(state.planDone).length} de 30 días practicados` : 'Aún no lo has comenzado'))), /*#__PURE__*/React.createElement("button", {
-    onClick: () => go('journal'),
-    className: "card",
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      padding: 14,
-      textAlign: 'left',
-      cursor: 'pointer',
+      marginLeft: 6,
       background: 'var(--gold-soft)',
+      color: 'var(--gold-dark)',
       border: '1px solid var(--gold)'
     }
+  }, "Plus")), /*#__PURE__*/React.createElement("div", {
+    style: secondaryDescStyle
+  }, planCompleted ? 'Escribe cuando lo necesites, sin límite' : 'Una pregunta nueva cada día, sin límite de tiempo'))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => go('modules'),
+    className: "card",
+    style: secondaryRowStyle
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 10,
-      height: 10,
-      borderRadius: 99,
-      background: 'var(--gold-dark)',
-      flexShrink: 0
-    }
+    style: dot('var(--orange)')
   }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 19,
-      color: 'var(--navy)'
-    }
+    style: secondaryTitleStyle
+  }, "Módulos R·E·N·A·C·E·R"), /*#__PURE__*/React.createElement("div", {
+    style: secondaryDescStyle
+  }, doneCount, " de 7 completados"))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => go('plan'),
+    className: "card",
+    style: secondaryRowStyle
+  }, /*#__PURE__*/React.createElement("div", {
+    style: dot('var(--aqua)')
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: secondaryTitleStyle
+  }, "Plan de 30 días"), /*#__PURE__*/React.createElement("div", {
+    style: secondaryDescStyle
+  }, state.planStart ? `${Object.keys(state.planDone).length} de 30 días practicados` : 'Aún no lo has comenzado'))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => go('journal'),
+    className: "card",
+    style: secondaryRowStyle
+  }, /*#__PURE__*/React.createElement("div", {
+    style: dot('var(--gold-dark)')
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: secondaryTitleStyle
   }, "Mi cuaderno de trabajo"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600
-    }
+    style: secondaryDescStyle
   }, state.journal.length, " entradas guardadas"))))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
   })));
@@ -2607,6 +2650,7 @@ function ModulesList({
   }, MODULES.map(m => {
     const done = state.moduleProgress[m.id]?.completed;
     return /*#__PURE__*/React.createElement("button", {
+      type: "button",
       key: m.id,
       onClick: () => go('moduleDetail', m.id),
       className: "card",
@@ -2696,6 +2740,7 @@ function ModuleDetail({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: `${m.letter} · Módulo ${m.order}`,
     onBack: back,
+    backLabel: "Volver a módulos",
     right: /*#__PURE__*/React.createElement(SafetyBanner, {
       compact: true
     })
@@ -2703,11 +2748,12 @@ function ModuleDetail({
     style: {
       padding: '0 20px 24px'
     }
-  }, /*#__PURE__*/React.createElement("h1", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
       color: 'var(--navy)',
       fontSize: 27,
-      marginBottom: 2
+      marginBottom: 2,
+      fontFamily: 'var(--serif)'
     }
   }, m.title), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2795,6 +2841,7 @@ function ModuleDetail({
       ...answers,
       [p]: e.target.value
     }),
+    "aria-label": p,
     style: {
       width: '100%',
       padding: 10,
@@ -2805,6 +2852,7 @@ function ModuleDetail({
       resize: 'vertical'
     }
   }))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -2925,6 +2973,7 @@ function PlanReminderCard({
       margin: '0 0 10px'
     }
   }, "Te avisamos en la noche solo si todavía no has practicado el día — nada más."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-secondary",
     style: {
       width: '100%',
@@ -2967,7 +3016,8 @@ function Plan30({
       className: "screen-content"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
-      onBack: back
+      onBack: back,
+      backLabel: "Volver a inicio"
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 20
@@ -2996,7 +3046,8 @@ function Plan30({
       className: "screen-content"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
-      onBack: back
+      onBack: back,
+      backLabel: "Volver a inicio"
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 24
@@ -3014,6 +3065,7 @@ function Plan30({
         color: 'var(--rose)'
       }
     }, "Durante estos 30 días no intentarás reconstruir toda tu vida. Practicarás una forma distinta de habitarla."), /*#__PURE__*/React.createElement("button", {
+      type: "button",
       className: "btn-primary",
       style: {
         width: '100%',
@@ -3043,7 +3095,8 @@ function Plan30({
     className: "screen-content"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Plan de 30 días",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 16
@@ -3076,6 +3129,7 @@ function Plan30({
       const done = state.planDone[p.d];
       const locked = p.d > nextUnlockedDay;
       return /*#__PURE__*/React.createElement("button", {
+        type: "button",
         key: p.d,
         onClick: () => locked ? setLockedNotice(true) : setOpenDay(p),
         className: "card",
@@ -3116,6 +3170,7 @@ function Plan30({
       lineHeight: 1.6
     }
   }, "Este plan se recorre en orden, día por día — así cada experiencia se apoya en la anterior. Completa el día ", nextUnlockedDay, " para desbloquear el siguiente."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setLockedNotice(false),
     className: "btn-primary",
     style: {
@@ -3188,6 +3243,7 @@ function DayModal({
     value: text,
     onChange: e => setText(e.target.value),
     placeholder: "Registra brevemente lo que observaste...",
+    "aria-label": "Notas sobre la práctica de hoy",
     style: {
       width: '100%',
       padding: 10,
@@ -3196,6 +3252,7 @@ function DayModal({
       fontSize: 19
     }
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -3267,6 +3324,7 @@ function ToolsHome({
       gap: 10
     }
   }, tools.map(t => /*#__PURE__*/React.createElement("button", {
+    type: "button",
     key: t.id,
     onClick: () => t.special === 'journal' ? go('journal') : go('tool', t.id),
     className: "card",
@@ -3325,7 +3383,8 @@ function ToolScreen({
       className: "scroll-area fade-in"
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: info.title,
-      onBack: back
+      onBack: back,
+      backLabel: "Volver a herramientas"
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 20
@@ -3370,7 +3429,8 @@ function SosTool({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Estoy pasándola mal",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -3381,6 +3441,7 @@ function SosTool({
       lineHeight: 1.7
     }
   }, "No necesitas resolverlo todo ahora. Elige lo que sientas más cerca:"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "card",
     onClick: () => setMode('aca'),
     style: {
@@ -3401,6 +3462,7 @@ function SosTool({
       fontWeight: 600
     }
   }, "Abrir Pausa A.C.A. (respiración guiada)")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "card",
     onClick: () => setMode('3r'),
     style: {
@@ -3465,8 +3527,8 @@ function BreathingTool({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Pausa A.C.A.",
-    back: back,
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a herramientas"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -3521,6 +3583,7 @@ function BreathingTool({
       fontWeight: 600
     }
   }, running ? `Ciclo ${cycles + 1} de 8` : cycles > 0 ? `Completaste ${cycles} ciclos` : 'Inhala 3 segundos, exhala 5. Entre 5 y 8 repeticiones.'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       padding: '14px 28px',
@@ -3599,7 +3662,8 @@ function HabitTool({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Fórmula A.N.C.L.A.",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a herramientas"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -3644,6 +3708,7 @@ function HabitTool({
       fontWeight: 600
     }
   }, "Señal: ", h.senal || '—', " · Mínima: ", h.minima || '—')), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => toggleToday(h),
     style: {
       border: 'none',
@@ -3693,6 +3758,7 @@ function HabitTool({
       minima: v
     })
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -3708,7 +3774,8 @@ function MiniField({
   onChange,
   placeholder,
   maxLength,
-  inputMode
+  inputMode,
+  type
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3721,11 +3788,13 @@ function MiniField({
       fontWeight: 600
     }
   }, label), /*#__PURE__*/React.createElement("input", {
+    type: type,
     value: value,
     onChange: e => onChange(e.target.value),
     placeholder: placeholder,
     maxLength: maxLength,
     inputMode: inputMode,
+    "aria-label": label,
     style: {
       width: '100%',
       padding: 10,
@@ -3783,7 +3852,8 @@ function CirclesTool({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Tres Círculos de conexión",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a herramientas"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -3878,6 +3948,7 @@ function CirclesTool({
       fontSize: 18.5
     }
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => addTo(key),
     className: "btn-secondary",
     style: {
@@ -3928,7 +3999,8 @@ function CompassTool({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Brújula V.I.D.A.",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a herramientas"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -3967,6 +4039,7 @@ function CompassTool({
       accion: v
     })
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -4047,6 +4120,7 @@ function ThreeRTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Método 3R",
     onBack: back,
+    backLabel: "Volver a herramientas",
     right: /*#__PURE__*/React.createElement(SafetyBanner, {
       compact: true
     })
@@ -4087,6 +4161,7 @@ function ThreeRTool({
       reinicia: v
     })
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -4141,6 +4216,7 @@ function ContinuousEntryModal({
       color: 'var(--navy)'
     }
   }, "Sigue escribiendo"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onClose,
     style: {
       border: 'none',
@@ -4164,6 +4240,7 @@ function ContinuousEntryModal({
       marginBottom: 14
     }
   }, /*#__PURE__*/React.createElement("label", {
+    id: "mood-slider-label",
     style: {
       fontSize: 18,
       fontWeight: 600
@@ -4188,6 +4265,8 @@ function ContinuousEntryModal({
     max: "10",
     value: mood,
     onChange: e => setMood(Number(e.target.value)),
+    "aria-labelledby": "mood-slider-label",
+    "aria-valuetext": `${mood} de 10, ${mood <= 3 ? 'difícil' : mood >= 7 ? 'en calma' : 'en un punto medio'}`,
     style: {
       width: '100%'
     }
@@ -4205,6 +4284,7 @@ function ContinuousEntryModal({
       lineHeight: 1.5
     }
   }, prompt), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setIdx((idx + 1) % ONGOING_PROMPTS.length),
     style: {
       background: 'none',
@@ -4227,6 +4307,7 @@ function ContinuousEntryModal({
     value: text,
     onChange: e => setText(e.target.value),
     placeholder: "Escribe aquí...",
+    "aria-label": freeMode ? 'Escribe lo que quieras hoy' : prompt,
     style: {
       width: '100%',
       padding: 10,
@@ -4237,6 +4318,7 @@ function ContinuousEntryModal({
       resize: 'vertical'
     }
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setFreeMode(!freeMode),
     style: {
       background: 'none',
@@ -4249,6 +4331,7 @@ function ContinuousEntryModal({
       padding: 0
     }
   }, freeMode ? 'Prefiero una pregunta guía' : 'Prefiero escribir libremente, sin pregunta'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -4392,12 +4475,14 @@ function Journal({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mi cuaderno de trabajo",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 16px'
     }
   }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: openContinuo,
     className: "btn-primary",
     style: {
@@ -4420,6 +4505,7 @@ function Journal({
       paddingBottom: 8
     }
   }, ['todos', 'continuo', 'modulo', 'plan30', 'herramienta'].map(f => /*#__PURE__*/React.createElement("button", {
+    type: "button",
     key: f,
     onClick: () => setFilter(f),
     className: "pill",
@@ -4481,6 +4567,7 @@ function Journal({
       color: 'var(--text-primary)'
     }
   }, a))))), state.journal.length > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: exportText,
     className: "btn-secondary",
     style: {
@@ -4521,7 +4608,8 @@ function Progress({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Nueva radiografía",
-    onBack: () => setRedoing(false)
+    onBack: () => setRedoing(false),
+    backLabel: "Cancelar nueva radiografía"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -4538,7 +4626,9 @@ function Progress({
       fontSize: 18.5,
       fontWeight: 600
     }
-  }, /*#__PURE__*/React.createElement("span", null, a.label), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", {
+    id: `area-label-redo-${a.key}`
+  }, a.label), /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--rose)'
     }
@@ -4551,10 +4641,13 @@ function Progress({
       ...scores,
       [a.key]: Number(e.target.value)
     }),
+    "aria-labelledby": `area-label-redo-${a.key}`,
+    "aria-valuetext": `${scores[a.key]} de 10`,
     style: {
       width: '100%'
     }
   }))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -4575,7 +4668,8 @@ function Progress({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mi progreso",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -4625,6 +4719,7 @@ function Progress({
       marginRight: 4
     }
   }), "Ahora (", fmtDate(last.date), ")"))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-secondary",
     style: {
       width: '100%',
@@ -4752,6 +4847,7 @@ function Community({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Comunidad",
     onBack: back,
+    backLabel: "Volver a inicio",
     right: /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -4759,6 +4855,7 @@ function Community({
         alignItems: 'center'
       }
     }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
       onClick: () => go('worldmap'),
       "aria-label": "Ver el mapa de la comunidad",
       style: {
@@ -4794,11 +4891,14 @@ function Community({
       background: 'var(--rose-soft)',
       border: 'none'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
-      color: 'var(--rose)'
+      color: 'var(--rose)',
+      margin: 0
     }
   }, "Un espacio para caminar juntas 💛"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4820,6 +4920,7 @@ function Community({
       marginBottom: 14
     }
   }, auth.enabled ? '📝 Las publicaciones marcadas como "Ejemplo" muestran cómo será la comunidad. ' : '📝 Ejemplo de cómo será la comunidad (aún no hay cuenta configurada). ', auth.enabled && /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setShowAuth(true),
     style: {
       background: 'none',
@@ -4837,11 +4938,14 @@ function Community({
       padding: 14,
       marginBottom: 16
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
-      color: 'var(--rose)'
+      color: 'var(--rose)',
+      margin: 0
     }
   }, "Pregunta del día"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4853,6 +4957,7 @@ function Community({
     value: text,
     onChange: e => setText(e.target.value),
     placeholder: "Comparte si quieres (opcional)...",
+    "aria-label": `Tu respuesta a: ${PROMPT_OF_DAY}`,
     style: {
       width: '100%',
       padding: 10,
@@ -4862,6 +4967,7 @@ function Community({
       fontSize: 18.5
     }
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -5053,6 +5159,7 @@ function RealPostCard({
       marginTop: 6
     }
   }, post.author_label), isAdmin && /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setConfirmDeletePost(true),
     "aria-label": "Eliminar publicación",
     style: {
@@ -5096,6 +5203,7 @@ function RealPostCard({
         flexShrink: 0
       }
     }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
       onClick: () => toggleLike(c),
       "aria-label": likedByMe ? 'Quitar me gusta' : 'Me gusta',
       style: {
@@ -5114,6 +5222,7 @@ function RealPostCard({
         fontWeight: 600
       }
     }, likes.length), isAdmin && /*#__PURE__*/React.createElement("button", {
+      type: "button",
       onClick: () => setConfirmDeleteComment(c.id),
       "aria-label": "Eliminar comentario",
       style: {
@@ -5126,6 +5235,7 @@ function RealPostCard({
       }
     }, "🗑")));
   }), !showBox ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setShowBox(true),
     style: {
       background: 'none',
@@ -5147,6 +5257,7 @@ function RealPostCard({
     value: comment,
     onChange: e => setComment(e.target.value),
     placeholder: "Escribe un comentario de apoyo...",
+    "aria-label": "Escribe un comentario de apoyo",
     style: {
       flex: 1,
       padding: 9,
@@ -5155,6 +5266,7 @@ function RealPostCard({
       fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: sendComment,
     className: "btn-secondary",
     style: {
@@ -5175,6 +5287,7 @@ function RealPostCard({
       fontWeight: 600
     }
   }, "Esto borrará la publicación y sus comentarios de forma permanente para todas las personas de la comunidad."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: deletePost,
     style: {
       width: '100%',
@@ -5187,6 +5300,7 @@ function RealPostCard({
       marginBottom: 8
     }
   }, "Sí, eliminar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setConfirmDeletePost(false),
     className: "btn-secondary",
     style: {
@@ -5206,6 +5320,7 @@ function RealPostCard({
       fontWeight: 600
     }
   }, "Esto lo borrará de forma permanente para todas las personas de la comunidad."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: deleteComment,
     style: {
       width: '100%',
@@ -5218,6 +5333,7 @@ function RealPostCard({
       marginBottom: 8
     }
   }, "Sí, eliminar"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setConfirmDeleteComment(null),
     className: "btn-secondary",
     style: {
@@ -5330,7 +5446,8 @@ function WorldMap({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mapa de la comunidad",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a comunidad"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -5590,6 +5707,7 @@ function WompiCardForm({
       lineHeight: 1.5
     }
   }, "Al continuar aceptas los términos y la autorización de datos personales de Wompi."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -5710,7 +5828,8 @@ function Subscribe({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Renacer Plus",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a perfil"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -5752,6 +5871,7 @@ function Subscribe({
       padding: 12
     }
   }, "Ya cancelaste la renovación automática. Conservas tu acceso Plus ", accessUntil ? `hasta el ${fmtDate(accessUntil)}` : 'hasta el final de tu ciclo actual', ", y no se hará ningún cobro después de esa fecha.") : paymentProvider === 'wompi' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => {
       setConfirmCancel(true);
       setCancelError('');
@@ -5847,6 +5967,7 @@ function Subscribe({
       margin: '14px 0 4px'
     }
   }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setProvider('paypal'),
     className: "pill",
     style: {
@@ -5858,6 +5979,7 @@ function Subscribe({
       cursor: 'pointer'
     }
   }, "PayPal"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setProvider('wompi'),
     className: "pill",
     style: {
@@ -5875,6 +5997,7 @@ function Subscribe({
       margin: '16px 0'
     }
   }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setPlan('monthly'),
     className: "card",
     style: {
@@ -5908,6 +6031,7 @@ function Subscribe({
       marginTop: 2
     }
   }, provider === 'wompi' ? '≈ $4.99 USD' : `≈ ${WOMPI_PRICE_MONTHLY_COP.toLocaleString('es-CO')} COP`)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setPlan('annual'),
     className: "card",
     style: {
@@ -5949,6 +6073,7 @@ function Subscribe({
       fontSize: 18.5
     }
   }, "El pago estará disponible muy pronto.") : !auth.session ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setShowAuth(true),
     className: "btn-primary",
     style: {
@@ -6012,6 +6137,7 @@ function Subscribe({
       color: 'var(--critical)'
     }
   }, cancelError), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: cancelWompi,
     disabled: cancelBusy,
     style: {
@@ -6025,6 +6151,7 @@ function Subscribe({
       marginBottom: 8
     }
   }, cancelBusy ? 'Procesando...' : 'Sí, cancelar mi suscripción'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setConfirmCancel(false),
     disabled: cancelBusy,
     className: "btn-secondary",
@@ -6082,7 +6209,8 @@ function Profile({
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Perfil",
-    onBack: back
+    onBack: back,
+    backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -6100,6 +6228,7 @@ function Profile({
   }, "País donde vives actualmente"), /*#__PURE__*/React.createElement("select", {
     value: country,
     onChange: e => setCountry(e.target.value),
+    "aria-label": "País donde vives actualmente",
     style: {
       width: '100%',
       padding: 10,
@@ -6113,6 +6242,7 @@ function Profile({
     key: r.country,
     value: r.country
   }, r.country))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "btn-primary",
     style: {
       width: '100%',
@@ -6135,12 +6265,15 @@ function Profile({
     style: {
       marginTop: 28
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
       color: 'var(--text-secondary)',
-      marginBottom: 10
+      marginBottom: 10,
+      marginTop: 0
     }
   }, "Cuenta y sincronización en la nube"), !auth.enabled && /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -6151,6 +6284,7 @@ function Profile({
       fontWeight: 600
     }
   }, "Próximamente: crea una cuenta para sincronizar tu diario y progreso entre dispositivos, y participar en la comunidad. Por ahora tus datos se guardan solo en este dispositivo."), auth.enabled && !auth.session && /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setShowAuth(true),
     className: "card",
     style: {
@@ -6209,6 +6343,7 @@ function Profile({
     checked: state.profile.shareLocation,
     onChange: e => toggleShareLocation(e.target.checked)
   }), "Compartir mi país en el mapa agregado de la comunidad"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: auth.signOut,
     className: "btn-secondary",
     style: {
@@ -6242,6 +6377,7 @@ function Profile({
       margin: '6px 0 10px'
     }
   }, "El diagnóstico, los 7 módulos, el diario básico y las herramientas de crisis (Pausa A.C.A., Método 3R y el directorio de ayuda) siempre serán gratuitos.", isPlus ? ' Gracias por sostener este proyecto con tu suscripción.' : ' Renacer Plus incluye el plan guiado de 30 días, las herramientas avanzadas, el seguimiento continuo con gráfico de ánimo y la sincronización entre dispositivos.'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => go('subscribe'),
     className: "btn-primary",
     style: {
@@ -6252,14 +6388,18 @@ function Profile({
     style: {
       marginTop: 28
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
       color: 'var(--text-secondary)',
-      marginBottom: 10
+      marginBottom: 10,
+      marginTop: 0
     }
   }, "Privacidad y datos"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setShowPrivacy(true),
     className: "card",
     style: {
@@ -6270,6 +6410,7 @@ function Profile({
       cursor: 'pointer'
     }
   }, "🔒 Privacidad y seguridad"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: exportData,
     className: "card",
     style: {
@@ -6280,6 +6421,7 @@ function Profile({
       cursor: 'pointer'
     }
   }, "Exportar mis datos (.json)"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setConfirmDelete(true),
     className: "card",
     style: {
@@ -6293,12 +6435,15 @@ function Profile({
     style: {
       marginTop: 28
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
     style: {
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
       color: 'var(--text-secondary)',
-      marginBottom: 10
+      marginBottom: 10,
+      marginTop: 0
     }
   }, "Sobre este método"), /*#__PURE__*/React.createElement("p", {
     style: {
@@ -6326,6 +6471,7 @@ function Profile({
       fontWeight: 600
     }
   }, "Esto borrará tu diario, diagnósticos y progreso de este dispositivo de forma permanente."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: deleteAll,
     style: {
       width: '100%',
@@ -6338,6 +6484,7 @@ function Profile({
       marginBottom: 8
     }
   }, "Sí, eliminar todo"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setConfirmDelete(false),
     className: "btn-secondary",
     style: {
@@ -6439,6 +6586,7 @@ function Shell() {
       paddingBottom: 'env(safe-area-inset-bottom)'
     }
   }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
+    type: "button",
     key: t.key,
     onClick: () => {
       setScreen(t.key);
@@ -6464,61 +6612,7 @@ function Shell() {
       marginTop: 2,
       whiteSpace: 'nowrap'
     }
-  }, t.label))), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setScreen('progress');
-      setParam(null);
-    },
-    "aria-label": "Mi progreso",
-    className: "tab-btn",
-    style: {
-      position: 'absolute',
-      right: 6,
-      top: -46,
-      background: 'var(--aqua-soft)',
-      border: '3px solid #fff',
-      borderRadius: 99,
-      width: 52,
-      height: 52,
-      color: '#4A7BA6',
-      cursor: 'pointer',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "28",
-    height: "28",
-    viewBox: "0 0 24 24"
-  }, /*#__PURE__*/React.createElement("g", {
-    fill: "#DCE9F4",
-    stroke: "currentColor",
-    strokeWidth: "1.2",
-    strokeLinejoin: "round"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M12 10.5C11 6 7.5 3.2 5 4c-2.3.8-2 4.3.3 6 2 1.5 4.8 1.6 6.7.5z"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M12 10.5C13 6 16.5 3.2 19 4c2.3.8 2 4.3-.3 6-2 1.5-4.8 1.6-6.7.5z"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M12 12.2C11.2 16.3 8.2 18.8 6 18c-2-.7-1.8-3.8.2-5.3 1.7-1.3 4.1-1.4 5.8-.5z"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M12 12.2C12.8 16.3 15.8 18.8 18 18c2-.7 1.8-3.8-.2-5.3-1.7-1.3-4.1-1.4-5.8-.5z"
-  })), /*#__PURE__*/React.createElement("line", {
-    x1: "12",
-    y1: "9",
-    x2: "12",
-    y2: "17",
-    stroke: "currentColor",
-    strokeWidth: "1.3",
-    strokeLinecap: "round"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M12 9c-.3-1-1-1.8-1.8-2.1M12 9c.3-1 1-1.8 1.8-2.1",
-    stroke: "currentColor",
-    strokeWidth: "1",
-    strokeLinecap: "round",
-    fill: "none"
-  })))));
+  }, t.label)))));
 }
 
 /* ============================= ROOT ============================= */
