@@ -2504,7 +2504,7 @@ function Home({
     }
   }, nextStep.desc, " →"))), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '12px 20px 20px'
+      padding: '12px 20px 0'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -2531,7 +2531,56 @@ function Home({
       fontWeight: 600,
       marginTop: 2
     }
-  }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
+  }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 20px 20px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => window.open('https://wa.me/34613224702?text=' + encodeURIComponent('Hola Melissa, estoy usando Método Renacer y me gustaría hablar contigo.'), '_blank'),
+    className: "card",
+    style: {
+      width: '100%',
+      textAlign: 'left',
+      padding: 14,
+      border: '1px solid var(--border)',
+      background: '#fff',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "icons/melissa.jpg",
+    alt: "",
+    "aria-hidden": "true",
+    style: {
+      width: 44,
+      height: 44,
+      borderRadius: 99,
+      flexShrink: 0,
+      objectFit: 'cover',
+      border: '1px solid var(--border)'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--navy)',
+      fontSize: 17.5
+    }
+  }, "Contactar con la psicóloga Melissa Sánchez"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 2
+    }
+  }, "Escríbele por WhatsApp →")))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
   }));
 }
