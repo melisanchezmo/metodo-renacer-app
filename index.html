@@ -1132,6 +1132,9 @@ function defaultState() {
       updatedAt: null
     },
     avances: [],
+    retos: {
+      entries: []
+    },
     compassEntries: [],
     decisiones: [],
     threeREntries: [],
@@ -3463,6 +3466,13 @@ function ToolsHome({
     textColor: '#fff',
     freePlus: true
   }, {
+    id: 'retos',
+    name: 'Reto de pertenencia',
+    desc: 'Tu primer reto de conexión es gratis. Con Plus, un reto nuevo cada semana y tu seguimiento completo.',
+    color: '#c99a95',
+    textColor: '#2f2420',
+    freePlus: true
+  }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
@@ -3631,6 +3641,10 @@ function ToolScreen({
     back: back
   });
   if (id === 'avances') return /*#__PURE__*/React.createElement(AvancesTool, {
+    go: go,
+    back: back
+  });
+  if (id === 'retos') return /*#__PURE__*/React.createElement(RetoTool, {
     go: go,
     back: back
   });
@@ -5554,6 +5568,357 @@ function AvancesTool({
     benefit: "Mira cuánto has avanzado, aunque no lo hayas notado",
     desc: "Con Renacer Plus ves tu registro completo, cuántos avances llevas esta semana y cuáles se repiten más."
   })));
+}
+const RETO_CHALLENGES = [{
+  key: 'saluda',
+  text: 'Saluda a alguien que ves frecuentemente',
+  emoji: '👋'
+}, {
+  key: 'lugar',
+  text: 'Visita un lugar nuevo de tu barrio',
+  emoji: '🚶‍♀️'
+}, {
+  key: 'actividad',
+  text: 'Busca una actividad relacionada con uno de tus intereses',
+  emoji: '🎨'
+}, {
+  key: 'compatriota',
+  text: 'Habla con alguien de tu país sin quedarte únicamente dentro de tu comunidad',
+  emoji: '🗣️'
+}, {
+  key: 'tradicion',
+  text: 'Comparte una tradición tuya con otra persona',
+  emoji: '🎎'
+}, {
+  key: 'costumbre',
+  text: 'Pregunta por una costumbre local',
+  emoji: '❓'
+}];
+function RetoTool({
+  go,
+  back
+}) {
+  const {
+    state,
+    update,
+    addJournalEntry
+  } = useApp();
+  const isPlus = useIsPlus();
+  const retos = state.retos || {
+    entries: []
+  };
+  const entries = retos.entries || [];
+  const [pickedKey, setPickedKey] = useState(null);
+  const [note, setNote] = useState('');
+  const [justSaved, setJustSaved] = useState(false);
+  const weekIndex = Math.floor(dayOfYear(new Date()) / 7);
+  const weeklyChallenge = RETO_CHALLENGES[weekIndex % RETO_CHALLENGES.length];
+  const history = entries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const completedKeys = new Set(entries.map(e => e.challengeKey));
+
+  // Free: solo un reto, para siempre (hasta que se suscriba). Plus: retos ilimitados con seguimiento.
+  const showLocked = !isPlus && entries.length > 0 && !justSaved;
+  const hidePicker = !isPlus && justSaved;
+  const complete = key => {
+    const challenge = RETO_CHALLENGES.find(c => c.key === key);
+    const entry = {
+      id: uid(),
+      date: nowISO(),
+      challengeKey: key,
+      note: note.trim()
+    };
+    update(prev => ({
+      retos: {
+        entries: [entry, ...((prev.retos || {}).entries || [])]
+      }
+    }));
+    addJournalEntry({
+      type: 'herramienta',
+      title: 'Reto de pertenencia',
+      answers: {
+        'Reto': challenge ? challenge.text : key,
+        'Cómo me fue': note.trim()
+      }
+    });
+    setJustSaved(true);
+    setNote('');
+    setPickedKey(null);
+  };
+  if (showLocked) {
+    const lastEntry = history[0];
+    const lastChallenge = lastEntry ? RETO_CHALLENGES.find(c => c.key === lastEntry.challengeKey) : null;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in"
+    }, /*#__PURE__*/React.createElement(TopBar, {
+      title: "Reto de pertenencia",
+      onBack: back,
+      backLabel: "Volver a herramientas"
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 20
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: 16,
+        marginBottom: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 19
+      }
+    }, "Tu reto completado"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        marginTop: 6
+      }
+    }, lastChallenge ? `${lastChallenge.emoji} ${lastChallenge.text}` : ''), lastEntry && lastEntry.note && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 17,
+        color: 'var(--text-secondary)',
+        marginTop: 6,
+        fontStyle: 'italic'
+      }
+    }, "\"", lastEntry.note, "\""), lastEntry && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        color: 'var(--text-muted)',
+        marginTop: 8
+      }
+    }, fmtDate(lastEntry.date))), /*#__PURE__*/React.createElement(UpsellCard, {
+      go: go,
+      title: "Sigue construyendo pertenencia",
+      benefit: "Un reto nuevo cada semana, pensado para ti",
+      desc: "Con Renacer Plus recibes un reto de pertenencia distinto cada semana, eliges tu propio recorrido entre todos los retos, y llevas un seguimiento de tu progreso."
+    })));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Reto de pertenencia",
+    onBack: back,
+    backLabel: "Volver a herramientas"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, !hidePicker && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 0
+    }
+  }, isPlus ? 'La pertenencia se construye en pasos pequeños. Elige un reto, o sigue el de esta semana.' : 'La pertenencia se construye en pasos pequeños. Elige un reto para comenzar — tu primer reto es gratis.'), isPlus && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 16,
+      background: 'var(--rose-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: 'var(--rose)',
+      textTransform: 'uppercase',
+      letterSpacing: 0.4
+    }
+  }, "Reto de esta semana"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 19,
+      fontWeight: 700,
+      marginTop: 4
+    }
+  }, weeklyChallenge.emoji, " ", weeklyChallenge.text)), !pickedKey ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, RETO_CHALLENGES.map(c => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: c.key,
+    onClick: () => setPickedKey(c.key),
+    className: "card",
+    style: {
+      padding: 14,
+      textAlign: 'left',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      background: '#fff'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 22
+    },
+    "aria-hidden": "true"
+  }, c.emoji), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 700
+    }
+  }, c.text, isPlus && completedKeys.has(c.key) && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: 8,
+      fontSize: 14.5,
+      color: 'var(--rose)',
+      fontWeight: 700
+    }
+  }, "✓ ya lo hiciste"))))) : /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 19,
+      fontWeight: 700,
+      marginBottom: 8
+    }
+  }, RETO_CHALLENGES.find(c => c.key === pickedKey).emoji, " ", RETO_CHALLENGES.find(c => c.key === pickedKey).text), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, "¿Cómo te fue? (opcional)"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: note,
+    onChange: e => setNote(e.target.value),
+    placeholder: "Cuenta brevemente cómo fue...",
+    "aria-label": "¿Cómo te fue?",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 4,
+      fontSize: 18,
+      resize: 'vertical'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-secondary",
+    style: {
+      flex: 1,
+      padding: 12
+    },
+    onClick: () => {
+      setPickedKey(null);
+      setNote('');
+    }
+  }, "Elegir otro"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    style: {
+      flex: 1,
+      padding: 12
+    },
+    onClick: () => complete(pickedKey)
+  }, "Ya lo hice")))), justSaved && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginTop: 16,
+      background: 'var(--gold-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16.5,
+      fontWeight: 700,
+      color: 'var(--text-primary)'
+    }
+  }, "✓ ¡Reto completado!"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 6,
+      fontStyle: 'italic'
+    }
+  }, "Cada paso hacia otras personas también es un paso hacia tu nueva vida.")), justSaved && !isPlus && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement(UpsellCard, {
+    go: go,
+    title: "Sigue construyendo pertenencia",
+    benefit: "Un reto nuevo cada semana, pensado para ti",
+    desc: "Con Renacer Plus recibes un reto de pertenencia distinto cada semana, eliges tu propio recorrido entre todos los retos, y llevas un seguimiento de tu progreso."
+  })), isPlus && history.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, "Tu seguimiento"), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '14px 16px',
+      marginBottom: 12,
+      background: 'var(--rose-soft)',
+      border: 'none',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 800,
+      color: 'var(--rose)'
+    }
+  }, entries.length), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, "retos completados en total")), history.map(e => {
+    const c = RETO_CHALLENGES.find(x => x.key === e.challengeKey);
+    return /*#__PURE__*/React.createElement("div", {
+      key: e.id,
+      className: "card",
+      style: {
+        padding: 12,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 17,
+        color: 'var(--text-muted)'
+      }
+    }, fmtDate(e.date)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        marginTop: 4,
+        fontWeight: 700
+      }
+    }, c ? `${c.emoji} ${c.text}` : e.challengeKey), e.note && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 17,
+        color: 'var(--text-secondary)',
+        marginTop: 4,
+        fontStyle: 'italic'
+      }
+    }, "\"", e.note, "\""));
+  }))));
 }
 const CIRCLE_KEYS = ['seguro', 'posible', 'porConstruir'];
 const CIRCLE_LABELS = {
