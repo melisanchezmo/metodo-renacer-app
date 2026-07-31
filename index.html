@@ -1133,6 +1133,7 @@ function defaultState() {
     },
     avances: [],
     compassEntries: [],
+    decisiones: [],
     threeREntries: [],
     communityPosts: [],
     settings: {
@@ -3478,7 +3479,7 @@ function ToolsHome({
   }, {
     id: 'brujula',
     name: 'Brújula V.I.D.A.',
-    desc: 'Valores, intención, decisión, acción',
+    desc: 'Aclara tu dirección o toma una decisión difícil con más claridad',
     color: '#e4c6c6',
     textColor: '#2f2420',
     plus: true
@@ -3588,7 +3589,7 @@ const PLUS_ONLY_TOOLS = {
   brujula: {
     title: 'Brújula V.I.D.A.',
     benefit: 'Toma decisiones difíciles con más claridad y menos culpa',
-    desc: 'Aclara tus valores, define una intención concreta y elige la acción que te acerque a la vida que quieres construir.'
+    desc: 'Aclara tus valores, define una intención concreta y elige la acción que te acerque a la vida que quieres construir. O usa la brújula de decisiones para mirar con calma una elección difícil.'
   },
   orillas: {
     title: 'Las dos orillas',
@@ -6123,7 +6124,122 @@ function CirclesTool({
     }
   }, "Tu red no tiene que construirse de una sola vez. La pertenencia también nace de pequeños gestos repetidos."))));
 }
+const DECISION_EXAMPLES = ['¿Me quedo o vuelvo?', '¿Acepto este trabajo aunque no corresponda a mi profesión?', '¿Inicio la homologación?', '¿Me cambio de ciudad?', '¿Continúo esta relación?', '¿Es momento de pedir ayuda?'];
+const DECISION_FIELDS = [{
+  key: 'deseo',
+  label: 'Lo que deseo',
+  placeholder: '¿Qué es lo que realmente quisieras que pasara?'
+}, {
+  key: 'temo',
+  label: 'Lo que temo',
+  placeholder: '¿Qué es lo que más te preocupa de esta decisión?'
+}, {
+  key: 'necesito',
+  label: 'Lo que necesito',
+  placeholder: '¿Qué necesitas de verdad ahora mismo?'
+}, {
+  key: 'control',
+  label: 'Lo que está bajo mi control',
+  placeholder: '¿Qué parte de esto depende realmente de ti?'
+}, {
+  key: 'costeActuar',
+  label: 'El coste de actuar',
+  placeholder: '¿Qué te costaría o perderías si actúas?'
+}, {
+  key: 'costeNoActuar',
+  label: 'El coste de no actuar',
+  placeholder: '¿Qué te costaría o perderías si no haces nada?'
+}, {
+  key: 'pasoReversible',
+  label: 'Mi siguiente paso reversible',
+  placeholder: 'Un paso pequeño que puedas dar y, si hace falta, deshacer'
+}];
+const DECISION_FORM_EMPTY = {
+  deseo: '',
+  temo: '',
+  necesito: '',
+  control: '',
+  costeActuar: '',
+  costeNoActuar: '',
+  pasoReversible: ''
+};
 function CompassTool({
+  back
+}) {
+  const [mode, setMode] = useState(null);
+  if (mode === 'vida') return /*#__PURE__*/React.createElement(VidaCompass, {
+    back: () => setMode(null)
+  });
+  if (mode === 'decision') return /*#__PURE__*/React.createElement(DecisionCompass, {
+    back: () => setMode(null)
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Brújula V.I.D.A.",
+    onBack: back,
+    backLabel: "Volver a herramientas"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 0
+    }
+  }, "¿Qué necesitas hoy?"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setMode('vida'),
+    className: "card",
+    style: {
+      width: '100%',
+      padding: 16,
+      textAlign: 'left',
+      cursor: 'pointer',
+      marginBottom: 12,
+      background: '#fff'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19
+    }
+  }, "Aclarar mi dirección"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 2
+    }
+  }, "Valores, intención, decisión y acción")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setMode('decision'),
+    className: "card",
+    style: {
+      width: '100%',
+      padding: 16,
+      textAlign: 'left',
+      cursor: 'pointer',
+      background: '#fff'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19
+    }
+  }, "Tomar una decisión difícil"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 2
+    }
+  }, "Para esos momentos donde no sabes qué elegir"))));
+}
+function VidaCompass({
   back
 }) {
   const {
@@ -6137,13 +6253,14 @@ function CompassTool({
     decision: '',
     accion: ''
   });
+  const compassEntries = state.compassEntries || [];
   const save = () => {
     update(prev => ({
       compassEntries: [{
         id: uid(),
         date: nowISO(),
         ...form
-      }, ...prev.compassEntries]
+      }, ...(prev.compassEntries || [])]
     }));
     addJournalEntry({
       type: 'herramienta',
@@ -6165,9 +6282,9 @@ function CompassTool({
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
-    title: "Brújula V.I.D.A.",
+    title: "Aclarar mi dirección",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a la brújula"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -6214,7 +6331,7 @@ function CompassTool({
       marginTop: 6
     },
     onClick: save
-  }, "Guardar")), state.compassEntries.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "Guardar")), compassEntries.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 20
     }
@@ -6225,7 +6342,7 @@ function CompassTool({
       color: 'var(--text-secondary)',
       marginBottom: 8
     }
-  }, "Entradas anteriores"), state.compassEntries.map(e => /*#__PURE__*/React.createElement("div", {
+  }, "Entradas anteriores"), compassEntries.map(e => /*#__PURE__*/React.createElement("div", {
     key: e.id,
     className: "card",
     style: {
@@ -6243,6 +6360,221 @@ function CompassTool({
       marginTop: 4
     }
   }, /*#__PURE__*/React.createElement("b", null, "Acción:"), " ", e.accion))))));
+}
+function DecisionCompass({
+  back
+}) {
+  const {
+    state,
+    update,
+    addJournalEntry
+  } = useApp();
+  const [situacion, setSituacion] = useState('');
+  const [form, setForm] = useState(DECISION_FORM_EMPTY);
+  const [risk, setRisk] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const decisiones = state.decisiones || [];
+  const canSave = situacion.trim() && form.pasoReversible.trim();
+  const setField = (key, v) => {
+    setForm(prev => ({
+      ...prev,
+      [key]: v
+    }));
+    setJustSaved(false);
+  };
+  const save = () => {
+    if (!canSave) return;
+    const entry = {
+      id: uid(),
+      date: nowISO(),
+      situacion: situacion.trim(),
+      ...form
+    };
+    update(prev => ({
+      decisiones: [entry, ...(prev.decisiones || [])]
+    }));
+    addJournalEntry({
+      type: 'herramienta',
+      title: 'Brújula de decisiones',
+      answers: {
+        '¿Qué decisión estás enfrentando?': situacion.trim(),
+        'Lo que deseo': form.deseo,
+        'Lo que temo': form.temo,
+        'Lo que necesito': form.necesito,
+        'Lo que está bajo mi control': form.control,
+        'El coste de actuar': form.costeActuar,
+        'El coste de no actuar': form.costeNoActuar,
+        'Mi siguiente paso reversible': form.pasoReversible
+      }
+    });
+    if ([situacion, ...Object.values(form)].some(containsRisk)) setRisk(true);
+    setJustSaved(true);
+    setSituacion('');
+    setForm(DECISION_FORM_EMPTY);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Brújula de decisiones",
+    onBack: back,
+    backLabel: "Volver a la brújula",
+    right: /*#__PURE__*/React.createElement(SafetyBanner, {
+      compact: true
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18.5,
+      fontStyle: 'italic',
+      color: 'var(--rose)',
+      marginTop: 0
+    }
+  }, "Esta brújula no decide por ti. Te ayuda a mirar tu situación con más claridad para que la decisión, al final, siga siendo tuya."), justSaved && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginBottom: 16,
+      background: 'var(--gold-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16.5,
+      fontWeight: 700,
+      color: 'var(--text-primary)'
+    }
+  }, "✓ Guardado en tu registro de decisiones")), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, "¿Qué decisión estás enfrentando?"), /*#__PURE__*/React.createElement("input", {
+    value: situacion,
+    onChange: e => {
+      setSituacion(e.target.value);
+      setJustSaved(false);
+    },
+    placeholder: "Ej: ¿Me quedo o vuelvo?",
+    "aria-label": "¿Qué decisión estás enfrentando?",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 4,
+      marginBottom: 10,
+      fontSize: 18.5
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 6
+    }
+  }, DECISION_EXAMPLES.map(ex => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: ex,
+    onClick: () => {
+      setSituacion(ex);
+      setJustSaved(false);
+    },
+    className: "pill",
+    style: {
+      fontSize: 14.5,
+      padding: '5px 10px',
+      background: 'var(--rose-soft)',
+      color: 'var(--rose)',
+      border: 'none',
+      cursor: 'pointer'
+    }
+  }, ex)))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginTop: 12
+    }
+  }, DECISION_FIELDS.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.key,
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, f.label), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: form[f.key],
+    onChange: e => setField(f.key, e.target.value),
+    placeholder: f.placeholder,
+    "aria-label": f.label,
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 4,
+      fontSize: 18,
+      resize: 'vertical'
+    }
+  }))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    disabled: !canSave,
+    style: {
+      width: '100%',
+      padding: 14,
+      marginTop: 6
+    },
+    onClick: save
+  }, "Guardar esta decisión")), decisiones.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, "Decisiones anteriores"), decisiones.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.id,
+    className: "card",
+    style: {
+      padding: 12,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-muted)'
+    }
+  }, fmtDate(e.date)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      marginTop: 4,
+      fontWeight: 700
+    }
+  }, e.situacion), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17.5,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Siguiente paso:"), " ", e.pasoReversible))))), risk && /*#__PURE__*/React.createElement(RiskModal, {
+    onClose: () => setRisk(false)
+  }));
 }
 function ThreeRTool({
   back
