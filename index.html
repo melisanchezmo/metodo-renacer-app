@@ -2543,14 +2543,6 @@ function Home({
     }
   }, careInfo.text), careInfo && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13.5,
-      marginTop: 6,
-      color: 'var(--text-muted)',
-      fontWeight: 600,
-      lineHeight: 1.4
-    }
-  }, "Esta no es una etiqueta ni un diagnóstico. Es una fotografía de cómo te encuentras hoy y puede cambiar a medida que avanzas."), careInfo && /*#__PURE__*/React.createElement("div", {
-    style: {
       fontSize: 14,
       marginTop: 6,
       color: 'var(--navy)',
@@ -4772,7 +4764,15 @@ function Progress({
       background: '#573529',
       marginRight: 4
     }
-  }), "Ahora (", fmtDate(last.date), ")"))), /*#__PURE__*/React.createElement("button", {
+  }), "Ahora (", fmtDate(last.date), ")")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      marginTop: 10,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      lineHeight: 1.4
+    }
+  }, "Esta no es una etiqueta ni un diagnóstico. Es una fotografía de cómo te encuentras hoy y puede cambiar a medida que avanzas.")), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-secondary",
     style: {
