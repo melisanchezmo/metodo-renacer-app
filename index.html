@@ -1140,7 +1140,19 @@ function useApp() {
 function AppProvider({
   children
 }) {
-  const [state, setState] = useState(() => loadState() || defaultState());
+  // Fusiona con defaultState() en vez de usar el estado guardado tal cual: si una persona
+  // instaló la app antes de que añadiéramos una función nueva (por ejemplo climaEntries,
+  // refugio o circlesReflection), su copia guardada en este dispositivo no tiene esa clave.
+  // Usarla "tal cual" dejaría esa clave como undefined y rompería cualquier pantalla que la
+  // use. Al fusionar, conservamos todo lo que la persona ya tenía guardado y solo rellenamos
+  // las claves nuevas que todavía no existían.
+  const [state, setState] = useState(() => {
+    const loaded = loadState();
+    return loaded ? {
+      ...defaultState(),
+      ...loaded
+    } : defaultState();
+  });
   useEffect(() => {
     saveState(state);
   }, [state]);
@@ -4392,7 +4404,8 @@ function ClimateTool({
     addJournalEntry
   } = useApp();
   const isPlus = useIsPlus();
-  const todays = state.climaEntries.find(e => climaIsSameDay(e.date, nowISO()));
+  const climaEntries = state.climaEntries || [];
+  const todays = climaEntries.find(e => climaIsSameDay(e.date, nowISO()));
   const [emotion, setEmotion] = useState(todays ? todays.emotion : '');
   const [intensity, setIntensity] = useState(todays ? todays.intensity : 5);
   const [note, setNote] = useState(todays ? todays.note : '');
@@ -4407,7 +4420,7 @@ function ClimateTool({
     const label = (CLIMA_EMOTIONS.find(e => e.key === emotion) || {}).label || emotion;
     if (todays) {
       update(prev => ({
-        climaEntries: prev.climaEntries.map(e => e.id === todays.id ? {
+        climaEntries: (prev.climaEntries || []).map(e => e.id === todays.id ? {
           ...e,
           emotion,
           intensity,
@@ -4422,7 +4435,7 @@ function ClimateTool({
           emotion,
           intensity,
           note
-        }, ...prev.climaEntries]
+        }, ...(prev.climaEntries || [])]
       }));
     }
     addJournalEntry({
@@ -4437,14 +4450,15 @@ function ClimateTool({
     if (containsRisk(note)) setRisk(true);
     setJustSaved(true);
   };
-  const history = state.climaEntries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const history = climaEntries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
   const last30 = history.filter(e => Date.now() - new Date(e.date).getTime() <= 30 * 24 * 60 * 60 * 1000);
   const freq = {};
   last30.forEach(e => {
     freq[e.emotion] = (freq[e.emotion] || 0) + 1;
   });
   const topEmotions = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  const lastDiag = state.diagnostics[state.diagnostics.length - 1];
+  const diagnostics = state.diagnostics || [];
+  const lastDiag = diagnostics[diagnostics.length - 1];
   const care = lastDiag ? getCareMessage(lastDiag.scores) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
