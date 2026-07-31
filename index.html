@@ -1115,6 +1115,7 @@ function defaultState() {
       step: '',
       savedAt: null
     },
+    climaEntries: [],
     compassEntries: [],
     threeREntries: [],
     communityPosts: [],
@@ -3406,6 +3407,13 @@ function ToolsHome({
     special: 'journal',
     freePlus: true
   }, {
+    id: 'clima',
+    name: 'Mi clima emocional',
+    desc: 'Registra tu estado de ánimo de hoy. Con Plus, guarda tu historial y descubre patrones.',
+    color: '#8a4a52',
+    textColor: '#fff',
+    freePlus: true
+  }, {
     id: 'aca',
     name: 'Pausa A.C.A.',
     desc: 'Respiración y regulación para momentos de alerta',
@@ -3559,6 +3567,10 @@ function ToolScreen({
       desc: info.desc
     })));
   }
+  if (id === 'clima') return /*#__PURE__*/React.createElement(ClimateTool, {
+    go: go,
+    back: back
+  });
   if (id === 'aca') return /*#__PURE__*/React.createElement(BreathingTool, {
     back: back
   });
@@ -3967,6 +3979,417 @@ function MiniField({
       marginTop: 4,
       fontSize: 18.5
     }
+  }));
+}
+const CLIMA_EMOTIONS = [{
+  key: 'calma',
+  label: 'Calma',
+  emoji: '🌿'
+}, {
+  key: 'nostalgia',
+  label: 'Nostalgia',
+  emoji: '🍂'
+}, {
+  key: 'ansiedad',
+  label: 'Ansiedad',
+  emoji: '🌪️'
+}, {
+  key: 'soledad',
+  label: 'Soledad',
+  emoji: '🌙'
+}, {
+  key: 'esperanza',
+  label: 'Esperanza',
+  emoji: '🌅'
+}, {
+  key: 'agotamiento',
+  label: 'Agotamiento',
+  emoji: '🪫'
+}, {
+  key: 'gratitud',
+  label: 'Gratitud',
+  emoji: '🌸'
+}, {
+  key: 'confusion',
+  label: 'Confusión',
+  emoji: '🌫️'
+}];
+function climaIsSameDay(iso1, iso2) {
+  try {
+    return new Date(iso1).toDateString() === new Date(iso2).toDateString();
+  } catch (e) {
+    return false;
+  }
+}
+function ClimaSparkline({
+  entries
+}) {
+  const data = entries.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (data.length < 2) return null;
+  const w = 280,
+    h = 74,
+    pad = 8;
+  const stepX = (w - pad * 2) / (data.length - 1);
+  const xs = data.map((d, i) => pad + i * stepX);
+  const ys = data.map(d => h - pad - d.intensity / 10 * (h - pad * 2));
+  const points = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+  const last = data[data.length - 1];
+  const lastEmotion = CLIMA_EMOTIONS.find(e => e.key === last.emotion);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'baseline'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: 'var(--text-secondary)'
+    }
+  }, "Gráfico de tu clima emocional"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 800,
+      color: 'var(--blue)'
+    }
+  }, lastEmotion ? lastEmotion.emoji : '', " ", last.intensity, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600
+    }
+  }, "/10"))), /*#__PURE__*/React.createElement("svg", {
+    width: "100%",
+    height: h,
+    viewBox: `0 0 ${w} ${h}`,
+    preserveAspectRatio: "none",
+    style: {
+      marginTop: 8,
+      display: 'block'
+    },
+    role: "img",
+    "aria-label": `Gráfico de la intensidad de tu clima emocional a lo largo del tiempo, desde ${fmtDate(data[0].date)} hasta ${fmtDate(last.date)}. Último registro: ${lastEmotion ? lastEmotion.label : last.emotion}, intensidad ${last.intensity} de 10.`
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: pad,
+    y1: h - pad,
+    x2: w - pad,
+    y2: h - pad,
+    stroke: "var(--grid)",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: points,
+    fill: "none",
+    stroke: "var(--blue)",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }), xs.map((x, i) => /*#__PURE__*/React.createElement("circle", {
+    key: i,
+    cx: x,
+    cy: ys[i],
+    r: i === xs.length - 1 ? 4 : 2.5,
+    fill: "var(--blue)"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 16.5,
+      color: 'var(--text-muted)',
+      marginTop: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", null, fmtDate(data[0].date)), /*#__PURE__*/React.createElement("span", null, fmtDate(last.date))));
+}
+function ClimateTool({
+  go,
+  back
+}) {
+  const {
+    state,
+    update,
+    addJournalEntry
+  } = useApp();
+  const isPlus = useIsPlus();
+  const todays = state.climaEntries.find(e => climaIsSameDay(e.date, nowISO()));
+  const [emotion, setEmotion] = useState(todays ? todays.emotion : '');
+  const [intensity, setIntensity] = useState(todays ? todays.intensity : 5);
+  const [note, setNote] = useState(todays ? todays.note : '');
+  const [risk, setRisk] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const pick = key => {
+    setEmotion(key);
+    setJustSaved(false);
+  };
+  const save = () => {
+    if (!emotion) return;
+    const label = (CLIMA_EMOTIONS.find(e => e.key === emotion) || {}).label || emotion;
+    if (todays) {
+      update(prev => ({
+        climaEntries: prev.climaEntries.map(e => e.id === todays.id ? {
+          ...e,
+          emotion,
+          intensity,
+          note
+        } : e)
+      }));
+    } else {
+      update(prev => ({
+        climaEntries: [{
+          id: uid(),
+          date: nowISO(),
+          emotion,
+          intensity,
+          note
+        }, ...prev.climaEntries]
+      }));
+    }
+    addJournalEntry({
+      type: 'herramienta',
+      title: 'Mi clima emocional',
+      answers: {
+        '¿Cómo está tu mundo interior hoy?': label,
+        'Intensidad': `${intensity}/10`,
+        'Nota': note
+      }
+    });
+    if (containsRisk(note)) setRisk(true);
+    setJustSaved(true);
+  };
+  const history = state.climaEntries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const last30 = history.filter(e => Date.now() - new Date(e.date).getTime() <= 30 * 24 * 60 * 60 * 1000);
+  const freq = {};
+  last30.forEach(e => {
+    freq[e.emotion] = (freq[e.emotion] || 0) + 1;
+  });
+  const topEmotions = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const lastDiag = state.diagnostics[state.diagnostics.length - 1];
+  const care = lastDiag ? getCareMessage(lastDiag.scores) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Mi clima emocional",
+    onBack: back,
+    backLabel: "Volver a herramientas"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 19,
+      lineHeight: 1.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 700,
+      margin: '0 0 16px'
+    }
+  }, "¿Cómo está tu mundo interior hoy?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 8,
+      marginBottom: 16
+    }
+  }, CLIMA_EMOTIONS.map(em => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: em.key,
+    onClick: () => pick(em.key),
+    "aria-pressed": emotion === em.key,
+    className: "card",
+    style: {
+      padding: '12px 8px',
+      textAlign: 'center',
+      cursor: 'pointer',
+      background: emotion === em.key ? 'var(--rose)' : '#fff',
+      border: emotion === em.key ? '1px solid var(--rose)' : '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24
+    },
+    "aria-hidden": "true"
+  }, em.emoji), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      marginTop: 2,
+      color: emotion === em.key ? '#fff' : 'var(--text-primary)'
+    }
+  }, em.label)))), emotion && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    id: "clima-intensity-label",
+    style: {
+      fontSize: 17,
+      fontWeight: 700,
+      color: 'var(--text-secondary)'
+    }
+  }, "¿Con qué intensidad?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Leve"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--rose)'
+    }
+  }, intensity, "/10"), /*#__PURE__*/React.createElement("span", null, "Muy intensa")), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "0",
+    max: "10",
+    value: intensity,
+    onChange: e => {
+      setIntensity(Number(e.target.value));
+      setJustSaved(false);
+    },
+    "aria-labelledby": "clima-intensity-label",
+    "aria-valuetext": `${intensity} de 10`,
+    style: {
+      width: '100%'
+    }
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 17,
+      fontWeight: 700,
+      color: 'var(--text-secondary)',
+      display: 'block',
+      marginTop: 12
+    }
+  }, "¿Quieres contarme algo más? (opcional)"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: note,
+    onChange: e => {
+      setNote(e.target.value);
+      setJustSaved(false);
+    },
+    placeholder: "Escribe aquí si quieres...",
+    "aria-label": "Nota breve sobre cómo estás hoy",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 4,
+      fontSize: 18,
+      resize: 'vertical'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 14,
+      marginTop: 14
+    },
+    onClick: save
+  }, todays ? 'Actualizar registro de hoy' : 'Guardar mi registro de hoy'), justSaved && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      fontSize: 16,
+      color: 'var(--rose)',
+      fontWeight: 700,
+      textAlign: 'center'
+    }
+  }, "✓ Registrado. Gracias por ponerle nombre a lo que sientes hoy.")), isPlus ? /*#__PURE__*/React.createElement(React.Fragment, null, history.length > 0 && /*#__PURE__*/React.createElement(ClimaSparkline, {
+    entries: history
+  }), topEmotions.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, "Lo que más registraste en los últimos 30 días"), topEmotions.map(([key, count]) => {
+    const em = CLIMA_EMOTIONS.find(e => e.key === key);
+    return /*#__PURE__*/React.createElement("div", {
+      key: key,
+      style: {
+        fontSize: 18,
+        marginBottom: 4
+      }
+    }, em ? em.emoji : '', " ", em ? em.label : key, " — ", count, " ", count === 1 ? 'vez' : 'veces');
+  }), care && !care.allEqual && care.areas.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: 10,
+      lineHeight: 1.5
+    }
+  }, "En tu última radiografía, ", care.areas.length > 1 ? 'las áreas que más cuidado necesitaban eran' : 'el área que más cuidado necesitaba era', " ", care.areas.map(a => lowerFirst(a.label)).join(', '), ". Observar juntas estos registros puede ayudarte a reconocer patrones — no es una conclusión definitiva, solo un punto de partida para mirar con curiosidad.")), history.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, "Historial"), history.map(e => {
+    const em = CLIMA_EMOTIONS.find(x => x.key === e.emotion);
+    return /*#__PURE__*/React.createElement("div", {
+      key: e.id,
+      style: {
+        padding: '8px 0',
+        borderBottom: '1px solid var(--border)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700
+      }
+    }, em ? em.emoji : '', " ", em ? em.label : e.emotion), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: 'var(--text-muted)',
+        fontSize: 16
+      }
+    }, fmtDate(e.date))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16,
+        color: 'var(--text-secondary)'
+      }
+    }, "Intensidad: ", e.intensity, "/10"), e.note && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16,
+        color: 'var(--text-primary)',
+        marginTop: 2
+      }
+    }, e.note));
+  }))) : history.length > 0 && /*#__PURE__*/React.createElement(UpsellCard, {
+    go: go,
+    title: "Descubre tus patrones",
+    benefit: "Observa cómo cambia tu clima emocional con el tiempo",
+    desc: "Con Renacer Plus guardas tu historial completo, ves tu gráfico de ánimo y lo relacionas con las áreas de tu radiografía."
+  })), risk && /*#__PURE__*/React.createElement(RiskModal, {
+    onClose: () => setRisk(false)
   }));
 }
 const CIRCLE_KEYS = ['seguro', 'posible', 'porConstruir'];
