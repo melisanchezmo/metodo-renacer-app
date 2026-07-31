@@ -1116,6 +1116,15 @@ function defaultState() {
       savedAt: null
     },
     climaEntries: [],
+    refugio: {
+      frase: '',
+      persona: '',
+      calmaCuerpo: '',
+      lugarSeguro: '',
+      cancion: '',
+      noDecidir: '',
+      updatedAt: null
+    },
     compassEntries: [],
     threeREntries: [],
     communityPosts: [],
@@ -2718,7 +2727,7 @@ function Home({
       fontWeight: 600,
       marginTop: 2
     }
-  }, "Abrir la Pausa A.C.A. o el Método 3R ahora mismo →"))), /*#__PURE__*/React.createElement("div", {
+  }, "Abrir tu refugio, la Pausa A.C.A. o el Método 3R ahora mismo →"))), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '10px 20px 20px'
     }
@@ -3420,6 +3429,13 @@ function ToolsHome({
     color: '#573529',
     textColor: '#fff'
   }, {
+    id: 'refugio',
+    name: 'Refugio emocional',
+    desc: 'Tu plan personal para los días difíciles. Con Plus, complétalo por entero.',
+    color: '#c99a95',
+    textColor: '#2f2420',
+    freePlus: true
+  }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
@@ -3571,6 +3587,10 @@ function ToolScreen({
     go: go,
     back: back
   });
+  if (id === 'refugio') return /*#__PURE__*/React.createElement(RefugioTool, {
+    go: go,
+    back: back
+  });
   if (id === 'aca') return /*#__PURE__*/React.createElement(BreathingTool, {
     back: back
   });
@@ -3587,11 +3607,13 @@ function ToolScreen({
     back: back
   });
   if (id === 'sos') return /*#__PURE__*/React.createElement(SosTool, {
+    go: go,
     back: back
   });
   return null;
 }
 function SosTool({
+  go,
   back
 }) {
   const [mode, setMode] = useState(null);
@@ -3599,6 +3621,10 @@ function SosTool({
     back: () => setMode(null)
   });
   if (mode === '3r') return /*#__PURE__*/React.createElement(ThreeRTool, {
+    back: () => setMode(null)
+  });
+  if (mode === 'refugio') return /*#__PURE__*/React.createElement(RefugioTool, {
+    go: go,
     back: () => setMode(null)
   });
   return /*#__PURE__*/React.createElement("div", {
@@ -3638,6 +3664,27 @@ function SosTool({
       fontWeight: 600
     }
   }, "Abrir Pausa A.C.A. (respiración guiada)")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "card",
+    onClick: () => setMode('refugio'),
+    style: {
+      width: '100%',
+      padding: 16,
+      textAlign: 'left',
+      marginBottom: 10,
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700
+    }
+  }, "Necesito volver a lo que me sostiene"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, "Abrir mi refugio emocional")), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "card",
     onClick: () => setMode('3r'),
@@ -3980,6 +4027,235 @@ function MiniField({
       fontSize: 18.5
     }
   }));
+}
+const REFUGIO_FIELDS = [{
+  key: 'frase',
+  label: 'Una frase que necesito recordar',
+  icon: '🗝️',
+  free: true,
+  placeholder: 'Ej: Esto también va a pasar.'
+}, {
+  key: 'calmaCuerpo',
+  label: 'Algo que ayuda a calmar mi cuerpo',
+  icon: '🌬️',
+  free: true,
+  placeholder: 'Ej: Respirar hondo 5 veces, poner las manos bajo agua fría...'
+}, {
+  key: 'persona',
+  label: 'Una persona a la que puedo escribir',
+  icon: '🤍',
+  free: false,
+  placeholder: 'Nombre o cómo contactarla'
+}, {
+  key: 'lugarSeguro',
+  label: 'Un lugar donde me siento segura',
+  icon: '📍',
+  free: false,
+  placeholder: 'Ej: Mi habitación, el parque cerca de casa...'
+}, {
+  key: 'cancion',
+  label: 'Una canción, oración o audio que me sostiene',
+  icon: '🎵',
+  free: false,
+  placeholder: 'Título o de qué trata'
+}, {
+  key: 'noDecidir',
+  label: 'Qué no debo decidir cuando estoy desbordada',
+  icon: '🚫',
+  free: false,
+  placeholder: 'Ej: No debo decidir si me quedo o me voy, hoy no.'
+}];
+function RefugioTool({
+  go,
+  back
+}) {
+  const {
+    state,
+    update,
+    addJournalEntry
+  } = useApp();
+  const isPlus = useIsPlus();
+  const savedRefugio = state.refugio || {};
+  const hasAny = REFUGIO_FIELDS.some(f => (savedRefugio[f.key] || '').trim());
+  const [mode, setMode] = useState(hasAny ? 'view' : 'edit');
+  const [form, setForm] = useState(() => ({
+    frase: savedRefugio.frase || '',
+    persona: savedRefugio.persona || '',
+    calmaCuerpo: savedRefugio.calmaCuerpo || '',
+    lugarSeguro: savedRefugio.lugarSeguro || '',
+    cancion: savedRefugio.cancion || '',
+    noDecidir: savedRefugio.noDecidir || ''
+  }));
+  const setField = (key, v) => setForm(prev => ({
+    ...prev,
+    [key]: v
+  }));
+  const save = () => {
+    const next = {
+      ...form,
+      updatedAt: nowISO()
+    };
+    update(() => ({
+      refugio: next
+    }));
+    const answers = {};
+    REFUGIO_FIELDS.forEach(f => {
+      answers[f.label] = form[f.key];
+    });
+    addJournalEntry({
+      type: 'herramienta',
+      title: 'Refugio emocional — actualicé mi plan',
+      answers
+    });
+    setMode('view');
+  };
+  if (mode === 'edit') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in"
+    }, /*#__PURE__*/React.createElement(TopBar, {
+      title: "Construye tu refugio",
+      onBack: hasAny ? () => setMode('view') : back,
+      backLabel: hasAny ? 'Volver a mi refugio' : 'Volver a herramientas'
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: 20
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 18,
+        lineHeight: 1.5,
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        margin: '0 0 16px'
+      }
+    }, "Prepara con calma lo que quieres encontrar en un día difícil. Puedes volver a esta pantalla cuando quieras, para cambiarlo."), /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: 16,
+        marginBottom: 16
+      }
+    }, REFUGIO_FIELDS.filter(f => f.free).map(f => /*#__PURE__*/React.createElement(MiniField, {
+      key: f.key,
+      label: `${f.icon} ${f.label}`,
+      value: form[f.key],
+      onChange: v => setField(f.key, v),
+      placeholder: f.placeholder
+    }))), isPlus ? /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: 16,
+        marginBottom: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 18,
+        color: 'var(--text-secondary)',
+        marginBottom: 8
+      }
+    }, "Con Renacer Plus"), REFUGIO_FIELDS.filter(f => !f.free).map(f => /*#__PURE__*/React.createElement(MiniField, {
+      key: f.key,
+      label: `${f.icon} ${f.label}`,
+      value: form[f.key],
+      onChange: v => setField(f.key, v),
+      placeholder: f.placeholder
+    }))) : /*#__PURE__*/React.createElement(UpsellCard, {
+      go: go,
+      title: "Completa tu refugio",
+      benefit: "Prepara más apoyos para tus días más difíciles",
+      desc: "Con Renacer Plus puedes añadir a quién escribirle, un lugar seguro, una canción que te sostiene y qué no debes decidir cuando estás desbordada."
+    }), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn-primary",
+      style: {
+        width: '100%',
+        padding: 14,
+        marginTop: 6
+      },
+      onClick: save
+    }, "Guardar mi refugio")));
+  }
+
+  // Vista: una sola pantalla calma con lo que ya construyó, pensada para abrirse en un momento difícil.
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Mi refugio emocional",
+    onBack: back,
+    backLabel: "Volver a herramientas"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 19.5,
+      fontStyle: 'italic',
+      color: 'var(--rose)',
+      lineHeight: 1.6,
+      marginBottom: 18
+    }
+  }, "Hoy no tienes que resolver toda tu vida. Vuelve a lo que sabes que te sostiene."), !hasAny ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 18,
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.5,
+      marginBottom: 14
+    }
+  }, "Aún no has construido tu refugio. Cuando estés tranquila, tómate unos minutos para prepararlo — te ayudará en los días difíciles."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 14
+    },
+    onClick: () => setMode('edit')
+  }, "Construir mi refugio")) : /*#__PURE__*/React.createElement(React.Fragment, null, REFUGIO_FIELDS.filter(f => (form[f.key] || '').trim()).map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.key,
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }, f.icon, " ", f.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 19,
+      color: 'var(--text-primary)',
+      fontWeight: 600,
+      lineHeight: 1.5
+    }
+  }, form[f.key]))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 12,
+      marginTop: 8
+    },
+    onClick: () => setMode('edit')
+  }, "Editar mi refugio"), savedRefugio.updatedAt && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      textAlign: 'center',
+      marginTop: 10
+    }
+  }, "Última actualización: ", fmtDate(savedRefugio.updatedAt)))));
 }
 const CLIMA_EMOTIONS = [{
   key: 'calma',
