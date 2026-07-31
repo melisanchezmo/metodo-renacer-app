@@ -87,6 +87,19 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
   .btn-primary:active{opacity:0.85;}
   .btn-secondary{background:var(--rose-soft); color:var(--rose); border:none; border-radius:14px; font-weight:700;}
   .pill{border-radius:999px; font-size:16px; font-weight:700; padding:4px 10px;}
+  .tools-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:340px){ .tools-grid{grid-template-columns:1fr;} }
+  .tool-grid-card{
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    gap:9px; padding:16px 8px; min-height:148px; border-radius:18px; border:1px solid var(--border);
+    background:#fff; cursor:pointer; text-align:center; transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .tool-grid-card:active{ transform:scale(0.96); box-shadow:inset 0 0 0 2px var(--baseline); }
+  .tool-wide-card{
+    display:flex; align-items:center; gap:14px; padding:16px; border-radius:18px; border:none;
+    cursor:pointer; text-align:left; width:100%; transition:transform .12s ease;
+  }
+  .tool-wide-card:active{ transform:scale(0.98); }
   input[type=range]{-webkit-appearance:none; height:6px; border-radius:999px; background:var(--grid);}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; border-radius:999px; background:var(--rose); border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,0.3); cursor:pointer;}
 
@@ -3425,88 +3438,271 @@ function DayModal({
 }
 
 /* ============================= HERRAMIENTAS ============================= */
+/* ============================= ICONOS DE LÍNEA (Caja de herramientas) =============================
+   Un solo estilo para todos: trazo (nunca relleno), mismo grosor, mismo tamaño base. Se ven siempre
+   dentro de un círculo de color suave y acompañados del nombre de la herramienta (nunca solos). */
+const TOOL_ICON_STROKE = 1.7;
+function ToolIconSvg({
+  size = 24,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: TOOL_ICON_STROKE,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false"
+  }, children);
+}
+function IconBreath(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M4 16.5c1.6-3 3.6-4.5 8-4.5s6.4 1.5 8 4.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6.4 12.7c1.3-2.3 2.9-3.5 5.6-3.5s4.3 1.2 5.6 3.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 9c.6-1.2 1.5-1.8 3-1.8s2.4.6 3 1.8"
+  }));
+}
+function IconHouseHeart(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M4 11.5 12 5l8 6.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6 10.3V18a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-7.7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 13.6c-.8-1-2.5-1-3.1.2-.5 1 .1 1.8 1.3 2.8l1.8 1.4 1.8-1.4c1.2-1 1.8-1.8 1.3-2.8-.6-1.2-2.3-1.2-3.1-.2Z"
+  }));
+}
+function IconCycle(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M5 12a7 7 0 0 1 11.8-5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M17.2 3.6V7h-3.4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M19 12a7 7 0 0 1-11.8 5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6.8 20.4V17h3.4"
+  }));
+}
+function IconLifeHands(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M4 13.2c0 3.2 2.6 5.4 8 7.3 5.4-1.9 8-4.1 8-7.3"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M4 13.2c0-1.7 1-2.9 2.5-2.9M20 13.2c0-1.7-1-2.9-2.5-2.9"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 8.3c-.8-1-2.5-1-3.1.2-.5 1 .1 1.8 1.3 2.8L12 13l1.8-1.7c1.2-1 1.8-1.8 1.3-2.8-.6-1.2-2.3-1.2-3.1-.2Z"
+  }));
+}
+function IconNotebook(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 6.4c-1.8-.9-4-1.2-6-.9v12.2c2 0 4.2.3 6 1.2 1.8-.9 4-1.2 6-1.2V5.5c-2-.3-4.2 0-6 .9Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 6.4v12.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M8.2 8.6h2.1M8.2 11h2.1M13.7 8.6h2.1M13.7 11h2.1"
+  }));
+}
+function IconCloudSun(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "8",
+    cy: "7.3",
+    r: "2.1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M8 3.6v1.1M4.6 7.3H3.5M5.2 4.5l.8.8"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6.6 17a3.4 3.4 0 0 1 .2-6.8 4.4 4.4 0 0 1 8.5 1.3A3 3 0 0 1 15 17H6.6Z"
+  }));
+}
+function IconBridge(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M3.5 17.2v-2.6M20.5 17.2v-2.6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3.5 14.6c3-4 14-4 17 0"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3.5 17.2h17"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M7.5 17.2v2M12 17.2v2M16.5 17.2v2"
+  }));
+}
+function IconSteps(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M4 19h3.6v-3.6H11v-3.6h3.4V8.2H18"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "18",
+    cy: "6.6",
+    r: "1.4"
+  }));
+}
+function IconAnchor(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "5.3",
+    r: "1.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 6.8V16M8.3 9.4h7.4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M5.8 12.6a6.2 6.2 0 0 0 12.4 0"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M4.3 12.6h2.3M17.4 12.6h2.3"
+  }));
+}
+function IconCircles3(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "2.6"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "5.8"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "9"
+  }));
+}
+function IconCompass(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "8.4"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14.6 9.4 13 12.6l-3.6 1.4L11 10.8l3.6-1.4Z"
+  }));
+}
+function IconPinHeart(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 20.6s6.2-5.4 6.2-10.4A6.2 6.2 0 0 0 5.8 10.2c0 5 6.2 10.4 6.2 10.4Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 8.3c-.6-.8-1.9-.8-2.4.1-.4.7 0 1.4 1 2.1l1.4 1.1 1.4-1.1c1-.7 1.4-1.4 1-2.1-.5-.9-1.8-.9-2.4-.1Z"
+  }));
+}
+const TOOL_META = {
+  aca: {
+    name: 'Pausa A.C.A.',
+    caption: 'Respiración y regulación para momentos de alerta',
+    badge: 'free',
+    Icon: IconBreath
+  },
+  refugio: {
+    name: 'Refugio emocional',
+    caption: 'Tu plan personal para los días difíciles',
+    badge: 'freePlus',
+    Icon: IconHouseHeart
+  },
+  '3r': {
+    name: 'Método 3R',
+    caption: 'Revisa, repara y reinicia en días difíciles',
+    badge: 'free',
+    Icon: IconCycle
+  },
+  journal: {
+    name: 'Mi cuaderno de trabajo',
+    badge: 'freePlus',
+    Icon: IconNotebook,
+    special: 'journal'
+  },
+  clima: {
+    name: 'Mi clima emocional',
+    badge: 'freePlus',
+    Icon: IconCloudSun
+  },
+  orillas: {
+    name: 'Las dos orillas',
+    badge: 'plus',
+    Icon: IconBridge
+  },
+  avances: {
+    name: 'Mis avances invisibles',
+    badge: 'freePlus',
+    Icon: IconSteps
+  },
+  ancla: {
+    name: 'Fórmula A.N.C.L.A.',
+    badge: 'plus',
+    Icon: IconAnchor
+  },
+  circulos: {
+    name: 'Tres Círculos',
+    badge: 'plus',
+    Icon: IconCircles3
+  },
+  brujula: {
+    name: 'Brújula V.I.D.A.',
+    badge: 'plus',
+    Icon: IconCompass
+  },
+  retos: {
+    name: 'Reto de pertenencia',
+    badge: 'freePlus',
+    Icon: IconPinHeart
+  }
+};
+const TOOL_BADGE_LABEL = {
+  free: 'GRATIS',
+  freePlus: 'GRATIS +',
+  plus: '✦ PLUS'
+};
+function ToolBadgePill({
+  type,
+  onDark
+}) {
+  const style = onDark ? {
+    background: 'rgba(255,255,255,0.24)',
+    color: '#fff'
+  } : {
+    background: 'var(--rose-soft)',
+    color: 'var(--rose)'
+  };
+  return /*#__PURE__*/React.createElement("span", {
+    className: "pill",
+    style: {
+      ...style,
+      fontSize: 12.5,
+      padding: '2px 9px',
+      fontWeight: 800,
+      letterSpacing: 0.3,
+      flexShrink: 0
+    }
+  }, TOOL_BADGE_LABEL[type]);
+}
+function ToolIconCircle({
+  Icon,
+  bg,
+  fg,
+  size = 52,
+  iconSize = 24
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      background: bg,
+      color: fg,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    size: iconSize
+  }));
+}
+const TOOLBOX_GRID_TINTS = ['var(--rose-soft)', 'var(--aqua-soft)', 'var(--gold-soft)', 'var(--orange-soft)'];
 function ToolsHome({
   go,
   back
 }) {
-  const isPlus = useIsPlus();
-  const tools = [{
-    id: 'journal',
-    name: 'Mi cuaderno de trabajo',
-    desc: 'Una pregunta diaria gratis. Guarda todo tu proceso y observa tu evolución con Plus.',
-    color: '#e4c6c6',
-    textColor: '#2f2420',
-    special: 'journal',
-    freePlus: true
-  }, {
-    id: 'clima',
-    name: 'Mi clima emocional',
-    desc: 'Registra tu estado de ánimo de hoy. Con Plus, guarda tu historial y descubre patrones.',
-    color: '#8a4a52',
-    textColor: '#fff',
-    freePlus: true
-  }, {
-    id: 'aca',
-    name: 'Pausa A.C.A.',
-    desc: 'Respiración y regulación para momentos de alerta',
-    color: '#573529',
-    textColor: '#fff'
-  }, {
-    id: 'refugio',
-    name: 'Refugio emocional',
-    desc: 'Tu plan personal para los días difíciles. Con Plus, complétalo por entero.',
-    color: '#c99a95',
-    textColor: '#2f2420',
-    freePlus: true
-  }, {
-    id: 'avances',
-    name: 'Mapa de mis avances invisibles',
-    desc: 'Registra pequeños avances que sí cuentan. Con Plus, descubre tu historial completo.',
-    color: '#8a5f56',
-    textColor: '#fff',
-    freePlus: true
-  }, {
-    id: 'retos',
-    name: 'Reto de pertenencia',
-    desc: 'Tu primer reto de conexión es gratis. Con Plus, un reto nuevo cada semana y tu seguimiento completo.',
-    color: '#c99a95',
-    textColor: '#2f2420',
-    freePlus: true
-  }, {
-    id: 'ancla',
-    name: 'Fórmula A.N.C.L.A.',
-    desc: 'Diseña hábitos ancla para tu nuevo entorno',
-    color: '#8a5f56',
-    textColor: '#fff',
-    plus: true
-  }, {
-    id: 'circulos',
-    name: 'Tres Círculos',
-    desc: 'Mapa de conexión y pertenencia',
-    color: '#c99a95',
-    textColor: '#2f2420',
-    plus: true
-  }, {
-    id: 'brujula',
-    name: 'Brújula V.I.D.A.',
-    desc: 'Aclara tu dirección o toma una decisión difícil con más claridad',
-    color: '#e4c6c6',
-    textColor: '#2f2420',
-    plus: true
-  }, {
-    id: 'orillas',
-    name: 'Las dos orillas',
-    desc: 'Lo que conservas, lo que incorporas, y quién construyes entre ambos mundos',
-    color: '#8a4a52',
-    textColor: '#fff',
-    plus: true
-  }, {
-    id: '3r',
-    name: 'Método 3R',
-    desc: 'Revisa, repara y reinicia en días difíciles',
-    color: '#573529',
-    textColor: '#fff'
-  }];
+  const [showSafety, setShowSafety] = useState(false);
+  const open = (id, meta) => meta.special === 'journal' ? go('journal') : go('tool', id);
+  const urgentIds = ['aca', 'refugio', '3r'];
+  const conocerteIds = ['journal', 'clima', 'orillas', 'avances'];
+  const construirIds = ['ancla', 'circulos', 'brujula', 'retos'];
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
@@ -3515,38 +3711,54 @@ function ToolsHome({
     backLabel: "Volver a inicio"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: 16,
+      padding: '16px 16px 8px'
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 20.5,
+      margin: '4px 0 2px'
+    }
+  }, "Para cuando lo necesitas ahora"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      margin: '0 0 12px'
+    }
+  }, "Recursos breves para acompañarte en momentos difíciles."), /*#__PURE__*/React.createElement("div", {
+    style: {
       display: 'flex',
       flexDirection: 'column',
-      gap: 10
+      gap: 10,
+      marginBottom: 26
     }
-  }, tools.map(t => {
-    const badgeOnDark = t.textColor === '#fff';
-    const badgeStyle = {
-      background: badgeOnDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)',
-      color: t.textColor,
-      fontSize: 13.5,
-      padding: '2px 9px',
-      flexShrink: 0
+  }, urgentIds.map(id => {
+    const meta = TOOL_META[id];
+    const bgByTool = {
+      aca: 'var(--rose)',
+      refugio: 'var(--aqua)',
+      '3r': 'var(--orange)'
     };
+    const onDark = id !== 'refugio';
     return /*#__PURE__*/React.createElement("button", {
       type: "button",
-      key: t.id,
-      onClick: () => t.special === 'journal' ? go('journal') : go('tool', t.id),
-      className: "card",
+      key: id,
+      onClick: () => open(id, meta),
+      className: "tool-wide-card",
       style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: 16,
-        textAlign: 'left',
-        cursor: 'pointer',
-        background: t.color,
-        border: `1px solid ${t.color}`
-      }
-    }, /*#__PURE__*/React.createElement("div", {
+        background: bgByTool[id]
+      },
+      "aria-label": meta.name
+    }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+      Icon: meta.Icon,
+      bg: onDark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.55)',
+      fg: onDark ? '#fff' : 'var(--navy)',
+      size: 54,
+      iconSize: 26
+    }), /*#__PURE__*/React.createElement("div", {
       style: {
-        flex: 1
+        flex: 1,
+        minWidth: 0
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -3559,31 +3771,140 @@ function ToolsHome({
       style: {
         fontWeight: 700,
         fontSize: 19.5,
-        color: t.textColor
+        color: onDark ? '#fff' : 'var(--navy)'
       }
-    }, t.name), t.plus && /*#__PURE__*/React.createElement("span", {
-      className: "pill",
-      style: badgeStyle
-    }, "✦ Plus"), t.freePlus && /*#__PURE__*/React.createElement("span", {
-      className: "pill",
-      style: badgeStyle
-    }, "Gratis + Plus")), /*#__PURE__*/React.createElement("div", {
+    }, meta.name), /*#__PURE__*/React.createElement(ToolBadgePill, {
+      type: meta.badge,
+      onDark: onDark
+    })), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 18,
-        color: t.textColor,
+        fontSize: 16.5,
         fontWeight: 600,
-        opacity: 0.82
+        color: onDark ? '#fff' : 'var(--blue-dark)',
+        opacity: 0.88,
+        marginTop: 2
       }
-    }, t.desc)));
+    }, meta.caption)));
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setShowSafety(true),
+    className: "tool-wide-card",
+    style: {
+      background: 'var(--navy)'
+    },
+    "aria-label": "Necesito ayuda ahora"
+  }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+    Icon: IconLifeHands,
+    bg: "rgba(255,255,255,0.22)",
+    fg: "#fff",
+    size: 54,
+    iconSize: 26
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19.5,
+      color: '#fff'
+    }
+  }, "Necesito ayuda ahora"), /*#__PURE__*/React.createElement(ToolBadgePill, {
+    type: "free",
+    onDark: true
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '0 16px 16px',
+      fontSize: 16.5,
+      fontWeight: 600,
+      color: '#fff',
+      opacity: 0.88,
+      marginTop: 2
+    }
+  }, "Habla con alguien ahora. Encuentra apoyo profesional cerca de ti.")))), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 20.5,
+      margin: '4px 0 2px'
+    }
+  }, "Para conocerte y acompañar tu proceso"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      margin: '0 0 12px'
+    }
+  }, "Espacios para observar lo que sientes y reconocer tu evolución."), /*#__PURE__*/React.createElement("div", {
+    className: "tools-grid",
+    style: {
+      marginBottom: 26
+    }
+  }, conocerteIds.map((id, i) => {
+    const meta = TOOL_META[id];
+    return /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      key: id,
+      onClick: () => open(id, meta),
+      className: "tool-grid-card",
+      "aria-label": meta.name
+    }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+      Icon: meta.Icon,
+      bg: TOOLBOX_GRID_TINTS[i % TOOLBOX_GRID_TINTS.length],
+      fg: "var(--rose)"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "tool-grid-name"
+    }, meta.name), /*#__PURE__*/React.createElement(ToolBadgePill, {
+      type: meta.badge
+    }));
+  })), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 20.5,
+      margin: '4px 0 2px'
+    }
+  }, "Para construir tu nueva vida"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      margin: '0 0 12px'
+    }
+  }, "Herramientas para crear estabilidad, conexión y dirección."), /*#__PURE__*/React.createElement("div", {
+    className: "tools-grid"
+  }, construirIds.map((id, i) => {
+    const meta = TOOL_META[id];
+    return /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      key: id,
+      onClick: () => open(id, meta),
+      className: "tool-grid-card",
+      "aria-label": meta.name
+    }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+      Icon: meta.Icon,
+      bg: TOOLBOX_GRID_TINTS[i % TOOLBOX_GRID_TINTS.length],
+      fg: "var(--rose)"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "tool-grid-name"
+    }, meta.name), /*#__PURE__*/React.createElement(ToolBadgePill, {
+      type: meta.badge
+    }));
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 16px',
       fontSize: 14.5,
       color: 'var(--text-muted)',
       fontWeight: 600,
-      textAlign: 'center'
+      textAlign: 'center',
+      lineHeight: 1.5
     }
-  }, "Las herramientas marcadas con ✦ Plus están incluidas en Renacer Plus. Las demás son parte del plan gratuito."));
+  }, /*#__PURE__*/React.createElement("b", null, "GRATIS +"), " significa que puedes utilizar una parte de la herramienta gratuitamente y ampliar sus funciones con Renacer Plus."), showSafety && /*#__PURE__*/React.createElement(SafetyModal, {
+    onClose: () => setShowSafety(false)
+  }));
 }
 const PLUS_ONLY_TOOLS = {
   ancla: {
