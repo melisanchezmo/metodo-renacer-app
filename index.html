@@ -1125,6 +1125,12 @@ function defaultState() {
       noDecidir: '',
       updatedAt: null
     },
+    orillas: {
+      origen: [],
+      nueva: [],
+      identidad: '',
+      updatedAt: null
+    },
     compassEntries: [],
     threeREntries: [],
     communityPosts: [],
@@ -3469,6 +3475,13 @@ function ToolsHome({
     textColor: '#2f2420',
     plus: true
   }, {
+    id: 'orillas',
+    name: 'Las dos orillas',
+    desc: 'Lo que conservas, lo que incorporas, y quién construyes entre ambos mundos',
+    color: '#8a4a52',
+    textColor: '#fff',
+    plus: true
+  }, {
     id: '3r',
     name: 'Método 3R',
     desc: 'Revisa, repara y reinicia en días difíciles',
@@ -3568,6 +3581,11 @@ const PLUS_ONLY_TOOLS = {
     title: 'Brújula V.I.D.A.',
     benefit: 'Toma decisiones difíciles con más claridad y menos culpa',
     desc: 'Aclara tus valores, define una intención concreta y elige la acción que te acerque a la vida que quieres construir.'
+  },
+  orillas: {
+    title: 'Las dos orillas',
+    benefit: 'Dale forma a la mujer que estás construyendo entre dos mundos',
+    desc: 'Explora qué quieres conservar de tu lugar de origen, qué quieres incorporar de tu nueva vida, y crea una composición visual que puedes guardar.'
   }
 };
 function ToolScreen({
@@ -3613,6 +3631,9 @@ function ToolScreen({
     back: back
   });
   if (id === 'brujula') return /*#__PURE__*/React.createElement(CompassTool, {
+    back: back
+  });
+  if (id === 'orillas') return /*#__PURE__*/React.createElement(OrillasTool, {
     back: back
   });
   if (id === '3r') return /*#__PURE__*/React.createElement(ThreeRTool, {
@@ -4268,6 +4289,554 @@ function RefugioTool({
       marginTop: 10
     }
   }, "Última actualización: ", fmtDate(savedRefugio.updatedAt)))));
+}
+
+// Envuelve un texto en varias líneas cortas para poder dibujarlo dentro de un <svg>, que no
+// hace salto de línea automático como el HTML normal. Es una envoltura aproximada por número
+// de caracteres (no mide el ancho real del texto), suficiente para las frases cortas de esta
+// composición.
+function orillasWrapLines(text, maxChars) {
+  const words = (text || '').trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  words.forEach(w => {
+    const test = cur ? cur + ' ' + w : w;
+    if (test.length > maxChars && cur) {
+      lines.push(cur);
+      cur = w;
+    } else cur = test;
+  });
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [''];
+}
+function OrillasComposition({
+  origen,
+  nueva,
+  identidad
+}) {
+  const origenColor = '#8a5f56';
+  const nuevaColor = '#573529';
+
+  // Cada columna tiene un presupuesto de altura fijo (el espacio real dentro de su marco).
+  // En vez de mostrar siempre un número fijo de elementos, vamos añadiendo mientras quepan
+  // dentro de ese presupuesto — así el texto nunca se sale del marco ni choca con nada más,
+  // sin importar cuántas cosas haya escrito o cuán largas sean.
+  const COLUMN_BUDGET = 168;
+  const buildColumn = items => {
+    let y = 0;
+    const blocks = [];
+    let hidden = 0;
+    for (let i = 0; i < items.length; i++) {
+      const lines = orillasWrapLines(items[i].text, 15);
+      const h = lines.length * 15 + 10;
+      if (y + h > COLUMN_BUDGET) {
+        hidden = items.length - i;
+        break;
+      }
+      blocks.push({
+        lines,
+        y
+      });
+      y += h;
+    }
+    return {
+      blocks,
+      totalHeight: y,
+      hidden
+    };
+  };
+  const origenCol = buildColumn(origen);
+  const nuevaCol = buildColumn(nueva);
+  const contentTop = 112;
+  const identidadLines = orillasWrapLines(identidad, 18).slice(0, 6);
+  const circleCy = 380;
+  const identidadStartY = circleCy - (identidadLines.length - 1) * 15 / 2;
+  const srText = `Composición Las dos orillas. Lo que conservo de mi origen: ${origen.map(o => o.text).join(', ') || 'sin registrar'}. Lo que incorporo de mi nueva vida: ${nueva.map(o => o.text).join(', ') || 'sin registrar'}. La mujer que estoy construyendo entre ambos mundos: ${identidad}.`;
+  return /*#__PURE__*/React.createElement("svg", {
+    width: "100%",
+    viewBox: "0 0 320 500",
+    style: {
+      maxWidth: 320,
+      display: 'block',
+      margin: '0 auto'
+    },
+    role: "img",
+    "aria-label": srText
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "0",
+    y: "0",
+    width: "320",
+    height: "500",
+    rx: "18",
+    fill: "#efece3"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "160",
+    y: "32",
+    textAnchor: "middle",
+    fontSize: "19",
+    fontWeight: "800",
+    fill: "#2b1710",
+    style: {
+      fontFamily: 'var(--serif)'
+    }
+  }, "Las dos orillas"), /*#__PURE__*/React.createElement("text", {
+    x: "160",
+    y: "50",
+    textAnchor: "middle",
+    fontSize: "12.5",
+    fontWeight: "600",
+    fill: "#6b5850",
+    style: {
+      fontFamily: 'var(--sans)'
+    }
+  }, "La mujer que construyo entre dos mundos"), /*#__PURE__*/React.createElement("rect", {
+    x: "14",
+    y: "64",
+    width: "140",
+    height: "212",
+    rx: "22",
+    fill: origenColor,
+    fillOpacity: "0.14",
+    stroke: origenColor,
+    strokeWidth: "1.5"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "166",
+    y: "64",
+    width: "140",
+    height: "212",
+    rx: "22",
+    fill: nuevaColor,
+    fillOpacity: "0.10",
+    stroke: nuevaColor,
+    strokeWidth: "1.5"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "84",
+    y: "90",
+    textAnchor: "middle",
+    fontSize: "13.5",
+    fontWeight: "800",
+    fill: origenColor,
+    style: {
+      fontFamily: 'var(--sans)'
+    }
+  }, "CONSERVO"), /*#__PURE__*/React.createElement("text", {
+    x: "236",
+    y: "90",
+    textAnchor: "middle",
+    fontSize: "13.5",
+    fontWeight: "800",
+    fill: nuevaColor,
+    style: {
+      fontFamily: 'var(--sans)'
+    }
+  }, "INCORPORO"), /*#__PURE__*/React.createElement("g", {
+    fill: "#2f2420",
+    fontSize: "11.5",
+    fontWeight: "600",
+    style: {
+      fontFamily: 'var(--sans)'
+    },
+    textAnchor: "middle"
+  }, origenCol.blocks.map((b, i) => /*#__PURE__*/React.createElement("g", {
+    key: i
+  }, b.lines.map((line, li) => /*#__PURE__*/React.createElement("text", {
+    key: li,
+    x: "84",
+    y: contentTop + b.y + li * 15
+  }, line)))), origenCol.hidden > 0 && /*#__PURE__*/React.createElement("text", {
+    x: "84",
+    y: contentTop + origenCol.totalHeight + 8,
+    fontStyle: "italic",
+    fill: "#9c8880"
+  }, "+", origenCol.hidden, " más"), origen.length === 0 && /*#__PURE__*/React.createElement("text", {
+    x: "84",
+    y: contentTop,
+    fill: "#9c8880",
+    fontStyle: "italic"
+  }, "(aún sin registrar)"), nuevaCol.blocks.map((b, i) => /*#__PURE__*/React.createElement("g", {
+    key: i
+  }, b.lines.map((line, li) => /*#__PURE__*/React.createElement("text", {
+    key: li,
+    x: "236",
+    y: contentTop + b.y + li * 15
+  }, line)))), nuevaCol.hidden > 0 && /*#__PURE__*/React.createElement("text", {
+    x: "236",
+    y: contentTop + nuevaCol.totalHeight + 8,
+    fontStyle: "italic",
+    fill: "#9c8880"
+  }, "+", nuevaCol.hidden, " más"), nueva.length === 0 && /*#__PURE__*/React.createElement("text", {
+    x: "236",
+    y: contentTop,
+    fill: "#9c8880",
+    fontStyle: "italic"
+  }, "(aún sin registrar)")), /*#__PURE__*/React.createElement("line", {
+    x1: "84",
+    y1: "276",
+    x2: "140",
+    y2: "316",
+    stroke: "#573529",
+    strokeWidth: "1.5",
+    strokeOpacity: "0.5"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "236",
+    y1: "276",
+    x2: "180",
+    y2: "316",
+    stroke: "#573529",
+    strokeWidth: "1.5",
+    strokeOpacity: "0.5"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "160",
+    cy: circleCy,
+    r: "72",
+    fill: "#fdfbf7",
+    stroke: "#573529",
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("g", {
+    fill: "#2b1710",
+    fontSize: "12.5",
+    fontWeight: "700",
+    textAnchor: "middle",
+    style: {
+      fontFamily: 'var(--sans)'
+    }
+  }, identidadLines.map((line, i) => /*#__PURE__*/React.createElement("text", {
+    key: i,
+    x: "160",
+    y: identidadStartY + i * 15
+  }, line))), /*#__PURE__*/React.createElement("text", {
+    x: "160",
+    y: "480",
+    textAnchor: "middle",
+    fontSize: "11",
+    fontWeight: "600",
+    fill: "#9c8880",
+    style: {
+      fontFamily: 'var(--sans)'
+    }
+  }, "Método Renacer"));
+}
+function OrillasTool({
+  back
+}) {
+  const {
+    state,
+    update,
+    addJournalEntry
+  } = useApp();
+  const savedOrillas = state.orillas || {
+    origen: [],
+    nueva: [],
+    identidad: '',
+    updatedAt: null
+  };
+  const [origen, setOrigen] = useState(savedOrillas.origen || []);
+  const [nueva, setNueva] = useState(savedOrillas.nueva || []);
+  const [identidad, setIdentidad] = useState(savedOrillas.identidad || '');
+  const [draft, setDraft] = useState({
+    origen: '',
+    nueva: ''
+  });
+  const [showComposition, setShowComposition] = useState(!!(savedOrillas.identidad && savedOrillas.identidad.trim()));
+  const compRef = useRef(null);
+  const addItem = key => {
+    const text = draft[key].trim();
+    if (!text) return;
+    const setter = key === 'origen' ? setOrigen : setNueva;
+    setter(prev => [...prev, {
+      id: uid(),
+      text
+    }]);
+    setDraft(prev => ({
+      ...prev,
+      [key]: ''
+    }));
+    setShowComposition(false);
+  };
+  const removeItem = (key, id) => {
+    const setter = key === 'origen' ? setOrigen : setNueva;
+    setter(prev => prev.filter(it => it.id !== id));
+    setShowComposition(false);
+  };
+  const canCompose = identidad.trim().length > 0;
+  const save = () => {
+    if (!canCompose) return;
+    const next = {
+      origen,
+      nueva,
+      identidad,
+      updatedAt: nowISO()
+    };
+    update(() => ({
+      orillas: next
+    }));
+    addJournalEntry({
+      type: 'herramienta',
+      title: 'Las dos orillas',
+      answers: {
+        'Lo que quiero conservar de mi lugar de origen': origen.map(o => o.text).join(', '),
+        'Lo que quiero incorporar de mi nueva vida': nueva.map(o => o.text).join(', '),
+        'La mujer que estoy construyendo entre ambos mundos': identidad
+      }
+    });
+    setShowComposition(true);
+  };
+  const download = () => {
+    const svg = compRef.current && compRef.current.querySelector('svg');
+    if (!svg) return;
+    let src = new XMLSerializer().serializeToString(svg);
+    if (!/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/.test(src)) {
+      src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    const blob = new Blob([src], {
+      type: 'image/svg+xml'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mis-dos-orillas.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const renderList = (key, items, color) => items.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 8,
+      margin: '10px 0'
+    }
+  }, items.map(it => /*#__PURE__*/React.createElement("span", {
+    key: it.id,
+    className: "pill",
+    style: {
+      background: 'var(--page)',
+      color: 'var(--text-primary)',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, it.text, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => removeItem(key, it.id),
+    "aria-label": `Eliminar "${it.text}"`,
+    style: {
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      padding: 0,
+      fontSize: 15,
+      color: 'var(--text-muted)'
+    }
+  }, "✕"))));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Las dos orillas",
+    onBack: back,
+    backLabel: "Volver a herramientas"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18.5,
+      lineHeight: 1.55,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      margin: '0 0 16px'
+    }
+  }, "Migrar no es elegir entre dos mundos — es descubrir quién eres cuando ambos te forman. Explora qué quieres conservar, qué quieres incorporar, y quién estás construyendo en medio de las dos orillas."), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 14,
+      borderLeft: '4px solid #8a5f56'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19,
+      color: '#8a5f56'
+    }
+  }, "Lo que quiero conservar de mi lugar de origen"), renderList('origen', origen), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 700,
+      display: 'block',
+      marginTop: 8
+    }
+  }, "¿Qué quieres conservar?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      marginTop: 5
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: draft.origen,
+    onChange: e => setDraft({
+      ...draft,
+      origen: e.target.value
+    }),
+    onKeyDown: e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addItem('origen');
+      }
+    },
+    placeholder: "Ej: mi idioma, una receta familiar...",
+    "aria-label": "¿Qué quieres conservar de tu lugar de origen?",
+    style: {
+      flex: 1,
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      fontSize: 18
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => addItem('origen'),
+    className: "btn-secondary",
+    style: {
+      padding: '0 18px'
+    },
+    "aria-label": "Añadir a lo que quiero conservar"
+  }, "+"))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 14,
+      borderLeft: '4px solid #573529'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19,
+      color: '#573529'
+    }
+  }, "Lo que quiero incorporar de mi nueva vida"), renderList('nueva', nueva), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 700,
+      display: 'block',
+      marginTop: 8
+    }
+  }, "¿Qué quieres incorporar?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      marginTop: 5
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: draft.nueva,
+    onChange: e => setDraft({
+      ...draft,
+      nueva: e.target.value
+    }),
+    onKeyDown: e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addItem('nueva');
+      }
+    },
+    placeholder: "Ej: un nuevo idioma, una costumbre local...",
+    "aria-label": "¿Qué quieres incorporar de tu nueva vida?",
+    style: {
+      flex: 1,
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      fontSize: 18
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => addItem('nueva'),
+    className: "btn-secondary",
+    style: {
+      padding: '0 18px'
+    },
+    "aria-label": "Añadir a lo que quiero incorporar"
+  }, "+"))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 17,
+      fontWeight: 700,
+      color: 'var(--text-secondary)'
+    }
+  }, "La mujer que estoy construyendo entre ambos mundos"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: identidad,
+    onChange: e => {
+      setIdentidad(e.target.value);
+      setShowComposition(false);
+    },
+    placeholder: "Ej: Soy alguien que aprendió a construir un hogar más de una vez.",
+    "aria-label": "La mujer que estoy construyendo entre ambos mundos",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 6,
+      fontSize: 18,
+      resize: 'vertical'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    disabled: !canCompose,
+    style: {
+      width: '100%',
+      padding: 14,
+      marginTop: 12,
+      opacity: canCompose ? 1 : 0.5,
+      cursor: canCompose ? 'pointer' : 'not-allowed'
+    },
+    onClick: save
+  }, "Crear mi composición")), showComposition && identidad.trim() && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19,
+      color: 'var(--navy)',
+      marginBottom: 10,
+      textAlign: 'center'
+    }
+  }, "Tu composición"), /*#__PURE__*/React.createElement("div", {
+    ref: compRef
+  }, /*#__PURE__*/React.createElement(OrillasComposition, {
+    origen: origen,
+    nueva: nueva,
+    identidad: identidad
+  })), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 12,
+      marginTop: 12
+    },
+    onClick: download
+  }, "Descargar mi composición"), savedOrillas.updatedAt && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      textAlign: 'center',
+      marginTop: 10
+    }
+  }, "Última actualización: ", fmtDate(savedOrillas.updatedAt)))));
 }
 const CLIMA_EMOTIONS = [{
   key: 'calma',
