@@ -558,6 +558,16 @@ function uid() {
 function nowISO() {
   return new Date().toISOString();
 }
+// Identificador anónimo persistente en este dispositivo, usado para contar en el mapa de la
+// comunidad a las personas que completan el diagnóstico sin crear una cuenta.
+function getClientId() {
+  let id = localStorage.getItem('renacer_client_id');
+  if (!id) {
+    id = uid();
+    localStorage.setItem('renacer_client_id', id);
+  }
+  return id;
+}
 
 /* ============================= SUPABASE (backend opcional) =============================
    Si no hay credenciales configuradas, sbClient queda en null y toda la app funciona
@@ -1299,6 +1309,44 @@ function CloudSync({
     }, 1500);
     return () => clearTimeout(t);
   }, [state, isPlus]);
+  return children;
+}
+
+/* ============================= MAPA: incluir también a quienes no crean cuenta ============================= */
+// El mapa de la comunidad (get_country_counts) antes solo contaba filas de la tabla `profiles`,
+// que solo existen para personas registradas. Esto sincroniza el país de cualquiera que haya
+// completado el diagnóstico, tenga o no cuenta, usando un id anónimo persistente en el dispositivo.
+function LocationSync({
+  children
+}) {
+  const auth = useAuth();
+  const {
+    state
+  } = useApp();
+  const migratedForSession = useRef(null);
+
+  // Al crear cuenta o iniciar sesión, esa persona pasa a estar representada por su fila en
+  // `profiles`; borramos su ping anónimo para no contarla dos veces en el mapa.
+  useEffect(() => {
+    if (!auth.enabled || !auth.authReady || !auth.session) return;
+    if (migratedForSession.current === auth.session.user.id) return;
+    migratedForSession.current = auth.session.user.id;
+    sbClient.from('location_pings').delete().eq('client_id', getClientId()).then(() => {});
+  }, [auth.enabled, auth.authReady, auth.session && auth.session.user.id]);
+
+  // Mientras no haya cuenta, mantenemos su país (y su preferencia de compartirlo) sincronizados.
+  useEffect(() => {
+    if (!auth.enabled || !auth.authReady || auth.session || !state.onboarded) return;
+    const t = setTimeout(() => {
+      sbClient.from('location_pings').upsert({
+        client_id: getClientId(),
+        country: state.profile.currentCountry || null,
+        share_location: !!state.profile.shareLocation,
+        updated_at: nowISO()
+      }).then(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [auth.enabled, auth.authReady, auth.session, state.onboarded, state.profile.currentCountry, state.profile.shareLocation]);
   return children;
 }
 function AuthModal({
@@ -2197,95 +2245,113 @@ function Onboarding({
     },
     onClick: () => setStep(1)
   }, "Comenzar"));
-  if (step === 1) return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      padding: 24
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      color: 'var(--navy)'
-    }
-  }, "Antes de empezar"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: 'var(--text-secondary)',
-      fontWeight: 600,
-      fontSize: 19
-    }
-  }, "Esto nos ayuda a mostrarte recursos de apoyo relevantes para donde estás."), /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 18,
-      fontWeight: 600,
-      color: 'var(--text-secondary)'
-    }
-  }, "¿Cómo te gustaría que te llamemos?"), /*#__PURE__*/React.createElement("input", {
-    value: name,
-    onChange: e => setName(e.target.value),
-    placeholder: "Tu nombre",
-    "aria-label": "¿Cómo te gustaría que te llamemos?",
-    style: {
-      width: '100%',
-      padding: 12,
-      borderRadius: 12,
-      border: '1px solid var(--baseline)',
-      marginTop: 6,
-      marginBottom: 16,
-      fontSize: 20
-    }
-  }), /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 18,
-      fontWeight: 600,
-      color: 'var(--text-secondary)'
-    }
-  }, "País donde vives actualmente"), /*#__PURE__*/React.createElement("select", {
-    value: country,
-    onChange: e => setCountry(e.target.value),
-    "aria-label": "País donde vives actualmente",
-    style: {
-      width: '100%',
-      padding: 12,
-      borderRadius: 12,
-      border: '1px solid var(--baseline)',
-      marginTop: 6,
-      fontSize: 20
-    }
-  }, /*#__PURE__*/React.createElement("option", {
-    value: ""
-  }, "Selecciona..."), CRISIS_RESOURCES.filter(r => r.country !== 'Cualquier país').map(r => /*#__PURE__*/React.createElement("option", {
-    key: r.country,
-    value: r.country
-  }, r.country)), /*#__PURE__*/React.createElement("option", {
-    value: "Otro"
-  }, "Otro")), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => setShowPrivacy(true),
-    style: {
-      background: 'none',
-      border: 'none',
-      padding: 0,
-      textAlign: 'left',
-      display: 'block',
-      color: 'var(--blue)',
-      fontWeight: 700,
-      fontSize: 17.5,
-      textDecoration: 'underline',
-      cursor: 'pointer',
-      marginTop: 14
-    }
-  }, "🔒 Tus respuestas son privadas. Conoce cómo protegemos tus datos."), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn-primary",
-    style: {
-      padding: 16,
-      fontSize: 20,
-      width: '100%',
-      marginTop: 20
-    },
-    onClick: () => setStep(2)
-  }, "Continuar"), showPrivacy && /*#__PURE__*/React.createElement(PrivacyModal, {
-    onClose: () => setShowPrivacy(false)
-  }));
+  if (step === 1) {
+    const canContinue = name.trim().length > 0 && !!country;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in",
+      style: {
+        padding: 24
+      }
+    }, /*#__PURE__*/React.createElement("h2", {
+      style: {
+        color: 'var(--navy)'
+      }
+    }, "Antes de empezar"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        fontSize: 19
+      }
+    }, "Esto nos ayuda a mostrarte recursos de apoyo relevantes para donde estás."), /*#__PURE__*/React.createElement("label", {
+      style: {
+        fontSize: 18,
+        fontWeight: 600,
+        color: 'var(--text-secondary)'
+      }
+    }, "¿Cómo te gustaría que te llamemos?"), /*#__PURE__*/React.createElement("input", {
+      value: name,
+      onChange: e => setName(e.target.value),
+      placeholder: "Tu nombre",
+      "aria-label": "¿Cómo te gustaría que te llamemos?",
+      style: {
+        width: '100%',
+        padding: 12,
+        borderRadius: 12,
+        border: '1px solid var(--baseline)',
+        marginTop: 6,
+        marginBottom: 16,
+        fontSize: 20
+      }
+    }), /*#__PURE__*/React.createElement("label", {
+      style: {
+        fontSize: 18,
+        fontWeight: 600,
+        color: 'var(--text-secondary)'
+      }
+    }, "País donde vives actualmente"), /*#__PURE__*/React.createElement("select", {
+      value: country,
+      onChange: e => setCountry(e.target.value),
+      "aria-label": "País donde vives actualmente",
+      style: {
+        width: '100%',
+        padding: 12,
+        borderRadius: 12,
+        border: '1px solid var(--baseline)',
+        marginTop: 6,
+        fontSize: 20
+      }
+    }, /*#__PURE__*/React.createElement("option", {
+      value: ""
+    }, "Selecciona..."), CRISIS_RESOURCES.filter(r => r.country !== 'Cualquier país').map(r => /*#__PURE__*/React.createElement("option", {
+      key: r.country,
+      value: r.country
+    }, r.country)), /*#__PURE__*/React.createElement("option", {
+      value: "Otro"
+    }, "Otro")), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => setShowPrivacy(true),
+      style: {
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        textAlign: 'left',
+        display: 'block',
+        color: 'var(--blue)',
+        fontWeight: 700,
+        fontSize: 17.5,
+        textDecoration: 'underline',
+        cursor: 'pointer',
+        marginTop: 14
+      }
+    }, "🔒 Tus respuestas son privadas. Conoce cómo protegemos tus datos."), !canContinue && /*#__PURE__*/React.createElement("p", {
+      style: {
+        textAlign: 'center',
+        color: 'var(--text-muted)',
+        fontWeight: 700,
+        fontSize: 15.5,
+        marginTop: 14,
+        marginBottom: 0
+      }
+    }, "Escribe tu nombre y selecciona tu país para continuar"), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn-primary",
+      disabled: !canContinue,
+      style: {
+        padding: 16,
+        fontSize: 20,
+        width: '100%',
+        marginTop: canContinue ? 20 : 10,
+        opacity: canContinue ? 1 : 0.5,
+        cursor: canContinue ? 'pointer' : 'not-allowed'
+      },
+      onClick: () => {
+        if (!canContinue) return;
+        setStep(2);
+      }
+    }, "Continuar"), showPrivacy && /*#__PURE__*/React.createElement(PrivacyModal, {
+      onClose: () => setShowPrivacy(false)
+    }));
+  }
   if (step === 2) {
     const allAnswered = touched.size >= AREAS.length;
     return /*#__PURE__*/React.createElement("div", {
@@ -6455,19 +6521,7 @@ function Profile({
       fontWeight: 700,
       color: isPlus ? 'var(--gold-dark)' : 'var(--text-secondary)'
     }
-  }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu progreso se sincroniza automáticamente."), /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      marginTop: 12,
-      fontSize: 18
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: state.profile.shareLocation,
-    onChange: e => toggleShareLocation(e.target.checked)
-  }), "Compartir mi país en el mapa agregado de la comunidad"), /*#__PURE__*/React.createElement("button", {
+  }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu progreso se sincroniza automáticamente."), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: auth.signOut,
     className: "btn-secondary",
@@ -6476,7 +6530,21 @@ function Profile({
       padding: 10,
       marginTop: 12
     }
-  }, "Cerrar sesión"))), /*#__PURE__*/React.createElement("div", {
+  }, "Cerrar sesión")), auth.enabled && /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 12,
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: state.profile.shareLocation,
+    onChange: e => toggleShareLocation(e.target.checked)
+  }), "Compartir mi país en el mapa agregado de la comunidad")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 20
     }
@@ -6756,7 +6824,7 @@ function Root() {
   return /*#__PURE__*/React.createElement(Shell, null);
 }
 function App() {
-  return /*#__PURE__*/React.createElement(AuthProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(CloudSync, null, /*#__PURE__*/React.createElement(Root, null))));
+  return /*#__PURE__*/React.createElement(AuthProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(CloudSync, null, /*#__PURE__*/React.createElement(LocationSync, null, /*#__PURE__*/React.createElement(Root, null)))));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 </script>
