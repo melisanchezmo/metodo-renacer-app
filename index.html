@@ -623,6 +623,43 @@ const AREAS = [{
   key: 'proposito',
   label: 'Propósito y dirección'
 }];
+function lowerFirst(s) {
+  return s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+// Interpreta los resultados de la radiografía sin escoger arbitrariamente la primera área
+// cuando hay empates: si todas las áreas están iguales, o si varias comparten el valor más bajo,
+// lo decimos explícitamente en vez de simular una conclusión que no existe en los datos.
+function getCareMessage(scores) {
+  const vals = AREAS.map(a => ({
+    ...a,
+    v: scores[a.key]
+  }));
+  const min = Math.min(...vals.map(v => v.v));
+  const max = Math.max(...vals.map(v => v.v));
+  if (min === max) {
+    return {
+      allEqual: true,
+      areas: [],
+      text: 'Tus áreas se encuentran en un nivel similar. Puedes comenzar por la que hoy sientas más importante.'
+    };
+  }
+  const lowest = vals.filter(v => v.v === min);
+  if (lowest.length >= 2) {
+    const picked = lowest.slice(0, 3);
+    const labels = picked.map(a => a.label);
+    const joined = labels.length === 2 ? labels.join(' y ') : labels.slice(0, -1).join(', ') + ' y ' + labels[labels.length - 1];
+    return {
+      allEqual: false,
+      areas: picked,
+      text: `Hoy varias áreas están en un nivel parecido — quizá necesites más cuidado en: ${joined}.`
+    };
+  }
+  return {
+    allEqual: false,
+    areas: [lowest[0]],
+    text: `Hoy quizá necesite más cuidado: ${lowest[0].label}`
+  };
+}
 const MODULES = [{
   id: 'R1',
   letter: 'R',
@@ -2002,6 +2039,14 @@ function Onboarding({
     AREAS.forEach(a => o[a.key] = 5);
     return o;
   });
+  const [touched, setTouched] = useState(() => new Set());
+  const setScore = (key, val) => {
+    setScores(prev => ({
+      ...prev,
+      [key]: val
+    }));
+    setTouched(prev => new Set(prev).add(key));
+  };
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -2127,14 +2172,14 @@ function Onboarding({
       marginBottom: 4,
       marginTop: 0
     }
-  }, "Todo lo que necesitas para volver a sentirte tú misma"), /*#__PURE__*/React.createElement("div", {
+  }, "Todo lo que necesitas para volver a sentirte tú"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       color: 'var(--text-secondary)',
       fontWeight: 600,
       lineHeight: 1.6
     }
-  }, "Siete módulos para comprender tu proceso, ejercicios para los días difíciles, un plan guiado de 30 días, tu propio espacio para escribir — y una comunidad de mujeres migrantes que entienden exactamente lo que vives.")), /*#__PURE__*/React.createElement("div", {
+  }, "Comprende lo que estás viviendo, encuentra herramientas para los días difíciles y avanza a tu ritmo junto a otras mujeres migrantes.")), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       fontSize: 17.5,
@@ -2142,7 +2187,7 @@ function Onboarding({
       fontWeight: 700,
       marginTop: 12
     }
-  }, "Empieza gratis. Avanza cuando estés lista.")), /*#__PURE__*/React.createElement("button", {
+  }, "Empieza gratis")), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-primary",
     style: {
@@ -2241,82 +2286,106 @@ function Onboarding({
   }, "Continuar"), showPrivacy && /*#__PURE__*/React.createElement(PrivacyModal, {
     onClose: () => setShowPrivacy(false)
   }));
-  if (step === 2) return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in",
-    style: {
-      padding: 24
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      color: 'var(--navy)',
-      marginBottom: 4
-    }
-  }, "Tu punto de partida"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: 'var(--text-secondary)',
-      fontWeight: 600,
-      fontSize: 18.5,
-      lineHeight: 1.5
-    }
-  }, "No existe una puntuación correcta. Esto no mide si tu migración ha sido exitosa: es una fotografía de este momento. Puntúa cada área de 0 a 10 según cómo te has sentido en las últimas semanas."), AREAS.map(a => /*#__PURE__*/React.createElement("div", {
-    key: a.key,
-    style: {
-      margin: '18px 0'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      fontSize: 18.5,
-      fontWeight: 600
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    id: `area-label-onb-${a.key}`
-  }, a.label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'var(--rose)'
-    }
-  }, scores[a.key])), /*#__PURE__*/React.createElement("input", {
-    type: "range",
-    min: "0",
-    max: "10",
-    value: scores[a.key],
-    onChange: e => setScores({
-      ...scores,
-      [a.key]: Number(e.target.value)
-    }),
-    "aria-labelledby": `area-label-onb-${a.key}`,
-    "aria-valuetext": `${scores[a.key]} de 10`,
-    style: {
-      width: '100%',
-      marginTop: 6
-    }
-  }))), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "btn-primary",
-    style: {
-      padding: 16,
-      fontSize: 20,
-      width: '100%',
-      marginTop: 12
-    },
-    onClick: () => {
-      update(prev => ({
-        profile: {
-          ...prev.profile,
-          name,
-          currentCountry: country || 'Colombia'
-        },
-        diagnostics: [{
-          id: uid(),
-          date: nowISO(),
-          scores
-        }],
-        onboarded: true
-      }));
-      onDone();
-    }
-  }, "Ver mi radiografía"));
+  if (step === 2) {
+    const allAnswered = touched.size >= AREAS.length;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in",
+      style: {
+        padding: 24
+      }
+    }, /*#__PURE__*/React.createElement("h2", {
+      style: {
+        color: 'var(--navy)',
+        marginBottom: 4
+      }
+    }, "Tu punto de partida"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        fontSize: 18.5,
+        lineHeight: 1.5
+      }
+    }, "No existe una puntuación correcta. Esto no mide si tu migración ha sido exitosa: es una fotografía de este momento. Desliza cada escala según cómo te has sentido en las últimas semanas: 0 significa que esta área está siendo muy difícil para ti, y 10 que te sientes satisfecha y sostenida en ella."), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: 14.5,
+        color: 'var(--text-muted)',
+        fontWeight: 700,
+        padding: '2px 2px 0'
+      }
+    }, /*#__PURE__*/React.createElement("span", null, "0 · muy difícil"), /*#__PURE__*/React.createElement("span", null, "10 · me siento muy bien")), AREAS.map(a => /*#__PURE__*/React.createElement("div", {
+      key: a.key,
+      style: {
+        margin: '18px 0'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: 18.5,
+        fontWeight: 600
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      id: `area-label-onb-${a.key}`
+    }, a.label), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: touched.has(a.key) ? 'var(--rose)' : 'var(--text-muted)',
+        fontStyle: touched.has(a.key) ? 'normal' : 'italic',
+        fontSize: touched.has(a.key) ? 18.5 : 15.5
+      }
+    }, touched.has(a.key) ? scores[a.key] : 'Sin responder')), /*#__PURE__*/React.createElement("input", {
+      type: "range",
+      min: "0",
+      max: "10",
+      value: scores[a.key],
+      onChange: e => setScore(a.key, Number(e.target.value)),
+      "aria-labelledby": `area-label-onb-${a.key}`,
+      "aria-valuetext": touched.has(a.key) ? `${scores[a.key]} de 10` : 'Sin responder todavía',
+      style: {
+        width: '100%',
+        marginTop: 6,
+        opacity: touched.has(a.key) ? 1 : 0.45
+      }
+    }))), !allAnswered && /*#__PURE__*/React.createElement("p", {
+      style: {
+        textAlign: 'center',
+        color: 'var(--text-muted)',
+        fontWeight: 700,
+        fontSize: 16,
+        marginTop: 4
+      }
+    }, "Desliza cada escala para continuar (", touched.size, "/", AREAS.length, ")"), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn-primary",
+      disabled: !allAnswered,
+      style: {
+        padding: 16,
+        fontSize: 20,
+        width: '100%',
+        marginTop: 12,
+        opacity: allAnswered ? 1 : 0.5,
+        cursor: allAnswered ? 'pointer' : 'not-allowed'
+      },
+      onClick: () => {
+        if (!allAnswered) return;
+        update(prev => ({
+          profile: {
+            ...prev.profile,
+            name,
+            currentCountry: country || 'Colombia'
+          },
+          diagnostics: [{
+            id: uid(),
+            date: nowISO(),
+            scores
+          }],
+          onboarded: true
+        }));
+        onDone();
+      }
+    }, "Ver mi radiografía"));
+  }
 }
 
 /* ============================= HOME ============================= */
@@ -2329,7 +2398,7 @@ function Home({
   const isPlus = useIsPlus();
   const last = state.diagnostics[state.diagnostics.length - 1];
   const doneCount = Object.keys(state.moduleProgress).filter(k => state.moduleProgress[k]?.completed).length;
-  const lowestArea = last ? AREAS.slice().sort((a, b) => last.scores[a.key] - last.scores[b.key])[0] : null;
+  const careInfo = last ? getCareMessage(last.scores) : null;
   const planCompleted = Object.keys(state.planDone).length >= 30;
   const [showContinuo, setShowContinuo] = useState(false);
   const openContinuo = () => {
@@ -2464,7 +2533,7 @@ function Home({
       fontWeight: 700,
       marginTop: 6
     }
-  }, "Tu radiografía"), lowestArea && /*#__PURE__*/React.createElement("div", {
+  }, "Tu radiografía"), careInfo && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 15,
       marginTop: 5,
@@ -2472,7 +2541,23 @@ function Home({
       fontWeight: 600,
       lineHeight: 1.35
     }
-  }, "Hoy quizá necesite más cuidado: ", lowestArea.label), /*#__PURE__*/React.createElement("div", {
+  }, careInfo.text), careInfo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      marginTop: 6,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      lineHeight: 1.4
+    }
+  }, "Esta no es una etiqueta ni un diagnóstico. Es una fotografía de cómo te encuentras hoy y puede cambiar a medida que avanzas."), careInfo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      marginTop: 6,
+      color: 'var(--navy)',
+      fontWeight: 700,
+      lineHeight: 1.35
+    }
+  }, careInfo.areas.length === 1 ? `Tu siguiente paso recomendado: fortalecer tu ${lowerFirst(careInfo.areas[0].label)}.` : 'Tu siguiente paso recomendado: elige el área que hoy sientas más importante.'), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
       marginTop: 7,
@@ -4566,7 +4651,24 @@ function Progress({
     style: {
       padding: 20
     }
-  }, AREAS.map(a => /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      fontSize: 18,
+      lineHeight: 1.5,
+      marginTop: 0
+    }
+  }, "Ajusta cada escala según cómo te sientes hoy: 0 significa que esta área está siendo muy difícil para ti, y 10 que te sientes satisfecha y sostenida en ella."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 14,
+      color: 'var(--text-muted)',
+      fontWeight: 700,
+      padding: '2px 2px 8px'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "0 · muy difícil"), /*#__PURE__*/React.createElement("span", null, "10 · me siento muy bien")), AREAS.map(a => /*#__PURE__*/React.createElement("div", {
     key: a.key,
     style: {
       margin: '16px 0'
@@ -4733,7 +4835,9 @@ function Community({
   const [showAuth, setShowAuth] = useState(false);
 
   // --- Modo local simulado (sin cuenta / backend no configurado) ---
-  const localPosts = [...state.communityPosts, ...COMMUNITY_SEED];
+  // Máximo 2 publicaciones de ejemplo: mostrar las 3 hacía que la sección pareciera más
+  // una demo ficticia que una comunidad real que apenas está comenzando.
+  const localPosts = [...state.communityPosts, ...COMMUNITY_SEED.slice(0, 2)];
   const postLocal = () => {
     if (!text.trim()) return;
     if (containsRisk(text)) {
@@ -4863,7 +4967,7 @@ function Community({
       fontWeight: 600,
       marginBottom: 14
     }
-  }, auth.enabled ? '📝 Las publicaciones marcadas como "Ejemplo" muestran cómo será la comunidad. ' : '📝 Ejemplo de cómo será la comunidad (aún no hay cuenta configurada). ', auth.enabled && /*#__PURE__*/React.createElement("button", {
+  }, auth.enabled ? '🌱 La comunidad está empezando. Crea tu cuenta y sé una de las primeras mujeres en compartir su camino. Mientras tanto, lo marcado como "Ejemplo" muestra cómo se verá. ' : '📝 Ejemplo de cómo será la comunidad (aún no hay cuenta configurada). ', auth.enabled && /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowAuth(true),
     style: {
@@ -4876,7 +4980,7 @@ function Community({
       padding: 0,
       fontSize: 17.5
     }
-  }, "Inicia sesión"), auth.enabled ? ' para publicar y comentar de verdad con otras personas.' : 'Tus publicaciones solo se guardan en este dispositivo.'), /*#__PURE__*/React.createElement("div", {
+  }, "Inicia sesión"), auth.enabled ? ' para compartir y conversar de verdad con otras mujeres migrantes.' : 'Tus publicaciones solo se guardan en este dispositivo.'), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14,
@@ -4918,8 +5022,8 @@ function Community({
       padding: 12,
       marginTop: 8
     },
-    onClick: online ? postReal : postLocal
-  }, "Publicar")), online ? realPosts === null ? /*#__PURE__*/React.createElement("div", {
+    onClick: auth.enabled && !online ? () => setShowAuth(true) : online ? postReal : postLocal
+  }, auth.enabled && !online ? 'Inicia sesión para publicar' : 'Publicar')), online ? realPosts === null ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       color: 'var(--text-muted)',
@@ -5876,6 +5980,27 @@ function Subscribe({
       marginTop: 14
     }
   }, "Si quieres cancelar tu suscripción, escríbenos y te ayudamos.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 18,
+      textAlign: 'center',
+      background: 'var(--navy)',
+      border: 'none',
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26
+    }
+  }, "✦"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 19,
+      color: '#fff',
+      fontWeight: 700,
+      lineHeight: 1.5,
+      margin: '8px 0 0'
+    }
+  }, "Renacer Plus te acompaña a convertir lo que comprendes en pequeños cambios diarios, con un recorrido guiado de 30 días y seguimiento de tu avance.")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
