@@ -1109,6 +1109,12 @@ function defaultState() {
       posible: [],
       porConstruir: []
     },
+    circlesReflection: {
+      circle: '',
+      target: '',
+      step: '',
+      savedAt: null
+    },
     compassEntries: [],
     threeREntries: [],
     communityPosts: [],
@@ -3963,6 +3969,45 @@ function MiniField({
     }
   }));
 }
+const CIRCLE_KEYS = ['seguro', 'posible', 'porConstruir'];
+const CIRCLE_LABELS = {
+  seguro: 'Mi apoyo seguro',
+  posible: 'Conexiones que pueden crecer',
+  porConstruir: 'Espacios por explorar'
+};
+const CIRCLE_COLORS = {
+  seguro: '#573529',
+  posible: '#8a5f56',
+  porConstruir: '#9c8880'
+};
+const CIRCLE_DESCRIPTIONS = {
+  seguro: 'Personas con quienes puedes ser tú misma, hablar con honestidad o pedir ayuda cuando la necesitas. Pueden estar cerca o acompañarte desde la distancia.',
+  posible: 'Personas que ya forman parte de tu vida, aunque todavía no exista mucha confianza. Son vínculos a los que podrías acercarte poco a poco.',
+  porConstruir: 'Lugares, grupos o comunidades que todavía no forman parte de tu vida, pero podrían ayudarte a sentir conexión y pertenencia.'
+};
+const CIRCLE_HELP = {
+  seguro: 'Ejemplos: una amiga, un familiar, tu pareja, una profesional o alguien que suele responder cuando la buscas.',
+  posible: 'Ejemplos: una compañera de trabajo, una vecina, alguien de una clase, otra madre del colegio o una conocida con quien te gustaría hablar más.',
+  porConstruir: 'Ejemplos: clases de idiomas, grupos de mujeres, actividades culturales, voluntariado, iglesia, deporte, asociaciones de migrantes o encuentros profesionales.'
+};
+const CIRCLE_QUESTIONS = {
+  seguro: '¿Con quién puedes contar actualmente?',
+  posible: '¿Con quién te gustaría construir un poco más de confianza?',
+  porConstruir: '¿Qué lugar o comunidad podrías conocer?'
+};
+const CIRCLE_PLACEHOLDERS = {
+  seguro: 'Nombre, inicial o relación contigo',
+  posible: 'Persona o vínculo que podría crecer',
+  porConstruir: 'Grupo, actividad o espacio que quiero explorar'
+};
+// Las entradas antiguas se guardaban como texto simple; las nuevas son {id, text} para
+// poder editarlas, eliminarlas o moverlas de círculo. Estas dos funciones leen ambos formatos.
+function circleItemText(it) {
+  return typeof it === 'string' ? it : it && it.text || '';
+}
+function circleItemId(it) {
+  return typeof it === 'string' ? null : it && it.id || null;
+}
 function CirclesTool({
   back
 }) {
@@ -3976,120 +4021,398 @@ function CirclesTool({
     posible: '',
     porConstruir: ''
   });
-  const labels = {
-    seguro: 'Círculo seguro',
-    posible: 'Círculo posible',
-    porConstruir: 'Círculo por construir'
-  };
-  const colors = {
-    seguro: '#573529',
-    posible: '#8a5f56',
-    porConstruir: '#9c8880'
-  };
+  const [editing, setEditing] = useState(null); // {key, id, text, moveTo}
+  const [reflection, setReflection] = useState(() => ({
+    circle: state.circlesReflection && state.circlesReflection.circle || '',
+    target: state.circlesReflection && state.circlesReflection.target || '',
+    step: state.circlesReflection && state.circlesReflection.step || ''
+  }));
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Migra entradas antiguas (guardadas como texto simple) a objetos con id estable, para
+  // que las personas que ya usaban esta herramienta puedan editar, eliminar o mover lo
+  // que ya habían escrito.
+  useEffect(() => {
+    const needsMigration = CIRCLE_KEYS.some(k => (state.circles[k] || []).some(it => typeof it === 'string'));
+    if (needsMigration) {
+      update(prev => ({
+        circles: Object.fromEntries(CIRCLE_KEYS.map(k => [k, (prev.circles[k] || []).map(it => typeof it === 'string' ? {
+          id: uid(),
+          text: it
+        } : it)]))
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const addTo = key => {
-    if (!draft[key]) return;
+    const text = draft[key].trim();
+    if (!text) return;
     update(prev => ({
       circles: {
         ...prev.circles,
-        [key]: [...prev.circles[key], draft[key]]
+        [key]: [...prev.circles[key], {
+          id: uid(),
+          text
+        }]
       }
     }));
-    addJournalEntry({
-      type: 'herramienta',
-      title: `Tres Círculos — ${labels[key]}`,
-      answers: {
-        [labels[key]]: draft[key]
-      }
-    });
     setDraft({
       ...draft,
       [key]: ''
     });
   };
+  const startEdit = (key, item) => setEditing({
+    key,
+    id: circleItemId(item),
+    text: circleItemText(item),
+    moveTo: key
+  });
+  const cancelEdit = () => setEditing(null);
+  const saveEdit = () => {
+    if (!editing) return;
+    const text = editing.text.trim();
+    if (!text) {
+      setEditing(null);
+      return;
+    }
+    update(prev => {
+      if (editing.moveTo === editing.key) {
+        return {
+          circles: {
+            ...prev.circles,
+            [editing.key]: prev.circles[editing.key].map(it => circleItemId(it) === editing.id ? {
+              id: editing.id,
+              text
+            } : it)
+          }
+        };
+      }
+      const remaining = prev.circles[editing.key].filter(it => circleItemId(it) !== editing.id);
+      const moved = [...prev.circles[editing.moveTo], {
+        id: editing.id,
+        text
+      }];
+      return {
+        circles: {
+          ...prev.circles,
+          [editing.key]: remaining,
+          [editing.moveTo]: moved
+        }
+      };
+    });
+    setEditing(null);
+  };
+  const removeItem = (key, id) => {
+    update(prev => ({
+      circles: {
+        ...prev.circles,
+        [key]: prev.circles[key].filter(it => circleItemId(it) !== id)
+      }
+    }));
+    setEditing(prevEditing => prevEditing && prevEditing.id === id ? null : prevEditing);
+  };
+  const updateReflection = (field, value) => {
+    setReflection(r => ({
+      ...r,
+      [field]: value
+    }));
+    setJustSaved(false);
+  };
+  const saveReflection = () => {
+    const savedAt = nowISO();
+    update(() => ({
+      circlesReflection: {
+        ...reflection,
+        savedAt
+      }
+    }));
+    addJournalEntry({
+      type: 'herramienta',
+      title: 'Tres Círculos de conexión — mi mapa y mi siguiente paso',
+      answers: {
+        [CIRCLE_LABELS.seguro]: state.circles.seguro.map(circleItemText).join(', '),
+        [CIRCLE_LABELS.posible]: state.circles.posible.map(circleItemText).join(', '),
+        [CIRCLE_LABELS.porConstruir]: state.circles.porConstruir.map(circleItemText).join(', '),
+        '¿Qué círculo necesita más atención en este momento?': reflection.circle ? CIRCLE_LABELS[reflection.circle] : '',
+        '¿A quién o a qué espacio te gustaría acercarte?': reflection.target,
+        '¿Cuál es el paso más pequeño que puedes dar esta semana?': reflection.step
+      }
+    });
+    setJustSaved(true);
+  };
+  const canSave = reflection.step.trim().length > 0;
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in"
   }, /*#__PURE__*/React.createElement(TopBar, {
-    title: "Tres Círculos de conexión",
+    title: "Mis tres círculos de conexión",
     onBack: back,
     backLabel: "Volver a herramientas"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18.5,
+      lineHeight: 1.55,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      margin: '0 0 10px'
+    }
+  }, "No todas las personas y espacios nos ofrecen el mismo tipo de apoyo. Este mapa te ayudará a reconocer las conexiones que ya te sostienen, las que podrían fortalecerse y los vínculos que deseas comenzar a construir."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      lineHeight: 1.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      margin: '0 0 6px'
+    }
+  }, "Puedes incluir personas que estén cerca o lejos, en tu país de origen o en el lugar donde vives ahora. También puedes añadir grupos, comunidades, profesionales o espacios donde podrías conocer personas."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'center',
-      margin: '10px 0 20px'
+      margin: '16px 0 10px'
     }
   }, /*#__PURE__*/React.createElement("svg", {
-    width: "220",
-    height: "220",
-    viewBox: "0 0 220 220"
+    width: "230",
+    height: "230",
+    viewBox: "0 0 230 230",
+    role: "img",
+    "aria-label": `Tres círculos concéntricos de conexión: en el centro, ${CIRCLE_LABELS.seguro}; en el anillo intermedio, ${CIRCLE_LABELS.posible}; en el anillo exterior, ${CIRCLE_LABELS.porConstruir}.`
   }, /*#__PURE__*/React.createElement("circle", {
-    cx: "110",
-    cy: "110",
-    r: "100",
+    cx: "115",
+    cy: "115",
+    r: "104",
     fill: "none",
-    stroke: colors.porConstruir,
+    stroke: CIRCLE_COLORS.porConstruir,
     strokeWidth: "2",
     strokeDasharray: "4 4"
   }), /*#__PURE__*/React.createElement("circle", {
-    cx: "110",
-    cy: "110",
-    r: "68",
+    cx: "115",
+    cy: "115",
+    r: "70",
     fill: "none",
-    stroke: colors.posible,
+    stroke: CIRCLE_COLORS.posible,
     strokeWidth: "2"
   }), /*#__PURE__*/React.createElement("circle", {
-    cx: "110",
-    cy: "110",
-    r: "36",
-    fill: colors.seguro,
+    cx: "115",
+    cy: "115",
+    r: "37",
+    fill: CIRCLE_COLORS.seguro,
     fillOpacity: "0.18",
-    stroke: colors.seguro,
+    stroke: CIRCLE_COLORS.seguro,
     strokeWidth: "2"
-  }), /*#__PURE__*/React.createElement("text", {
-    x: "110",
-    y: "114",
-    textAnchor: "middle",
-    fontSize: "14",
-    fontWeight: "800",
-    fill: "var(--text-primary)",
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontFamily: 'var(--sans)'
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 7,
+      alignItems: 'center',
+      marginBottom: 18
+    },
+    "aria-hidden": "true"
+  }, CIRCLE_KEYS.map(k => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
     }
-  }, "seguro"))), ['seguro', 'posible', 'porConstruir'].map(key => /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 12,
+      height: 12,
+      borderRadius: 99,
+      background: CIRCLE_COLORS[k],
+      flexShrink: 0,
+      display: 'inline-block'
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16.5,
+      fontWeight: 700,
+      color: CIRCLE_COLORS[k]
+    }
+  }, CIRCLE_LABELS[k])))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '12px 14px',
+      background: 'var(--aqua-soft)',
+      border: 'none',
+      marginBottom: 16,
+      display: 'flex',
+      gap: 8,
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      fontSize: 17
+    }
+  }, "🔒"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16,
+      color: 'var(--blue-dark)',
+      fontWeight: 600,
+      lineHeight: 1.45
+    }
+  }, "Si prefieres, puedes utilizar iniciales o escribir la relación que esa persona tiene contigo.")), CIRCLE_KEYS.map(key => /*#__PURE__*/React.createElement("div", {
     key: key,
     className: "card",
     style: {
-      padding: 14,
-      marginBottom: 12
+      padding: 16,
+      marginBottom: 14,
+      borderLeft: `4px solid ${CIRCLE_COLORS[key]}`
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
-      fontSize: 18.5,
-      color: colors[key]
+      fontSize: 19.5,
+      color: CIRCLE_COLORS[key]
     }
-  }, labels[key]), /*#__PURE__*/React.createElement("div", {
+  }, CIRCLE_LABELS[key]), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-primary)',
+      lineHeight: 1.5,
+      margin: '6px 0'
+    }
+  }, CIRCLE_DESCRIPTIONS[key]), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      lineHeight: 1.4,
+      margin: '0 0 12px'
+    }
+  }, CIRCLE_HELP[key]), state.circles[key].length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexWrap: 'wrap',
-      gap: 6,
-      margin: '8px 0'
+      gap: 8,
+      marginBottom: 12
     }
-  }, state.circles[key].map((v, i) => /*#__PURE__*/React.createElement("span", {
-    key: i,
-    className: "pill",
+  }, state.circles[key].map((item, i) => {
+    const id = circleItemId(item) ?? `legacy-${i}`;
+    const text = circleItemText(item);
+    const isEditing = !!(editing && editing.key === key && editing.id === id);
+    if (isEditing) {
+      return /*#__PURE__*/React.createElement("div", {
+        key: id,
+        style: {
+          width: '100%',
+          background: 'var(--page)',
+          borderRadius: 12,
+          padding: 10
+        }
+      }, /*#__PURE__*/React.createElement("input", {
+        value: editing.text,
+        onChange: e => setEditing({
+          ...editing,
+          text: e.target.value
+        }),
+        "aria-label": `Editar entrada de ${CIRCLE_LABELS[key]}`,
+        style: {
+          width: '100%',
+          padding: 8,
+          borderRadius: 8,
+          border: '1px solid var(--baseline)',
+          fontSize: 17,
+          marginBottom: 6
+        }
+      }), /*#__PURE__*/React.createElement("label", {
+        style: {
+          fontSize: 14.5,
+          color: 'var(--text-muted)',
+          fontWeight: 600
+        }
+      }, "Mover a..."), /*#__PURE__*/React.createElement("select", {
+        value: editing.moveTo,
+        onChange: e => setEditing({
+          ...editing,
+          moveTo: e.target.value
+        }),
+        "aria-label": "Mover esta entrada a otro círculo",
+        style: {
+          width: '100%',
+          padding: 7,
+          borderRadius: 8,
+          border: '1px solid var(--baseline)',
+          fontSize: 16.5,
+          marginTop: 3,
+          marginBottom: 8
+        }
+      }, CIRCLE_KEYS.map(k2 => /*#__PURE__*/React.createElement("option", {
+        key: k2,
+        value: k2
+      }, CIRCLE_LABELS[k2]))), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          gap: 8
+        }
+      }, /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn-primary",
+        style: {
+          flex: 1,
+          padding: 9
+        },
+        onClick: saveEdit
+      }, "Guardar"), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn-secondary",
+        style: {
+          flex: 1,
+          padding: 9
+        },
+        onClick: cancelEdit
+      }, "Cancelar")));
+    }
+    return /*#__PURE__*/React.createElement("span", {
+      key: id,
+      className: "pill",
+      style: {
+        background: 'var(--page)',
+        color: 'var(--text-primary)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 7
+      }
+    }, text, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => startEdit(key, item),
+      "aria-label": `Editar "${text}"`,
+      style: {
+        border: 'none',
+        background: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        fontSize: 14,
+        color: 'var(--text-muted)'
+      }
+    }, "✎"), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => removeItem(key, id),
+      "aria-label": `Eliminar "${text}"`,
+      style: {
+        border: 'none',
+        background: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        fontSize: 15,
+        color: 'var(--text-muted)'
+      }
+    }, "✕"));
+  })), /*#__PURE__*/React.createElement("label", {
     style: {
-      background: 'var(--page)',
-      color: 'var(--text-primary)'
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 700
     }
-  }, v))), /*#__PURE__*/React.createElement("div", {
+  }, CIRCLE_QUESTIONS[key]), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      gap: 6
+      gap: 6,
+      marginTop: 5
     }
   }, /*#__PURE__*/React.createElement("input", {
     value: draft[key],
@@ -4097,22 +4420,123 @@ function CirclesTool({
       ...draft,
       [key]: e.target.value
     }),
-    placeholder: "Añadir...",
+    onKeyDown: e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addTo(key);
+      }
+    },
+    placeholder: CIRCLE_PLACEHOLDERS[key],
+    "aria-label": CIRCLE_QUESTIONS[key],
     style: {
       flex: 1,
       padding: 10,
       borderRadius: 10,
       border: '1px solid var(--baseline)',
-      fontSize: 18.5
+      fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => addTo(key),
     className: "btn-secondary",
     style: {
-      padding: '0 16px'
+      padding: '0 18px'
+    },
+    "aria-label": `Añadir a ${CIRCLE_LABELS[key]}`
+  }, "+")))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginTop: 6
     }
-  }, "+"))))));
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 20,
+      color: 'var(--navy)',
+      marginBottom: 4
+    }
+  }, "Convierte tu mapa en un pequeño paso"), state.circlesReflection && state.circlesReflection.savedAt && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginBottom: 10
+    }
+  }, "Última actualización: ", fmtDate(state.circlesReflection.savedAt)), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 700
+    }
+  }, "¿Qué círculo necesita más atención en este momento?"), /*#__PURE__*/React.createElement("select", {
+    value: reflection.circle,
+    onChange: e => updateReflection('circle', e.target.value),
+    "aria-label": "¿Qué círculo necesita más atención en este momento?",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 4,
+      marginBottom: 12,
+      fontSize: 18
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Selecciona un círculo..."), CIRCLE_KEYS.map(k => /*#__PURE__*/React.createElement("option", {
+    key: k,
+    value: k
+  }, CIRCLE_LABELS[k]))), /*#__PURE__*/React.createElement(MiniField, {
+    label: "¿A quién o a qué espacio te gustaría acercarte?",
+    value: reflection.target,
+    onChange: v => updateReflection('target', v),
+    placeholder: "Nombre, grupo o espacio"
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 700
+    }
+  }, "¿Cuál es el paso más pequeño que puedes dar esta semana?"), /*#__PURE__*/React.createElement("textarea", {
+    rows: 3,
+    value: reflection.step,
+    onChange: e => updateReflection('step', e.target.value),
+    placeholder: "Ejemplo: escribirle a Laura, preguntar por la clase de yoga o aceptar una invitación.",
+    "aria-label": "¿Cuál es el paso más pequeño que puedes dar esta semana?",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      marginTop: 4,
+      fontSize: 18,
+      resize: 'vertical'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    disabled: !canSave,
+    style: {
+      width: '100%',
+      padding: 14,
+      marginTop: 14,
+      opacity: canSave ? 1 : 0.5,
+      cursor: canSave ? 'pointer' : 'not-allowed'
+    },
+    onClick: saveReflection
+  }, "Guardar mi mapa y mi siguiente paso"), justSaved && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      padding: '12px 14px',
+      borderRadius: 12,
+      background: 'var(--rose-soft)',
+      color: 'var(--rose)',
+      fontWeight: 600,
+      fontSize: 16.5,
+      lineHeight: 1.5
+    }
+  }, "Tu red no tiene que construirse de una sola vez. La pertenencia también nace de pequeños gestos repetidos."))));
 }
 function CompassTool({
   back
