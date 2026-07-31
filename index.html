@@ -1131,6 +1131,7 @@ function defaultState() {
       identidad: '',
       updatedAt: null
     },
+    avances: [],
     compassEntries: [],
     threeREntries: [],
     communityPosts: [],
@@ -3454,6 +3455,13 @@ function ToolsHome({
     textColor: '#2f2420',
     freePlus: true
   }, {
+    id: 'avances',
+    name: 'Mapa de mis avances invisibles',
+    desc: 'Registra pequeños avances que sí cuentan. Con Plus, descubre tu historial completo.',
+    color: '#8a5f56',
+    textColor: '#fff',
+    freePlus: true
+  }, {
     id: 'ancla',
     name: 'Fórmula A.N.C.L.A.',
     desc: 'Diseña hábitos ancla para tu nuevo entorno',
@@ -3618,6 +3626,10 @@ function ToolScreen({
     back: back
   });
   if (id === 'refugio') return /*#__PURE__*/React.createElement(RefugioTool, {
+    go: go,
+    back: back
+  });
+  if (id === 'avances') return /*#__PURE__*/React.createElement(AvancesTool, {
     go: go,
     back: back
   });
@@ -5250,6 +5262,297 @@ function ClimateTool({
   })), risk && /*#__PURE__*/React.createElement(RiskModal, {
     onClose: () => setRisk(false)
   }));
+}
+const AVANCE_TYPES = [{
+  key: 'tramite',
+  label: 'Realicé sola un trámite',
+  emoji: '📄'
+}, {
+  key: 'ayuda',
+  label: 'Pedí ayuda',
+  emoji: '🤝'
+}, {
+  key: 'entendi',
+  label: 'Entendí una conversación',
+  emoji: '👂'
+}, {
+  key: 'lugar',
+  label: 'Fui a un lugar nuevo',
+  emoji: '🗺️'
+}, {
+  key: 'limite',
+  label: 'Puse un límite',
+  emoji: '✋'
+}, {
+  key: 'raices',
+  label: 'Preparé algo que me conecta con mis raíces',
+  emoji: '🌾'
+}, {
+  key: 'inicie',
+  label: 'Inicié una conversación',
+  emoji: '💬'
+}, {
+  key: 'dificil',
+  label: 'Atravesé un día difícil sin abandonarme',
+  emoji: '🕯️'
+}];
+function AvancesTool({
+  go,
+  back
+}) {
+  const {
+    state,
+    update
+  } = useApp();
+  const isPlus = useIsPlus();
+  const avances = state.avances || [];
+  const [otro, setOtro] = useState('');
+  const [lastAdded, setLastAdded] = useState(null);
+  const register = (type, note) => {
+    const entry = {
+      id: uid(),
+      date: nowISO(),
+      type,
+      note: note || ''
+    };
+    update(prev => ({
+      avances: [entry, ...(prev.avances || [])]
+    }));
+    const label = type === 'otro' ? note : (AVANCE_TYPES.find(a => a.key === type) || {}).label || type;
+    setLastAdded(label);
+  };
+  const registerOtro = () => {
+    const text = otro.trim();
+    if (!text) return;
+    register('otro', text);
+    setOtro('');
+  };
+  const history = avances.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const thisWeekCount = history.filter(e => new Date(e.date).getTime() >= weekAgo).length;
+  const freq = {};
+  history.forEach(e => {
+    freq[e.type] = (freq[e.type] || 0) + 1;
+  });
+  const breakdown = Object.entries(freq).map(([key, count]) => ({
+    key,
+    count,
+    label: key === 'otro' ? 'Otros avances' : (AVANCE_TYPES.find(a => a.key === key) || {}).label || key
+  })).sort((a, b) => b.count - a.count);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in"
+  }, /*#__PURE__*/React.createElement(TopBar, {
+    title: "Mapa de mis avances invisibles",
+    onBack: back,
+    backLabel: "Volver a herramientas"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18.5,
+      lineHeight: 1.55,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      margin: '0 0 16px'
+    }
+  }, "No todo avance se ve grande. Muchas veces el progreso vive en lo pequeño — toca lo que hiciste hoy, aunque parezca poca cosa."), avances.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '14px 16px',
+      marginBottom: 16,
+      background: 'var(--rose-soft)',
+      border: 'none',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 800,
+      color: 'var(--rose)'
+    }
+  }, avances.length), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, "avances registrados en total")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 8,
+      marginBottom: 16
+    }
+  }, AVANCE_TYPES.map(a => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    key: a.key,
+    onClick: () => register(a.key),
+    className: "card",
+    style: {
+      padding: '12px 8px',
+      textAlign: 'center',
+      cursor: 'pointer',
+      background: '#fff',
+      border: '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22
+    },
+    "aria-hidden": "true"
+  }, a.emoji), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 700,
+      marginTop: 4,
+      color: 'var(--text-primary)',
+      lineHeight: 1.25
+    }
+  }, a.label)))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 700
+    }
+  }, "¿Algo más que quieras registrar?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      marginTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: otro,
+    onChange: e => setOtro(e.target.value),
+    onKeyDown: e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        registerOtro();
+      }
+    },
+    placeholder: "Escribe tu propio avance...",
+    "aria-label": "¿Algo más que quieras registrar?",
+    style: {
+      flex: 1,
+      padding: 10,
+      borderRadius: 10,
+      border: '1px solid var(--baseline)',
+      fontSize: 18
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: registerOtro,
+    className: "btn-secondary",
+    style: {
+      padding: '0 18px'
+    },
+    "aria-label": "Registrar mi propio avance"
+  }, "+"))), lastAdded && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginBottom: 16,
+      background: 'var(--gold-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16.5,
+      fontWeight: 700,
+      color: 'var(--text-primary)'
+    }
+  }, "✓ Registrado: ", lastAdded), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 6,
+      fontStyle: 'italic'
+    }
+  }, "Quizá todavía no estás donde quieres, pero ya no estás donde comenzaste.")), isPlus ? /*#__PURE__*/React.createElement(React.Fragment, null, avances.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, "Tu historial"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-primary)',
+      fontWeight: 600,
+      marginBottom: 4
+    }
+  }, "Esta semana: ", thisWeekCount, " ", thisWeekCount === 1 ? 'avance' : 'avances'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      marginTop: 10,
+      marginBottom: 6
+    }
+  }, "Por tipo"), breakdown.map(b => /*#__PURE__*/React.createElement("div", {
+    key: b.key,
+    style: {
+      fontSize: 16.5,
+      marginBottom: 3
+    }
+  }, b.label, " — ", b.count, " ", b.count === 1 ? 'vez' : 'veces'))), history.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 18.5,
+      color: 'var(--text-secondary)',
+      marginBottom: 8
+    }
+  }, "Registro completo"), history.map(e => {
+    const info = e.type === 'otro' ? {
+      emoji: '✨',
+      label: e.note
+    } : AVANCE_TYPES.find(a => a.key === e.type) || {};
+    return /*#__PURE__*/React.createElement("div", {
+      key: e.id,
+      style: {
+        padding: '7px 0',
+        borderBottom: '1px solid var(--border)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16
+      }
+    }, info.emoji || '✨', " ", info.label || e.type), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: 'var(--text-muted)',
+        fontSize: 15,
+        flexShrink: 0
+      }
+    }, fmtDate(e.date)));
+  }))) : avances.length > 0 && /*#__PURE__*/React.createElement(UpsellCard, {
+    go: go,
+    title: "Descubre tu historial completo",
+    benefit: "Mira cuánto has avanzado, aunque no lo hayas notado",
+    desc: "Con Renacer Plus ves tu registro completo, cuántos avances llevas esta semana y cuáles se repiten más."
+  })));
 }
 const CIRCLE_KEYS = ['seguro', 'posible', 'porConstruir'];
 const CIRCLE_LABELS = {
