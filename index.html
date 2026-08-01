@@ -1099,6 +1099,18 @@ const COMMUNITY_SEED = [{
   }]
 }];
 const PROMPT_OF_DAY = 'Hoy me sentí un poco más parte de este lugar cuando...';
+
+// Categorías fijas para publicar en la Comunidad: ayudan a que sea más fácil encontrar y
+// acompañar publicaciones parecidas, en vez de que todo quede mezclado bajo una sola etiqueta.
+const COMMUNITY_CATEGORIES = ['Diario de pertenencia', 'Recién llegadas', 'Identidad y trabajo', 'Conexión', 'Logros y avances', 'Pregunta o duda', 'Necesito apoyo'];
+const REPORT_REASONS = ['Contenido inapropiado u ofensivo', 'Acoso o lenguaje de odio', 'Información falsa o engañosa', 'Spam o publicidad', 'Comparte datos personales sensibles', 'Otro motivo'];
+
+// Combina el país de origen y el país actual en una sola etiqueta ("Colombia → España"),
+// respetando que cada persona puede elegir compartir uno, otro, ambos o ninguno.
+function communityLocationLabel(originCountry, currentCountry) {
+  if (originCountry && currentCountry && originCountry !== currentCountry) return `${originCountry} → ${currentCountry}`;
+  return currentCountry || originCountry || '';
+}
 const ONGOING_PROMPTS = ['¿Qué parte de tu duelo migratorio sigue pidiendo espacio hoy?', '¿Qué señal de alerta notó tu cuerpo hoy, y cómo la acompañaste?', '¿Qué parte de ti —la de antes y la que estás siendo— se hizo presente hoy?', '¿Qué hábito ancla sostuviste hoy, aunque fuera en su versión mínima?', '¿A quién de tu círculo seguro recurriste o quisiste recurrir hoy?', '¿Qué decisión pequeña de hoy llevó tu firma?', 'Si hoy fue un día difícil, ¿qué necesitas revisar, reparar o reiniciar?', '¿Qué extrañaste hoy, y qué necesidad había detrás de esa nostalgia?', '¿Qué hiciste hoy que tu cuerpo agradeció?', '¿En qué momento de hoy te reconociste a ti misma?', '¿Qué rutina pequeña te ayudó a sentir continuidad hoy?', '¿Qué gesto de pertenencia —grande o pequeño— ocurrió hoy?', '¿Qué parte de tu vida sientes que hoy tuvo sentido?', '¿Cómo te hablaste hoy cuando algo no salió como esperabas?', '¿Qué versión idealizada del pasado apareció hoy, y qué versión completa puedes recordar junto a ella?', '¿Qué necesitó hoy tu sistema nervioso: cuerpo, entorno o conexión?', '¿Qué etiqueta te pusiste hoy, y qué experiencia hay detrás de ella?', '¿Qué fricción pudiste reducir hoy para facilitarte la vida?', '¿A qué vínculo le dedicaste intención hoy, aunque fuera pequeña?', '¿Qué valor guió una elección tuya hoy?', '¿Qué desencadenante migratorio apareció hoy —una fecha, un olor, una noticia— y cómo lo atravesaste?', '¿Qué parte de hoy fue, en silencio, una transformación?', '¿Qué le dirías hoy a la mujer que comenzó este método?', '¿Qué raíz cuidaste hoy, y qué ala dejaste crecer?', '¿Qué mínimo no negociable cumpliste hoy, aunque el día fuera difícil?', '¿Qué aprendiste hoy sobre cómo hacer las cosas en este nuevo lugar?', '¿Qué agradeces de hoy, incluso si también hubo tristeza?', '¿Qué necesitas soltar esta semana para dejar de castigarte?'];
 function dayOfYear(d) {
   const start = new Date(d.getFullYear(), 0, 0);
@@ -1114,7 +1126,9 @@ function defaultState() {
       currentCountry: 'Colombia',
       pin: null,
       pinEnabled: false,
-      shareLocation: true
+      shareLocation: true,
+      shareOriginCountry: false,
+      communityAlias: ''
     },
     onboarded: false,
     diagnostics: [],
@@ -1231,6 +1245,11 @@ function AuthProvider({
   const [authProfile, setAuthProfile] = useState(null);
   const [authReady, setAuthReady] = useState(!enabled);
   const [authError, setAuthError] = useState('');
+  // Cuando la persona toca el enlace de recuperación de contraseña en su correo, Supabase la
+  // trae de vuelta a la app con una sesión especial y dispara el evento PASSWORD_RECOVERY: en
+  // ese momento mostramos una pantalla para que elija su nueva contraseña, sin importar en qué
+  // parte de la app estuviera antes de irse a revisar su correo.
+  const [recoveryMode, setRecoveryMode] = useState(false);
   const refreshProfile = async userId => {
     if (!enabled || !userId) return;
     const {
@@ -1249,7 +1268,8 @@ function AuthProvider({
     });
     const {
       data: listener
-    } = sbClient.auth.onAuthStateChange((_event, sess) => {
+    } = sbClient.auth.onAuthStateChange((event, sess) => {
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
       setSession(sess);
       if (sess) refreshProfile(sess.user.id);else setAuthProfile(null);
     });
@@ -1299,11 +1319,51 @@ function AuthProvider({
     setAuthProfile(null);
   };
   const updateAuthProfile = async fields => {
-    if (!enabled || !session) return;
+    if (!enabled || !session) return {
+      error: null
+    };
     const {
-      data
+      data,
+      error
     } = await sbClient.from('profiles').update(fields).eq('id', session.user.id).select().single();
     if (data) setAuthProfile(data);
+    return {
+      error
+    };
+  };
+
+  // Envía el correo de recuperación de contraseña. Por seguridad (no revelar si un correo está
+  // registrado o no) el llamador siempre muestra el mismo mensaje, sin importar el resultado.
+  const sendPasswordReset = async email => {
+    if (!enabled) return {
+      error: {
+        message: 'No disponible.'
+      }
+    };
+    const {
+      error
+    } = await sbClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    return {
+      error
+    };
+  };
+  const updatePassword = async newPassword => {
+    if (!enabled) return {
+      error: {
+        message: 'No disponible.'
+      }
+    };
+    const {
+      error
+    } = await sbClient.auth.updateUser({
+      password: newPassword
+    });
+    if (!error) setRecoveryMode(false);
+    return {
+      error
+    };
   };
   return /*#__PURE__*/React.createElement(AuthCtx.Provider, {
     value: {
@@ -1312,11 +1372,14 @@ function AuthProvider({
       authProfile,
       authReady,
       authError,
+      recoveryMode,
       signUp,
       signIn,
       signOut,
       updateAuthProfile,
-      refreshProfile
+      refreshProfile,
+      sendPasswordReset,
+      updatePassword
     }
   }, children);
 }
@@ -1417,6 +1480,73 @@ function LocationSync({
   }, [auth.enabled, auth.authReady, auth.session, state.onboarded, state.profile.currentCountry, state.profile.shareLocation]);
   return children;
 }
+
+// Requisito mínimo de contraseña, validado tanto al crear la cuenta como al restablecerla.
+// Devuelve un mensaje de error amable en español, o '' si la contraseña cumple los requisitos.
+function passwordIssue(pw) {
+  if (!pw || pw.length < 8) return 'Usa al menos 8 caracteres, incluyendo una letra y un número.';
+  if (!/[a-zA-ZÁÉÍÓÚÜÑáéíóúüñ]/.test(pw) || !/[0-9]/.test(pw)) return 'Tu contraseña debe incluir al menos una letra y un número.';
+  return '';
+}
+
+// Campo de contraseña reutilizable (registro, inicio de sesión y recuperación) con un botón
+// para mostrar u ocultar el texto escrito, mediante un ícono de ojo.
+function PasswordField({
+  label,
+  value,
+  onChange,
+  ariaLabel
+}) {
+  const [visible, setVisible] = useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: visible ? 'text' : 'password',
+    value: value,
+    onChange: e => onChange(e.target.value),
+    "aria-label": ariaLabel || label,
+    style: {
+      width: '100%',
+      padding: '10px 44px 10px 10px',
+      borderRadius: 10,
+      border: '1.5px solid var(--aqua)',
+      fontSize: 18.5,
+      boxSizing: 'border-box'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setVisible(v => !v),
+    "aria-label": visible ? 'Ocultar contraseña' : 'Mostrar contraseña',
+    "aria-pressed": visible,
+    style: {
+      position: 'absolute',
+      right: 2,
+      top: 0,
+      bottom: 0,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: 19,
+      padding: '0 10px',
+      color: 'var(--text-muted)',
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, visible ? '🙈' : '👁️')));
+}
 function AuthModal({
   onClose
 }) {
@@ -1425,31 +1555,139 @@ function AuthModal({
     state,
     update
   } = useApp();
-  const [mode, setMode] = useState('signup'); // 'signup' | 'login'
+  const [mode, setMode] = useState('signup'); // 'signup' | 'login' | 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [showPolicy, setShowPolicy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const submit = async () => {
-    if (!email || password.length < 6) {
-      setNotice('Escribe un correo válido y una contraseña de al menos 6 caracteres.');
+    if (!email.trim()) {
+      setNotice('Escribe tu correo electrónico.');
       return;
     }
-    setBusy(true);
-    setNotice('');
     if (mode === 'signup') {
+      const issue = passwordIssue(password);
+      if (issue) {
+        setNotice(issue);
+        return;
+      }
+      if (!acceptedTerms) {
+        setNotice('Debes aceptar la Política de privacidad y los Términos y condiciones para crear tu cuenta.');
+        return;
+      }
+      setBusy(true);
+      setNotice('');
       const {
         error
       } = await auth.signUp(email, password, state.profile.name, state.profile.currentCountry);
       if (error) setNotice(error.message);else setNotice('Cuenta creada. Revisa tu correo para confirmar tu cuenta antes de iniciar sesión (si no lo ves en tu bandeja de entrada en unos minutos, revisa también la carpeta de Spam o Correo no deseado).');
+      setBusy(false);
     } else {
+      if (!password) {
+        setNotice('Escribe tu contraseña.');
+        return;
+      }
+      setBusy(true);
+      setNotice('');
       const {
         error
       } = await auth.signIn(email, password);
       if (error) setNotice(error.message);else onClose();
+      setBusy(false);
     }
-    setBusy(false);
   };
+  const submitForgot = async () => {
+    if (!email.trim()) {
+      setNotice('Escribe tu correo electrónico.');
+      return;
+    }
+    setBusy(true);
+    setNotice('');
+    await auth.sendPasswordReset(email);
+    setBusy(false);
+    setResetSent(true);
+  };
+  if (mode === 'forgot') {
+    return /*#__PURE__*/React.createElement(Modal, {
+      onClose: onClose
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("h3", {
+      style: {
+        margin: 0,
+        color: 'var(--navy)'
+      }
+    }, "Recuperar contraseña"), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: onClose,
+      style: {
+        border: 'none',
+        background: 'none',
+        fontSize: 25,
+        cursor: 'pointer'
+      }
+    }, "✕")), resetSent ? /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 18,
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        lineHeight: 1.5
+      }
+    }, "Si ese correo está registrado, te enviamos un enlace para crear una nueva contraseña. Revisa tu bandeja de entrada (y la carpeta de Spam o Correo no deseado) en los próximos minutos.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 18,
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        lineHeight: 1.5
+      }
+    }, "Escribe el correo con el que creaste tu cuenta. Te enviaremos un enlace para elegir una nueva contraseña."), /*#__PURE__*/React.createElement(MiniField, {
+      label: "Correo electrónico",
+      value: email,
+      onChange: setEmail,
+      type: "email"
+    }), notice && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        color: 'var(--rose)',
+        marginBottom: 8
+      }
+    }, notice), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn-primary",
+      style: {
+        width: '100%',
+        padding: 14
+      },
+      disabled: busy,
+      onClick: submitForgot
+    }, busy ? 'Enviando...' : 'Enviar enlace de recuperación')), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => {
+        setMode('login');
+        setNotice('');
+        setResetSent(false);
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--blue)',
+        fontSize: 18,
+        fontWeight: 600,
+        marginTop: 12,
+        cursor: 'pointer',
+        padding: 0,
+        display: 'block'
+      }
+    }, "← Volver a iniciar sesión"));
+  }
   return /*#__PURE__*/React.createElement(Modal, {
     onClose: onClose
   }, /*#__PURE__*/React.createElement("div", {
@@ -1463,7 +1701,7 @@ function AuthModal({
       margin: 0,
       color: 'var(--navy)'
     }
-  }, mode === 'signup' ? 'Crear cuenta' : 'Iniciar sesión'), /*#__PURE__*/React.createElement("button", {
+  }, mode === 'signup' ? 'Crea tu cuenta gratuita' : 'Iniciar sesión'), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: onClose,
     style: {
@@ -1479,34 +1717,90 @@ function AuthModal({
       fontWeight: 600,
       lineHeight: 1.5
     }
-  }, mode === 'signup' ? 'Crea una cuenta para sincronizar tu diario y tu progreso entre dispositivos, y participar en la comunidad.' : 'Ingresa con tu correo y contraseña.'), /*#__PURE__*/React.createElement(MiniField, {
+  }, mode === 'signup' ? 'Guarda tu progreso, sincronízalo entre dispositivos y participa en la comunidad de mujeres migrantes.' : 'Ingresa con tu correo y contraseña.'), /*#__PURE__*/React.createElement(MiniField, {
     label: "Correo electrónico",
     value: email,
-    onChange: setEmail
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600
-    }
-  }, "Contraseña"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
+    onChange: setEmail,
+    type: "email"
+  }), /*#__PURE__*/React.createElement(PasswordField, {
+    label: "Contraseña",
     value: password,
-    onChange: e => setPassword(e.target.value),
-    "aria-label": "Contraseña",
+    onChange: setPassword
+  }), mode === 'signup' && /*#__PURE__*/React.createElement("p", {
     style: {
-      width: '100%',
-      padding: 10,
-      borderRadius: 10,
-      border: '1.5px solid var(--aqua)',
-      marginTop: 4,
-      fontSize: 18.5
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: -4,
+      marginBottom: 14,
+      lineHeight: 1.4
     }
-  })), notice && /*#__PURE__*/React.createElement("div", {
+  }, "Usa al menos 8 caracteres, incluyendo una letra y un número."), mode === 'login' && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => {
+      setMode('forgot');
+      setNotice('');
+      setResetSent(false);
+    },
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--blue)',
+      fontSize: 16.5,
+      fontWeight: 600,
+      marginTop: -4,
+      marginBottom: 14,
+      cursor: 'pointer',
+      padding: 0,
+      display: 'block'
+    }
+  }, "¿Olvidaste tu contraseña?"), mode === 'signup' && /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 8,
+      fontSize: 15.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.4,
+      margin: '2px 0 14px',
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: acceptedTerms,
+    onChange: e => setAcceptedTerms(e.target.checked),
+    style: {
+      marginTop: 2,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "He leído y acepto la", ' ', /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setShowPolicy(true),
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--blue)',
+      textDecoration: 'underline',
+      fontWeight: 700,
+      cursor: 'pointer',
+      padding: 0,
+      font: 'inherit'
+    }
+  }, "Política de privacidad"), ' ', "y los", ' ', /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setShowTerms(true),
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--blue)',
+      textDecoration: 'underline',
+      fontWeight: 700,
+      cursor: 'pointer',
+      padding: 0,
+      font: 'inherit'
+    }
+  }, "Términos y condiciones"), ".")), notice && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       color: 'var(--rose)',
@@ -1538,7 +1832,235 @@ function AuthModal({
       padding: 0,
       display: 'block'
     }
-  }, mode === 'signup' ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Créala aquí'));
+  }, mode === 'signup' ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Créala aquí'), showPolicy && /*#__PURE__*/React.createElement(PolicyModal, {
+    onClose: () => setShowPolicy(false)
+  }), showTerms && /*#__PURE__*/React.createElement(TermsModal, {
+    onClose: () => setShowTerms(false)
+  }));
+}
+
+// Pantalla de pantalla completa mostrada cuando la persona vuelve del enlace de recuperación de
+// contraseña que le enviamos por correo (Supabase la reconoce automáticamente y activa
+// auth.recoveryMode), sin importar en qué parte de la app estuviera antes de irse a revisarlo.
+function PasswordResetScreen() {
+  const auth = useAuth();
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [done, setDone] = useState(false);
+  const submit = async () => {
+    const issue = passwordIssue(password);
+    if (issue) {
+      setNotice(issue);
+      return;
+    }
+    if (password !== confirm) {
+      setNotice('Las dos contraseñas no coinciden.');
+      return;
+    }
+    setBusy(true);
+    setNotice('');
+    const {
+      error
+    } = await auth.updatePassword(password);
+    setBusy(false);
+    if (error) setNotice(error.message);else setDone(true);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "phone"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "scroll-area fade-in",
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      minHeight: '100%',
+      padding: 24,
+      boxSizing: 'border-box'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--serif)',
+      fontSize: 24,
+      letterSpacing: 2,
+      color: 'var(--navy)',
+      fontWeight: 800,
+      textAlign: 'center',
+      marginBottom: 20
+    }
+  }, "MÉTODO RENACER"), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 20
+    }
+  }, done ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0,
+      color: 'var(--navy)'
+    }
+  }, "Contraseña actualizada"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.5
+    }
+  }, "Ya puedes seguir usando tu cuenta con tu nueva contraseña."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 14
+    },
+    onClick: () => window.location.reload()
+  }, "Continuar")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0,
+      color: 'var(--navy)'
+    }
+  }, "Elige tu nueva contraseña"), /*#__PURE__*/React.createElement(PasswordField, {
+    label: "Nueva contraseña",
+    value: password,
+    onChange: setPassword
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: -4,
+      marginBottom: 14,
+      lineHeight: 1.4
+    }
+  }, "Usa al menos 8 caracteres, incluyendo una letra y un número."), /*#__PURE__*/React.createElement(PasswordField, {
+    label: "Confirma tu nueva contraseña",
+    value: confirm,
+    onChange: setConfirm
+  }), notice && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      color: 'var(--rose)',
+      marginTop: 8,
+      marginBottom: 8
+    }
+  }, notice), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 14,
+      marginTop: 6
+    },
+    disabled: busy,
+    onClick: submit
+  }, busy ? 'Guardando...' : 'Guardar nueva contraseña')))));
+}
+function LegalTextModal({
+  title,
+  onClose,
+  children
+}) {
+  return /*#__PURE__*/React.createElement(Modal, {
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      color: 'var(--navy)'
+    }
+  }, title), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onClose,
+    style: {
+      border: 'none',
+      background: 'none',
+      fontSize: 25,
+      cursor: 'pointer'
+    }
+  }, "✕")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14,
+      marginTop: 12
+    }
+  }, children));
+}
+function LegalSection({
+  title,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
+    style: {
+      fontWeight: 700,
+      color: 'var(--navy)',
+      fontSize: 18,
+      marginBottom: 2,
+      marginTop: 0,
+      fontFamily: 'var(--sans)',
+      letterSpacing: 'normal'
+    }
+  }, title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, children));
+}
+
+// Borrador inicial en lenguaje sencillo, pensado para que la usuaria entienda qué pasa con sus
+// datos. No es asesoría legal: antes de considerarlo definitivo, conviene que un abogado lo revise.
+function PolicyModal({
+  onClose
+}) {
+  return /*#__PURE__*/React.createElement(LegalTextModal, {
+    title: "Política de privacidad",
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Quién trata tus datos"
+  }, "Método Renacer es un proyecto de acompañamiento psicoeducativo dirigido por Melissa Sánchez, psicóloga. Ella es responsable de los datos que recopila esta aplicación."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Qué datos recopilamos"
+  }, "Si usas la app sin crear cuenta, tus respuestas se guardan solo en tu dispositivo. Si creas una cuenta, además guardamos tu correo electrónico, tu nombre (o el alias que elijas), tu país, y los datos que registras en la app (diario, radiografías, progreso), para poder sincronizarlos entre tus dispositivos."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Para qué los usamos"
+  }, "Usamos tus datos únicamente para ofrecerte la app y sus funciones: guardar tu progreso, sincronizarlo, mostrar el mapa agregado de la comunidad (nunca tu ubicación exacta) y, si eliges publicar, mostrar tus publicaciones a otras usuarias."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Con quién los compartimos"
+  }, "Usamos Supabase para almacenar la información de forma segura, y Wompi para procesar los pagos de Renacer Plus en Colombia. Ninguno de los dos usa tus datos para fines distintos a prestar ese servicio. No vendemos tus datos a nadie."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Cuánto tiempo los conservamos"
+  }, "Conservamos tus datos mientras tengas una cuenta activa. Puedes eliminarlos por completo cuando quieras desde Perfil → \"Eliminar todos mis datos\"."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Tus derechos"
+  }, "Puedes acceder, corregir, exportar (Perfil → \"Exportar mis datos\") o eliminar tus datos cuando quieras. Si tienes dudas, puedes escribirnos."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Seguridad"
+  }, "Tu diario y tus radiografías son privados: ni Melissa ni el equipo de Renacer pueden leerlos. Solo lo que decides publicar en la Comunidad es visible para otras usuarias."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Cambios a esta política"
+  }, "Si esta política cambia de forma importante, te avisaremos dentro de la app."));
+}
+function TermsModal({
+  onClose
+}) {
+  return /*#__PURE__*/React.createElement(LegalTextModal, {
+    title: "Términos y condiciones",
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Qué es Método Renacer"
+  }, "Método Renacer ofrece psicoeducación, herramientas de autoexploración y una comunidad de apoyo para mujeres migrantes. No sustituye una evaluación, diagnóstico ni tratamiento psicológico o médico, ni servicios de emergencia."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Tu cuenta"
+  }, "Eres responsable de mantener tu contraseña en un lugar seguro y de todo lo que ocurra en tu cuenta. Avísanos si crees que alguien más accedió a ella."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Renacer Plus"
+  }, "Renacer Plus es una suscripción mensual o anual que se renueva automáticamente hasta que la canceles. Puedes cancelarla cuando quieras desde tu cuenta, y conservas el acceso hasta el final del periodo ya pagado."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "La comunidad"
+  }, "Al participar en la Comunidad, aceptas seguir las Normas de convivencia (disponibles dentro de esa sección) y tratar a las demás con respeto."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Uso aceptable"
+  }, "No está permitido usar la app para acosar, amenazar, publicitar servicios, ni compartir contenido falso, dañino o ilegal."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Cambios"
+  }, "Podemos actualizar estos términos; si el cambio es importante, te avisaremos dentro de la app."));
 }
 
 /* ============================= RENACER PLUS (freemium) ============================= */
@@ -8437,6 +8959,151 @@ function Progress({
   })));
 }
 
+/* ============================= COMUNIDAD: NORMAS Y REPORTES ============================= */
+function CommunityGuidelinesModal({
+  onClose
+}) {
+  return /*#__PURE__*/React.createElement(LegalTextModal, {
+    title: "Normas de convivencia",
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Cómo nos tratamos aquí"
+  }, "Con respeto, sin juzgar. No se permiten insultos, burlas, ni comentarios discriminatorios por nacionalidad, raza, religión, orientación sexual, situación migratoria o cualquier otra condición."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Esto es apoyo entre pares, no asesoría profesional"
+  }, "Las respuestas de otras mujeres son un acompañamiento, no un diagnóstico ni un tratamiento. Evita dar consejos médicos o psicológicos concretos a otras personas. Si tú o alguien más está en crisis, usa la Pausa A.C.A. o el Directorio de ayuda: la comunidad no está moderada las 24 horas."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Protege tu información"
+  }, "No compartas tu número de teléfono, dirección exacta, documentos de identidad, datos bancarios, ni información de otras personas (por ejemplo, hijos o hijas menores) sin su consentimiento."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Categorías para publicar"
+  }, "Cada publicación se etiqueta con una categoría (Diario de pertenencia, Recién llegadas, Identidad y trabajo, Conexión, Logros y avances, Pregunta o duda, Necesito apoyo) para que sea más fácil encontrar y acompañar publicaciones parecidas."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Tu nombre en la comunidad"
+  }, "Por defecto solo se muestra tu inicial. Si prefieres, puedes elegir un alias distinto desde Perfil → \"Alias para la comunidad\". Tu correo nunca se muestra a otras personas."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Quién modera"
+  }, "Melissa Sánchez, psicóloga y responsable del proyecto, revisa los reportes y puede eliminar publicaciones o comentarios que incumplan estas normas. No es un servicio de moderación inmediata ni las 24 horas: si ves algo urgente o una situación de riesgo, usa también el Directorio de ayuda o los servicios de emergencia de tu país."), /*#__PURE__*/React.createElement(LegalSection, {
+    title: "Reportar contenido"
+  }, "Si una publicación o comentario incumple estas normas, usa el botón \"🚩 Reportar\" que aparece junto a ella. Tu reporte es privado: la persona autora no sabrá quién lo envió."));
+}
+function ReportModal({
+  targetType,
+  targetId,
+  onClose
+}) {
+  const auth = useAuth();
+  const [reason, setReason] = useState('');
+  const [details, setDetails] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const submit = async () => {
+    if (!reason) {
+      setError('Elige un motivo para tu reporte.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    const {
+      error: err
+    } = await sbClient.from('community_reports').insert({
+      reporter_id: auth.session.user.id,
+      target_type: targetType,
+      target_id: targetId,
+      reason,
+      details: details.trim() || null
+    });
+    setBusy(false);
+    if (err) setError('No pudimos enviar tu reporte. Intenta de nuevo en unos minutos.');else setSent(true);
+  };
+  return /*#__PURE__*/React.createElement(Modal, {
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      color: 'var(--navy)'
+    }
+  }, "Reportar ", targetType === 'post' ? 'publicación' : 'comentario'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onClose,
+    style: {
+      border: 'none',
+      background: 'none',
+      fontSize: 25,
+      cursor: 'pointer'
+    }
+  }, "✕")), sent ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.5
+    }
+  }, "Gracias por avisarnos. Melissa revisará este contenido y tomará una decisión lo antes posible.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.5
+    }
+  }, "Tu reporte es privado: la persona autora no sabrá que fuiste tú."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+      margin: '6px 0 12px'
+    }
+  }, REPORT_REASONS.map(r => /*#__PURE__*/React.createElement("label", {
+    key: r,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      fontSize: 17,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "radio",
+    name: "report-reason",
+    checked: reason === r,
+    onChange: () => setReason(r)
+  }), r))), /*#__PURE__*/React.createElement("textarea", {
+    rows: 2,
+    value: details,
+    onChange: e => setDetails(e.target.value),
+    placeholder: "Detalles adicionales (opcional)",
+    "aria-label": "Detalles adicionales del reporte",
+    style: {
+      width: '100%',
+      padding: 10,
+      borderRadius: 10,
+      border: '1.5px solid var(--aqua)',
+      fontSize: 17,
+      marginBottom: 10,
+      boxSizing: 'border-box'
+    }
+  }), error && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      color: 'var(--critical)',
+      marginBottom: 8
+    }
+  }, error), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 13
+    },
+    disabled: busy,
+    onClick: submit
+  }, busy ? 'Enviando...' : 'Enviar reporte')));
+}
+
 /* ============================= COMUNIDAD ============================= */
 function Community({
   back,
@@ -8449,8 +9116,19 @@ function Community({
   const auth = useAuth();
   const online = auth.enabled && !!auth.session;
   const [text, setText] = useState('');
+  const [category, setCategory] = useState(COMMUNITY_CATEGORIES[0]);
   const [risk, setRisk] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showGuidelines, setShowGuidelines] = useState(false);
+  const [postError, setPostError] = useState('');
+
+  // Consentimientos independientes: cada persona decide si su país de origen, su país actual,
+  // ambos o ninguno aparecen junto a lo que publica (distinto del consentimiento del mapa
+  // agregado, que solo usa el país actual y vive en Perfil).
+  const shareCurrent = !!state.profile.shareLocation;
+  const shareOrigin = !!state.profile.shareOriginCountry;
+  const currentForPost = shareCurrent ? state.profile.currentCountry || '' : '';
+  const originForPost = shareOrigin ? state.profile.originCountry || '' : '';
 
   // --- Modo local simulado (sin cuenta / backend no configurado) ---
   // Máximo 2 publicaciones de ejemplo: mostrar las 3 hacía que la sección pareciera más
@@ -8462,11 +9140,12 @@ function Community({
       setRisk(true);
       return;
     }
+    const label = (state.profile.communityAlias || '').trim() || (state.profile.name ? state.profile.name[0] + '.' : 'Yo');
     update(prev => ({
       communityPosts: [{
         id: uid(),
-        tag: 'Diario de pertenencia',
-        name: prev.profile.name ? prev.profile.name[0] + '.' : 'Yo',
+        tag: category,
+        name: label,
         country: 'Tú',
         text,
         replies: [],
@@ -8497,14 +9176,35 @@ function Community({
       setRisk(true);
       return;
     }
-    const label = state.profile.name ? state.profile.name[0].toUpperCase() + '.' : 'Anónima';
-    await sbClient.from('community_posts').insert({
+    setPostError('');
+    const label = (state.profile.communityAlias || '').trim() || (state.profile.name ? state.profile.name[0].toUpperCase() + '.' : 'Anónima');
+    const payload = {
       user_id: auth.session.user.id,
       author_label: label,
-      country: state.profile.currentCountry,
-      tag: 'Diario de pertenencia',
+      country: currentForPost || null,
+      origin_country: originForPost || null,
+      tag: category,
       text
-    });
+    };
+    let {
+      error
+    } = await sbClient.from('community_posts').insert(payload);
+    if (error) {
+      // Compatibilidad hacia atrás: si la base de datos todavía no tiene la columna
+      // origin_country (falta ejecutar supabase-schema-comunidad-segura.sql), reintenta sin
+      // ese campo para que publicar nunca se rompa por completo mientras tanto.
+      const {
+        origin_country,
+        ...withoutOrigin
+      } = payload;
+      ({
+        error
+      } = await sbClient.from('community_posts').insert(withoutOrigin));
+    }
+    if (error) {
+      setPostError('No pudimos publicar. Intenta de nuevo en unos minutos.');
+      return;
+    }
     setText('');
     loadReal();
   };
@@ -8575,12 +9275,18 @@ function Community({
       marginTop: 4,
       lineHeight: 1.5
     }
-  }, "Ya sea que apenas estés empezando de nuevo o que lleves años construyendo una vida lejos de casa, aquí compartimos nuestro proceso, nos apoyamos con respeto y recordamos que ninguna tiene que recorrer este camino sola.")), /*#__PURE__*/React.createElement("button", {
+  }, "Ya sea que apenas estés empezando de nuevo o que lleves años construyendo una vida lejos de casa, aquí compartimos nuestro proceso, nos apoyamos con respeto y recordamos que ninguna tiene que recorrer este camino sola.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => go('worldmap'),
     className: "card",
     style: {
-      width: '100%',
+      flex: 1,
       padding: 14,
       textAlign: 'left',
       cursor: 'pointer',
@@ -8588,21 +9294,46 @@ function Community({
       background: 'var(--aqua-soft)',
       display: 'flex',
       alignItems: 'center',
-      gap: 10,
-      marginBottom: 14
+      gap: 8
     }
   }, /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
-      fontSize: 24
+      fontSize: 22
     }
   }, "🌍"), /*#__PURE__*/React.createElement("span", {
     style: {
       fontWeight: 700,
-      fontSize: 18,
+      fontSize: 16.5,
       color: 'var(--blue-dark)'
     }
-  }, "Ver mapa de la comunidad")), !online && /*#__PURE__*/React.createElement("div", {
+  }, "Mapa de la comunidad")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setShowGuidelines(true),
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 14,
+      textAlign: 'left',
+      cursor: 'pointer',
+      border: '1px solid var(--aqua)',
+      background: 'var(--aqua-soft)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      fontSize: 22
+    }
+  }, "📋"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      fontSize: 16.5,
+      color: 'var(--blue-dark)'
+    }
+  }, "Normas de convivencia"))), !online && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 12,
@@ -8646,7 +9377,31 @@ function Community({
       fontSize: 18.5,
       marginTop: 2
     }
-  }, PROMPT_OF_DAY), /*#__PURE__*/React.createElement("textarea", {
+  }, PROMPT_OF_DAY), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      fontWeight: 700,
+      marginTop: 10,
+      display: 'block'
+    }
+  }, "Categoría"), /*#__PURE__*/React.createElement("select", {
+    value: category,
+    onChange: e => setCategory(e.target.value),
+    "aria-label": "Categoría de tu publicación",
+    style: {
+      width: '100%',
+      padding: 9,
+      borderRadius: 10,
+      border: '1.5px solid var(--aqua)',
+      marginTop: 4,
+      fontSize: 17,
+      background: '#fff'
+    }
+  }, COMMUNITY_CATEGORIES.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c))), /*#__PURE__*/React.createElement("textarea", {
     rows: 2,
     value: text,
     onChange: e => setText(e.target.value),
@@ -8658,9 +9413,18 @@ function Community({
       borderRadius: 10,
       border: '1.5px solid var(--aqua)',
       marginTop: 8,
-      fontSize: 18.5
+      fontSize: 18.5,
+      boxSizing: 'border-box'
     }
-  }), /*#__PURE__*/React.createElement("button", {
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: 6,
+      lineHeight: 1.4
+    }
+  }, "🔒 Evita compartir tu teléfono, dirección u otra información personal sensible: esta publicación la puede ver toda la comunidad."), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-primary",
     style: {
@@ -8669,7 +9433,14 @@ function Community({
       marginTop: 8
     },
     onClick: auth.enabled && !online ? () => setShowAuth(true) : online ? postReal : postLocal
-  }, auth.enabled && !online ? 'Inicia sesión para publicar' : 'Publicar')), online ? realPosts === null ? /*#__PURE__*/React.createElement("div", {
+  }, auth.enabled && !online ? 'Inicia sesión para publicar' : 'Publicar'), postError && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: 'var(--critical)',
+      fontWeight: 600,
+      marginTop: 8
+    }
+  }, postError)), online ? realPosts === null ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       color: 'var(--text-muted)',
@@ -8756,6 +9527,8 @@ function Community({
     onClose: () => setRisk(false)
   }), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
+  }), showGuidelines && /*#__PURE__*/React.createElement(CommunityGuidelinesModal, {
+    onClose: () => setShowGuidelines(false)
   }));
 }
 function RealPostCard({
@@ -8771,15 +9544,18 @@ function RealPostCard({
   const [showBox, setShowBox] = useState(false);
   const [confirmDeletePost, setConfirmDeletePost] = useState(false);
   const [confirmDeleteComment, setConfirmDeleteComment] = useState(null); // id del comentario o null
+  const [reportTarget, setReportTarget] = useState(null); // {type:'post'|'comment', id} o null
   const isAdmin = auth.authProfile?.is_admin === true;
+  const myId = auth.session && auth.session.user.id;
   const comments = (post.community_comments || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const locationLabel = communityLocationLabel(post.origin_country, post.country);
   const sendComment = async () => {
     if (!comment.trim()) return;
     if (containsRisk(comment)) {
       setRisk(true);
       return;
     }
-    const label = state.profile.name ? state.profile.name[0].toUpperCase() + '.' : 'Anónima';
+    const label = (state.profile.communityAlias || '').trim() || (state.profile.name ? state.profile.name[0].toUpperCase() + '.' : 'Anónima');
     await sbClient.from('community_comments').insert({
       post_id: post.id,
       user_id: auth.session.user.id,
@@ -8837,7 +9613,7 @@ function RealPostCard({
       fontSize: 16.5,
       color: 'var(--text-muted)'
     }
-  }, post.country || '')), /*#__PURE__*/React.createElement("div", {
+  }, locationLabel)), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -8850,7 +9626,31 @@ function RealPostCard({
       fontSize: 18,
       marginTop: 6
     }
-  }, post.author_label), isAdmin && /*#__PURE__*/React.createElement("button", {
+  }, post.author_label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 6,
+      flexShrink: 0
+    }
+  }, myId && post.user_id !== myId && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setReportTarget({
+      type: 'post',
+      id: post.id
+    }),
+    "aria-label": "Reportar publicación",
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--text-muted)',
+      fontSize: 16,
+      fontWeight: 600,
+      cursor: 'pointer',
+      padding: 0
+    }
+  }, "🚩 Reportar"), isAdmin && /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setConfirmDeletePost(true),
     "aria-label": "Eliminar publicación",
@@ -8860,10 +9660,9 @@ function RealPostCard({
       color: 'var(--critical)',
       fontSize: 17.5,
       cursor: 'pointer',
-      padding: 0,
-      marginTop: 6
+      padding: 0
     }
-  }, "🗑")), /*#__PURE__*/React.createElement("div", {
+  }, "🗑"))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18.5,
       marginTop: 2
@@ -8913,7 +9712,22 @@ function RealPostCard({
         color: 'var(--text-muted)',
         fontWeight: 600
       }
-    }, likes.length), isAdmin && /*#__PURE__*/React.createElement("button", {
+    }, likes.length), myId && c.user_id !== myId && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => setReportTarget({
+        type: 'comment',
+        id: c.id
+      }),
+      "aria-label": "Reportar comentario",
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--text-muted)',
+        fontSize: 15,
+        cursor: 'pointer',
+        padding: 0
+      }
+    }, "🚩"), isAdmin && /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => setConfirmDeleteComment(c.id),
       "aria-label": "Eliminar comentario",
@@ -9032,7 +9846,11 @@ function RealPostCard({
       width: '100%',
       padding: 14
     }
-  }, "Cancelar")));
+  }, "Cancelar")), reportTarget && /*#__PURE__*/React.createElement(ReportModal, {
+    targetType: reportTarget.type,
+    targetId: reportTarget.id,
+    onClose: () => setReportTarget(null)
+  }));
 }
 
 /* ============================= MAPA MUNDIAL (agregado por país) ============================= */
@@ -10242,6 +11060,7 @@ function Profile({
   const auth = useAuth();
   const [name, setName] = useState(state.profile.name);
   const [country, setCountry] = useState(state.profile.currentCountry);
+  const [communityAlias, setCommunityAlias] = useState(state.profile.communityAlias || '');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -10256,6 +11075,16 @@ function Profile({
     if (auth.enabled && auth.session) auth.updateAuthProfile({
       share_location: val
     });
+  };
+  // Consentimiento independiente del anterior: ese controla el país actual (mapa + publicaciones),
+  // este solo decide si el país de origen aparece junto a lo que publicas en la Comunidad.
+  const toggleShareOriginCountry = val => {
+    update(prev => ({
+      profile: {
+        ...prev.profile,
+        shareOriginCountry: val
+      }
+    }));
   };
   const exportData = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], {
@@ -10286,7 +11115,22 @@ function Profile({
     label: "Tu nombre",
     value: name,
     onChange: setName
-  }), /*#__PURE__*/React.createElement("label", {
+  }), /*#__PURE__*/React.createElement(MiniField, {
+    label: "Alias para la comunidad (opcional)",
+    value: communityAlias,
+    onChange: setCommunityAlias,
+    placeholder: "Ej: Ana M., o el nombre que prefieras",
+    maxLength: 30
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: -6,
+      marginBottom: 12,
+      lineHeight: 1.4
+    }
+  }, "Así te verán las demás en la Comunidad. Si lo dejas vacío, usaremos solo la inicial de tu nombre."), /*#__PURE__*/React.createElement("label", {
     style: {
       fontSize: 18,
       color: 'var(--text-secondary)',
@@ -10317,18 +11161,34 @@ function Profile({
       width: '100%',
       padding: 12
     },
-    onClick: () => {
+    onClick: async () => {
+      const alias = communityAlias.trim();
       update(prev => ({
         profile: {
           ...prev.profile,
           name,
-          currentCountry: country
+          currentCountry: country,
+          communityAlias: alias
         }
       }));
-      if (auth.enabled && auth.session) auth.updateAuthProfile({
-        name,
-        current_country: country
-      });
+      if (auth.enabled && auth.session) {
+        const {
+          error
+        } = await auth.updateAuthProfile({
+          name,
+          current_country: country,
+          community_alias: alias || null
+        });
+        if (error) {
+          // Compatibilidad hacia atrás: si la base de datos todavía no tiene la columna
+          // community_alias (falta ejecutar supabase-schema-comunidad-segura.sql),
+          // reintenta sin ese campo para no bloquear el guardado del nombre y el país.
+          await auth.updateAuthProfile({
+            name,
+            current_country: country
+          });
+        }
+      }
     }
   }, "Guardar"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -10422,7 +11282,21 @@ function Profile({
     type: "checkbox",
     checked: state.profile.shareLocation,
     onChange: e => toggleShareLocation(e.target.checked)
-  }), "Compartir mi país en el mapa agregado de la comunidad")), /*#__PURE__*/React.createElement("div", {
+  }), "Compartir mi país actual en el mapa y en mis publicaciones"), auth.enabled && /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 10,
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: !!state.profile.shareOriginCountry,
+    onChange: e => toggleShareOriginCountry(e.target.checked)
+  }), "Compartir también mi país de origen cuando publico en la comunidad")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 20
     }
@@ -10693,7 +11567,12 @@ function Root() {
   const {
     state
   } = useApp();
+  const auth = useAuth();
   const [onboarded, setOnboarded] = useState(state.onboarded);
+  // Sin importar en qué parte de la app estuviera antes de irse a revisar su correo (incluso
+  // si todavía no había completado el diagnóstico inicial), priorizamos que elija su nueva
+  // contraseña antes de mostrarle cualquier otra pantalla.
+  if (auth.recoveryMode) return /*#__PURE__*/React.createElement(PasswordResetScreen, null);
   if (!onboarded) return /*#__PURE__*/React.createElement("div", {
     className: "phone"
   }, /*#__PURE__*/React.createElement(Onboarding, {
