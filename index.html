@@ -82,7 +82,8 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
   }
   .tab-btn{transition: color .15s ease, transform .1s ease;}
   .tab-btn:active{transform:scale(0.92);}
-  .card{background:#ffffff; border:1px solid var(--border); border-radius:16px;}
+  .card{background:#ffffff; border:1px solid var(--border); border-radius:16px; box-shadow:0 3px 14px rgba(87,53,41,0.08);}
+  input:focus, textarea:focus, select:focus{ outline:none !important; border-color:var(--rose) !important; box-shadow:0 0 0 3px rgba(87,53,41,0.15) !important; }
   .btn-primary{background:var(--rose); color:#fff; border:none; border-radius:14px; font-weight:700;}
   .btn-primary:active{opacity:0.85;}
   .btn-secondary{background:var(--rose-soft); color:var(--rose); border:none; border-radius:14px; font-weight:700;}
@@ -1496,7 +1497,7 @@ function AuthModal({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 18.5
     }
@@ -2420,7 +2421,7 @@ function Onboarding({
         width: '100%',
         padding: 12,
         borderRadius: 12,
-        border: '1px solid var(--baseline)',
+        border: '1.5px solid var(--aqua)',
         marginTop: 6,
         marginBottom: 16,
         fontSize: 20
@@ -2439,7 +2440,7 @@ function Onboarding({
         width: '100%',
         padding: 12,
         borderRadius: 12,
-        border: '1px solid var(--baseline)',
+        border: '1.5px solid var(--aqua)',
         marginTop: 6,
         fontSize: 20
       }
@@ -3104,7 +3105,7 @@ function ModuleDetail({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 19,
       resize: 'vertical'
@@ -3481,7 +3482,7 @@ function DayModal({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       fontSize: 19
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -3649,6 +3650,149 @@ function IconPinHeart(props) {
     d: "M12 20.6s6.2-5.4 6.2-10.4A6.2 6.2 0 0 0 5.8 10.2c0 5 6.2 10.4 6.2 10.4Z"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M12 8.3c-.6-.8-1.9-.8-2.4.1-.4.7 0 1.4 1 2.1l1.4 1.1 1.4-1.1c1-.7 1.4-1.4 1-2.1-.5-.9-1.8-.9-2.4-.1Z"
+  }));
+}
+
+// Iconos de línea para los campos de Refugio emocional (reemplazan los emoji de teclado 🗝️🌬️🤍📍🎵🚫
+// para que se sientan parte del mismo sistema visual que el resto de la app).
+function IconFieldKey(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "8",
+    cy: "8",
+    r: "3"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M10.3 10.3 19 19"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M14.7 14.7l1.8-1.8M17 17l1.8-1.8"
+  }));
+}
+function IconFieldWind(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M3 7.6h9.2a2 2 0 1 0-1.6-3.2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3 12h12.6a2.3 2.3 0 1 1-1.8 3.7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M3 16.5h6.6"
+  }));
+}
+function IconFieldPerson(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "7.8",
+    r: "3"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M5.8 19.2c1-3.8 3.9-5.8 6.2-5.8s5.2 2 6.2 5.8"
+  }));
+}
+function IconFieldPin(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 20.5s5.8-5.6 5.8-10.2A5.8 5.8 0 0 0 6.2 10.3c0 4.6 5.8 10.2 5.8 10.2Z"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "10.1",
+    r: "1.9"
+  }));
+}
+function IconFieldMusic(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M9.5 16.5V6l9-1.8v10.3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "7.4",
+    cy: "16.5",
+    r: "2.3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "16.4",
+    cy: "14.5",
+    r: "2.3"
+  }));
+}
+function IconFieldBan(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "7.8"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6.8 6.8l10.4 10.4"
+  }));
+}
+
+// Iconos de línea para los ocho tipos de "Mis avances invisibles" (reemplazan 📄🤝👂🗺️✋🌾💬🕯️).
+function IconAvanceDoc(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M7.2 3.6h6.6l3.6 3.6V20a1 1 0 0 1-1 1H7.2a1 1 0 0 1-1-1V4.6a1 1 0 0 1 1-1Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M13.8 3.6V7.2h3.6"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 12.6h6M9 15.6h6"
+  }));
+}
+function IconAvanceHands(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("circle", {
+    cx: "9.2",
+    cy: "12",
+    r: "4.4"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "14.8",
+    cy: "12",
+    r: "4.4",
+    strokeOpacity: "0.55"
+  }));
+}
+function IconAvanceEar(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M9 13a4 4 0 1 1 6.5 3.1c-.9.8-1.5 1.4-1.5 2.4a2 2 0 1 1-4 0"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 13c0-3.9 3.1-7 7-7a6 6 0 0 1 6 6c0 2.5-1.3 3.4-1.3 5.5",
+    strokeOpacity: "0.6"
+  }));
+}
+function IconAvanceMap(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M9 4.5 4 6.3v13.2l5-1.8 6 1.8 5-1.8V4.5l-5 1.8-6-1.8Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 4.5v13.2M15 6.3v13.2"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "9",
+    cy: "10.5",
+    r: "1.2"
+  }));
+}
+function IconAvanceHandStop(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 4v8.5M9 6v6.5M15 6v6.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9 12.5a3 3 0 0 0 3 3h1a3.6 3.6 0 0 0 3.6-3.6V9"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M6.5 20.5a4 4 0 0 1 4-4h3a4 4 0 0 1 4 4"
+  }));
+}
+function IconAvanceLeaf(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 21V13"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 13c0-4.5-3-7-7.5-7C4.5 10.5 7 13 12 13Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 13c0-4 2.5-6.3 6-6.3.5 3.8-1.7 6.3-6 6.3Z",
+    strokeOpacity: "0.65"
+  }));
+}
+function IconAvanceChat(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v6A2.5 2.5 0 0 1 17.5 15H10l-4 3.5V15h-.5A2.5 2.5 0 0 1 4 12.5Z"
+  }));
+}
+function IconAvanceCandle(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 3.5c1.4 1.6 2 2.8 2 3.7a2 2 0 1 1-4 0c0-.9.6-2.1 2-3.7Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9.5 10h5a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M9.5 13.5h5"
+  }));
+}
+function IconSparkleSmall(props) {
+  return /*#__PURE__*/React.createElement(ToolIconSvg, props, /*#__PURE__*/React.createElement("path", {
+    d: "M12 3v4M12 17v4M3 12h4M17 12h4M6.5 6.5l2.4 2.4M15.1 15.1l2.4 2.4M17.5 6.5l-2.4 2.4M8.9 15.1l-2.4 2.4"
   }));
 }
 const TOOL_META = {
@@ -4516,7 +4660,9 @@ function MiniField({
   placeholder,
   maxLength,
   inputMode,
-  type
+  type,
+  Icon,
+  accent
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4524,11 +4670,20 @@ function MiniField({
     }
   }, /*#__PURE__*/React.createElement("label", {
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
       fontSize: 18,
       color: 'var(--text-secondary)',
       fontWeight: 600
     }
-  }, label), /*#__PURE__*/React.createElement("input", {
+  }, Icon && /*#__PURE__*/React.createElement(ToolIconCircle, {
+    Icon: Icon,
+    bg: hexToRgba(accent || '#573529', 0.14),
+    fg: accent || 'var(--rose)',
+    size: 26,
+    iconSize: 15
+  }), /*#__PURE__*/React.createElement("span", null, label)), /*#__PURE__*/React.createElement("input", {
     type: type,
     value: value,
     onChange: e => onChange(e.target.value),
@@ -4540,7 +4695,7 @@ function MiniField({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 18.5
     }
@@ -4549,37 +4704,37 @@ function MiniField({
 const REFUGIO_FIELDS = [{
   key: 'frase',
   label: 'Una frase que necesito recordar',
-  icon: '🗝️',
+  Icon: IconFieldKey,
   free: true,
   placeholder: 'Ej: Esto también va a pasar.'
 }, {
   key: 'calmaCuerpo',
   label: 'Algo que ayuda a calmar mi cuerpo',
-  icon: '🌬️',
+  Icon: IconFieldWind,
   free: true,
   placeholder: 'Ej: Respirar hondo 5 veces, poner las manos bajo agua fría...'
 }, {
   key: 'persona',
   label: 'Una persona a la que puedo escribir',
-  icon: '🤍',
+  Icon: IconFieldPerson,
   free: false,
   placeholder: 'Nombre o cómo contactarla'
 }, {
   key: 'lugarSeguro',
   label: 'Un lugar donde me siento segura',
-  icon: '📍',
+  Icon: IconFieldPin,
   free: false,
   placeholder: 'Ej: Mi habitación, el parque cerca de casa...'
 }, {
   key: 'cancion',
   label: 'Una canción, oración o audio que me sostiene',
-  icon: '🎵',
+  Icon: IconFieldMusic,
   free: false,
   placeholder: 'Título o de qué trata'
 }, {
   key: 'noDecidir',
   label: 'Qué no debo decidir cuando estoy desbordada',
-  icon: '🚫',
+  Icon: IconFieldBan,
   free: false,
   placeholder: 'Ej: No debo decidir si me quedo o me voy, hoy no.'
 }];
@@ -4655,7 +4810,9 @@ function RefugioTool({
       }
     }, REFUGIO_FIELDS.filter(f => f.free).map(f => /*#__PURE__*/React.createElement(MiniField, {
       key: f.key,
-      label: `${f.icon} ${f.label}`,
+      label: f.label,
+      Icon: f.Icon,
+      accent: TOOL_ACCENT_COLOR.refugio,
       value: form[f.key],
       onChange: v => setField(f.key, v),
       placeholder: f.placeholder
@@ -4667,7 +4824,9 @@ function RefugioTool({
       }
     }, /*#__PURE__*/React.createElement(PlusSectionBanner, null, "Con Renacer Plus"), REFUGIO_FIELDS.filter(f => !f.free).map(f => /*#__PURE__*/React.createElement(MiniField, {
       key: f.key,
-      label: `${f.icon} ${f.label}`,
+      label: f.label,
+      Icon: f.Icon,
+      accent: TOOL_ACCENT_COLOR.refugio,
       value: form[f.key],
       onChange: v => setField(f.key, v),
       placeholder: f.placeholder
@@ -4739,12 +4898,21 @@ function RefugioTool({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
       fontSize: 15.5,
       color: 'var(--text-muted)',
       fontWeight: 700,
       marginBottom: 4
     }
-  }, f.icon, " ", f.label), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+    Icon: f.Icon,
+    bg: hexToRgba(TOOL_ACCENT_COLOR.refugio, 0.14),
+    fg: "var(--rose)",
+    size: 24,
+    iconSize: 14
+  }), /*#__PURE__*/React.createElement("span", null, f.label)), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 19,
       color: 'var(--text-primary)',
@@ -5172,7 +5340,7 @@ function OrillasTool({
       flex: 1,
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -5228,7 +5396,7 @@ function OrillasTool({
       flex: 1,
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -5264,7 +5432,7 @@ function OrillasTool({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 6,
       fontSize: 18,
       resize: 'vertical'
@@ -5623,7 +5791,7 @@ function ClimateTool({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 18,
       resize: 'vertical'
@@ -5726,35 +5894,35 @@ function ClimateTool({
 const AVANCE_TYPES = [{
   key: 'tramite',
   label: 'Realicé sola un trámite',
-  emoji: '📄'
+  Icon: IconAvanceDoc
 }, {
   key: 'ayuda',
   label: 'Pedí ayuda',
-  emoji: '🤝'
+  Icon: IconAvanceHands
 }, {
   key: 'entendi',
   label: 'Entendí una conversación',
-  emoji: '👂'
+  Icon: IconAvanceEar
 }, {
   key: 'lugar',
   label: 'Fui a un lugar nuevo',
-  emoji: '🗺️'
+  Icon: IconAvanceMap
 }, {
   key: 'limite',
   label: 'Puse un límite',
-  emoji: '✋'
+  Icon: IconAvanceHandStop
 }, {
   key: 'raices',
   label: 'Preparé algo que me conecta con mis raíces',
-  emoji: '🌾'
+  Icon: IconAvanceLeaf
 }, {
   key: 'inicie',
   label: 'Inicié una conversación',
-  emoji: '💬'
+  Icon: IconAvanceChat
 }, {
   key: 'dificil',
   label: 'Atravesé un día difícil sin abandonarme',
-  emoji: '🕯️'
+  Icon: IconAvanceCandle
 }];
 function AvancesTool({
   go,
@@ -5852,22 +6020,26 @@ function AvancesTool({
     onClick: () => register(a.key),
     className: "card",
     style: {
-      padding: '12px 8px',
+      padding: '14px 8px',
       textAlign: 'center',
       cursor: 'pointer',
       background: '#fff',
-      border: '1px solid var(--border)'
+      border: '1px solid var(--border)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 7
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 22
-    },
-    "aria-hidden": "true"
-  }, a.emoji), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+    Icon: a.Icon,
+    bg: hexToRgba(TOOL_ACCENT_COLOR.avances, 0.4),
+    fg: "var(--gold-dark)",
+    size: 40,
+    iconSize: 20
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14.5,
       fontWeight: 700,
-      marginTop: 4,
       color: 'var(--text-primary)',
       lineHeight: 1.25
     }
@@ -5904,7 +6076,7 @@ function AvancesTool({
       flex: 1,
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -5975,9 +6147,10 @@ function AvancesTool({
     color: TOOL_ACCENT_COLOR.avances
   }, "Registro completo"), history.map(e => {
     const info = e.type === 'otro' ? {
-      emoji: '✨',
+      Icon: IconSparkleSmall,
       label: e.note
     } : AVANCE_TYPES.find(a => a.key === e.type) || {};
+    const HistIcon = info.Icon || IconSparkleSmall;
     return /*#__PURE__*/React.createElement("div", {
       key: e.id,
       style: {
@@ -5985,13 +6158,23 @@ function AvancesTool({
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         justifyContent: 'space-between',
+        alignItems: 'center',
         gap: 8
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 7,
         fontSize: 16
       }
-    }, info.emoji || '✨', " ", info.label || e.type), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(ToolIconCircle, {
+      Icon: HistIcon,
+      bg: hexToRgba(TOOL_ACCENT_COLOR.avances, 0.35),
+      fg: "var(--gold-dark)",
+      size: 26,
+      iconSize: 14
+    }), /*#__PURE__*/React.createElement("span", null, info.label || e.type)), /*#__PURE__*/React.createElement("div", {
       style: {
         color: 'var(--text-muted)',
         fontSize: 15,
@@ -6235,7 +6418,7 @@ function RetoTool({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 18,
       resize: 'vertical'
@@ -6700,7 +6883,7 @@ function CirclesTool({
           width: '100%',
           padding: 8,
           borderRadius: 8,
-          border: '1px solid var(--baseline)',
+          border: '1.5px solid var(--aqua)',
           fontSize: 17,
           marginBottom: 6
         }
@@ -6721,7 +6904,7 @@ function CirclesTool({
           width: '100%',
           padding: 7,
           borderRadius: 8,
-          border: '1px solid var(--baseline)',
+          border: '1.5px solid var(--aqua)',
           fontSize: 16.5,
           marginTop: 3,
           marginBottom: 8
@@ -6817,7 +7000,7 @@ function CirclesTool({
       flex: 1,
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -6862,7 +7045,7 @@ function CirclesTool({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       marginBottom: 12,
       fontSize: 18
@@ -6893,7 +7076,7 @@ function CirclesTool({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 18,
       resize: 'vertical'
@@ -7266,7 +7449,7 @@ function DecisionCompass({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       marginBottom: 10,
       fontSize: 18.5
@@ -7320,7 +7503,7 @@ function DecisionCompass({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       fontSize: 18,
       resize: 'vertical'
@@ -7604,7 +7787,7 @@ function ContinuousEntryModal({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 10,
       fontSize: 19,
       resize: 'vertical'
@@ -7803,7 +7986,7 @@ function Journal({
     onClick: () => setFilter(f),
     className: "pill",
     style: {
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       background: filter === f ? 'var(--rose)' : '#fff',
       color: filter === f ? '#fff' : 'var(--text-secondary)',
       cursor: 'pointer',
@@ -8266,7 +8449,7 @@ function Community({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 8,
       fontSize: 18.5
     }
@@ -8564,7 +8747,7 @@ function RealPostCard({
       flex: 1,
       padding: 9,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       fontSize: 18
     }
   }), /*#__PURE__*/React.createElement("button", {
@@ -9356,7 +9539,7 @@ function Subscribe({
     style: {
       flex: 1,
       padding: '10px 0',
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       background: provider === 'paypal' ? 'var(--rose)' : '#fff',
       color: provider === 'paypal' ? '#fff' : 'var(--text-secondary)',
       cursor: 'pointer'
@@ -9368,7 +9551,7 @@ function Subscribe({
     style: {
       flex: 1,
       padding: '10px 0',
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       background: provider === 'wompi' ? 'var(--rose)' : '#fff',
       color: provider === 'wompi' ? '#fff' : 'var(--text-secondary)',
       cursor: 'pointer'
@@ -9635,7 +9818,7 @@ function Profile({
       width: '100%',
       padding: 10,
       borderRadius: 10,
-      border: '1px solid var(--baseline)',
+      border: '1.5px solid var(--aqua)',
       marginTop: 4,
       marginBottom: 10,
       fontSize: 18.5
