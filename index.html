@@ -3424,8 +3424,12 @@ function Plan30({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'absolute',
-      inset: 0,
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      maxWidth: 460,
+      height: '100vh',
       zIndex: -1,
       overflow: 'hidden'
     },
@@ -3444,7 +3448,7 @@ function Plan30({
     style: {
       position: 'absolute',
       inset: 0,
-      background: 'rgba(255,255,255,0.55)'
+      background: 'rgba(255,255,255,0.4)'
     }
   })), body);
 }
