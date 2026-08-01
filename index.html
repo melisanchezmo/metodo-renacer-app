@@ -1622,8 +1622,12 @@ function TopBar({
   title,
   onBack,
   backLabel,
-  right
+  right,
+  accent
 }) {
+  // "accent" lleva el color de identidad de cada herramienta (el mismo que ya usa su tarjeta en
+  // la Caja de herramientas) a la pantalla interna, como una franja de color bajo el título, para
+  // que las pantallas dejen de sentirse todas iguales/planas y conserven su propia personalidad.
   return /*#__PURE__*/React.createElement("div", {
     className: "safe-top",
     style: {
@@ -1632,7 +1636,7 @@ function TopBar({
       zIndex: 20,
       background: 'rgba(250,245,234,0.92)',
       backdropFilter: 'blur(6px)',
-      borderBottom: '1px solid var(--border)'
+      borderBottom: accent ? 'none' : '1px solid var(--border)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1685,7 +1689,67 @@ function TopBar({
       textAlign: 'right',
       flexShrink: 0
     }
-  }, right)));
+  }, right)), accent && /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 4,
+      background: `linear-gradient(90deg, ${accent}, ${hexToRgba(accent, 0.35)})`
+    }
+  }));
+}
+
+// Reemplaza los títulos de sección de puro texto ("Tu historial", "Entradas anteriores"...) que
+// hacían sentir las pantallas de las herramientas planas: una franjita de color + el texto, en
+// vez de un simple párrafo en negrita.
+function SectionLabel({
+  children,
+  color = 'var(--rose)'
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      width: 4,
+      height: 18,
+      borderRadius: 4,
+      background: color,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 800,
+      fontSize: 18.5,
+      color: 'var(--navy)'
+    }
+  }, children));
+}
+
+// Insignia visual para marcar dónde empieza el contenido de Renacer Plus dentro de una
+// herramienta "Gratis +", en vez del texto plano "Con Renacer Plus".
+function PlusSectionBanner({
+  children
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      background: 'var(--gold)',
+      color: 'var(--navy)',
+      fontWeight: 800,
+      fontSize: 14.5,
+      padding: '5px 12px',
+      borderRadius: 999,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true"
+  }, "✦"), /*#__PURE__*/React.createElement("span", null, children));
 }
 function LeafCorner({
   style,
@@ -3653,6 +3717,21 @@ const TOOL_BADGE_LABEL = {
   freePlus: 'GRATIS +',
   plus: '✦ PLUS'
 };
+// El mismo color que identifica a cada herramienta en la Caja de herramientas, para llevarlo
+// también a su propia pantalla (franja bajo el título, etiquetas de sección, insignia "Con Plus").
+const TOOL_ACCENT_COLOR = {
+  aca: '#573529',
+  ancla: '#573529',
+  journal: '#573529',
+  refugio: '#c99a95',
+  clima: '#c99a95',
+  circulos: '#c99a95',
+  orillas: '#8a5f56',
+  brujula: '#8a5f56',
+  '3r': '#8a5f56',
+  avances: '#e4c6c6',
+  retos: '#e4c6c6'
+};
 function hexToRgba(hex, alpha) {
   const h = hex.replace('#', '');
   const r = parseInt(h.substring(0, 2), 16),
@@ -4000,7 +4079,8 @@ function ToolScreen({
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: info.title,
       onBack: back,
-      backLabel: "Volver a herramientas"
+      backLabel: "Volver a herramientas",
+      accent: TOOL_ACCENT_COLOR[id]
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 20
@@ -4072,7 +4152,8 @@ function SosTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Estoy pasándola mal",
     onBack: back,
-    backLabel: "Volver a inicio"
+    backLabel: "Volver a inicio",
+    accent: "#2b1710"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -4191,7 +4272,8 @@ function BreathingTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Pausa A.C.A.",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.aca
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -4326,7 +4408,8 @@ function HabitTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Fórmula A.N.C.L.A.",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.ancla
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -4342,13 +4425,8 @@ function HabitTool({
     style: {
       marginBottom: 20
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.ancla
   }, "Mis hábitos ancla"), state.habits.map(h => /*#__PURE__*/React.createElement("div", {
     key: h.id,
     className: "card",
@@ -4555,7 +4633,8 @@ function RefugioTool({
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Construye tu refugio",
       onBack: hasAny ? () => setMode('view') : back,
-      backLabel: hasAny ? 'Volver a mi refugio' : 'Volver a herramientas'
+      backLabel: hasAny ? 'Volver a mi refugio' : 'Volver a herramientas',
+      accent: TOOL_ACCENT_COLOR.refugio
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 20
@@ -4586,14 +4665,7 @@ function RefugioTool({
         padding: 16,
         marginBottom: 16
       }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontWeight: 700,
-        fontSize: 18,
-        color: 'var(--text-secondary)',
-        marginBottom: 8
-      }
-    }, "Con Renacer Plus"), REFUGIO_FIELDS.filter(f => !f.free).map(f => /*#__PURE__*/React.createElement(MiniField, {
+    }, /*#__PURE__*/React.createElement(PlusSectionBanner, null, "Con Renacer Plus"), REFUGIO_FIELDS.filter(f => !f.free).map(f => /*#__PURE__*/React.createElement(MiniField, {
       key: f.key,
       label: `${f.icon} ${f.label}`,
       value: form[f.key],
@@ -4622,7 +4694,8 @@ function RefugioTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mi refugio emocional",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.refugio
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -5040,7 +5113,8 @@ function OrillasTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Las dos orillas",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.orillas
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -5441,7 +5515,8 @@ function ClimateTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mi clima emocional",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.clima
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -5578,13 +5653,8 @@ function ClimateTool({
       padding: 16,
       marginTop: 14
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.clima
   }, "Lo que más registraste en los últimos 30 días"), topEmotions.map(([key, count]) => {
     const em = CLIMA_EMOTIONS.find(e => e.key === key);
     return /*#__PURE__*/React.createElement("div", {
@@ -5608,13 +5678,8 @@ function ClimateTool({
       padding: 16,
       marginTop: 14
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.clima
   }, "Historial"), history.map(e => {
     const em = CLIMA_EMOTIONS.find(x => x.key === e.emotion);
     return /*#__PURE__*/React.createElement("div", {
@@ -5739,7 +5804,8 @@ function AvancesTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mapa de mis avances invisibles",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.avances
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -5877,13 +5943,8 @@ function AvancesTool({
       padding: 16,
       marginBottom: 14
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.avances
   }, "Tu historial"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 17,
@@ -5910,13 +5971,8 @@ function AvancesTool({
     style: {
       padding: 16
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.avances
   }, "Registro completo"), history.map(e => {
     const info = e.type === 'otro' ? {
       emoji: '✨',
@@ -6032,7 +6088,8 @@ function RetoTool({
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Reto de pertenencia",
       onBack: back,
-      backLabel: "Volver a herramientas"
+      backLabel: "Volver a herramientas",
+      accent: TOOL_ACCENT_COLOR.retos
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 20
@@ -6078,7 +6135,8 @@ function RetoTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Reto de pertenencia",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.retos
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -6242,13 +6300,8 @@ function RetoTool({
     style: {
       marginTop: 20
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.retos
   }, "Tu seguimiento"), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -6477,7 +6530,8 @@ function CirclesTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mis tres círculos de conexión",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.circulos
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -6923,7 +6977,8 @@ function CompassTool({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Brújula V.I.D.A.",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.brujula
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -7029,7 +7084,8 @@ function VidaCompass({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Aclarar mi dirección",
     onBack: back,
-    backLabel: "Volver a la brújula"
+    backLabel: "Volver a la brújula",
+    accent: TOOL_ACCENT_COLOR.brujula
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -7080,13 +7136,8 @@ function VidaCompass({
     style: {
       marginTop: 20
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.brujula
   }, "Entradas anteriores"), compassEntries.map(e => /*#__PURE__*/React.createElement("div", {
     key: e.id,
     className: "card",
@@ -7165,7 +7216,8 @@ function DecisionCompass({
     backLabel: "Volver a la brújula",
     right: /*#__PURE__*/React.createElement(SafetyBanner, {
       compact: true
-    })
+    }),
+    accent: TOOL_ACCENT_COLOR.brujula
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -7287,13 +7339,8 @@ function DecisionCompass({
     style: {
       marginTop: 20
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.brujula
   }, "Decisiones anteriores"), decisiones.map(e => /*#__PURE__*/React.createElement("div", {
     key: e.id,
     className: "card",
@@ -7367,7 +7414,8 @@ function ThreeRTool({
     backLabel: "Volver a herramientas",
     right: /*#__PURE__*/React.createElement(SafetyBanner, {
       compact: true
-    })
+    }),
+    accent: TOOL_ACCENT_COLOR['3r']
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -7720,7 +7768,8 @@ function Journal({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Mi cuaderno de trabajo",
     onBack: back,
-    backLabel: "Volver a herramientas"
+    backLabel: "Volver a herramientas",
+    accent: TOOL_ACCENT_COLOR.journal
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 16px'
@@ -8004,14 +8053,7 @@ function Progress({
     style: {
       marginTop: 24
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 18.5,
-      color: 'var(--text-secondary)',
-      marginBottom: 8
-    }
-  }, "Tu recorrido"), state.journal.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(SectionLabel, null, "Tu recorrido"), state.journal.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       color: 'var(--text-secondary)',
