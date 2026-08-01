@@ -9672,6 +9672,11 @@ function formatPrice(currency, cycle) {
 function monthlyEquivalent(currency) {
   return formatMoney(priceFor(currency, 'annual') / 12, currency);
 }
+function currencySpanishName(currency) {
+  if (currency === 'COP') return 'pesos colombianos';
+  if (currency === 'EUR') return 'euros';
+  return 'dólares estadounidenses (USD)';
+}
 function Subscribe({
   back
 }) {
@@ -9975,7 +9980,7 @@ function Subscribe({
       color: 'var(--text-muted)',
       marginTop: 4
     }
-  }, "Se cobra en realidad ", formatPrice(chargeCurrency, 'monthly')), /*#__PURE__*/React.createElement("p", {
+  }, "El pago se realizará en ", currencySpanishName(chargeCurrency), ". Verás el valor final antes de confirmar tu compra."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: 'var(--text-secondary)',
@@ -10047,7 +10052,7 @@ function Subscribe({
       color: 'var(--text-muted)',
       marginTop: 4
     }
-  }, "Se cobra en realidad ", formatPrice(chargeCurrency, 'annual')), /*#__PURE__*/React.createElement("p", {
+  }, "El pago se realizará en ", currencySpanishName(chargeCurrency), ". Verás el valor final antes de confirmar tu compra."), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: 'var(--text-secondary)',
