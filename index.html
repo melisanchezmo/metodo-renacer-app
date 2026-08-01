@@ -3277,7 +3277,7 @@ function Plan30({
       style: {
         position: 'absolute',
         inset: 0,
-        zIndex: 0,
+        zIndex: -1,
         overflow: 'hidden'
       },
       "aria-hidden": "true"
@@ -3297,12 +3297,7 @@ function Plan30({
         inset: 0,
         background: 'rgba(255,255,255,0.55)'
       }
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'relative',
-        zIndex: 1
-      }
-    }, /*#__PURE__*/React.createElement(TopBar, {
+    })), /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back,
       backLabel: "Volver a inicio"
@@ -3319,7 +3314,7 @@ function Plan30({
       go: go,
       title: "Plan de 30 días",
       desc: "30 experiencias breves y guiadas para transformar el método en práctica diaria, con seguimiento de tu avance."
-    }))));
+    })));
   }
   if (!state.planStart) {
     return /*#__PURE__*/React.createElement("div", {
@@ -3331,7 +3326,7 @@ function Plan30({
       style: {
         position: 'absolute',
         inset: 0,
-        zIndex: 0,
+        zIndex: -1,
         overflow: 'hidden'
       },
       "aria-hidden": "true"
@@ -3351,12 +3346,7 @@ function Plan30({
         inset: 0,
         background: 'rgba(255,255,255,0.55)'
       }
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'relative',
-        zIndex: 1
-      }
-    }, /*#__PURE__*/React.createElement(TopBar, {
+    })), /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back,
       backLabel: "Volver a inicio"
@@ -3393,7 +3383,7 @@ function Plan30({
           plan_done_days: []
         });
       }
-    }, "Comenzar mi plan de 30 días"))));
+    }, "Comenzar mi plan de 30 días")));
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
@@ -3404,7 +3394,7 @@ function Plan30({
     style: {
       position: 'absolute',
       inset: 0,
-      zIndex: 0,
+      zIndex: -1,
       overflow: 'hidden'
     },
     "aria-hidden": "true"
@@ -3424,12 +3414,7 @@ function Plan30({
       inset: 0,
       background: 'rgba(255,255,255,0.6)'
     }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'relative',
-      zIndex: 1
-    }
-  }, /*#__PURE__*/React.createElement(TopBar, {
+  })), /*#__PURE__*/React.createElement(TopBar, {
     title: "Plan de 30 días",
     onBack: back,
     backLabel: "Volver a inicio"
@@ -3512,7 +3497,7 @@ function Plan30({
       width: '100%',
       padding: 14
     }
-  }, "Entendido"))));
+  }, "Entendido")));
 }
 function DayModal({
   day,
@@ -9174,7 +9159,7 @@ function WorldMap({
     style: {
       position: 'absolute',
       inset: 0,
-      zIndex: 0,
+      zIndex: -1,
       overflow: 'hidden'
     },
     "aria-hidden": "true"
@@ -9194,12 +9179,7 @@ function WorldMap({
       inset: 0,
       background: 'rgba(255,255,255,0.55)'
     }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'relative',
-      zIndex: 1
-    }
-  }, /*#__PURE__*/React.createElement(TopBar, {
+  })), /*#__PURE__*/React.createElement(TopBar, {
     title: "Mapa de la comunidad",
     onBack: back,
     backLabel: "Volver a comunidad"
@@ -9259,7 +9239,7 @@ function WorldMap({
     }
   }, total, " personas en ", rows.length, " países"), /*#__PURE__*/React.createElement(CommunityGlobe, {
     rows: rows
-  })))));
+  }))));
 }
 
 /* ============================= SUSCRIPCIÓN RENACER PLUS ============================= */
