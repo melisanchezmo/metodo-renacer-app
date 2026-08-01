@@ -1064,6 +1064,11 @@ const CRISIS_RESOURCES = [{
   detail: 'Directorio internacional de líneas de ayuda por país.',
   tel: null
 }];
+
+// Lista completa de países para "¿dónde vives actualmente?" — independiente de CRISIS_RESOURCES,
+// que solo cubre los países con línea de ayuda propia. Cualquier persona migrante puede vivir en
+// cualquier lugar del mundo, así que este selector no debe limitarse a esos pocos países.
+const ALL_COUNTRIES = ['Afganistán', 'Albania', 'Alemania', 'Andorra', 'Angola', 'Antigua y Barbuda', 'Arabia Saudita', 'Argelia', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaiyán', 'Bahamas', 'Baréin', 'Bangladés', 'Barbados', 'Bélgica', 'Belice', 'Benín', 'Bielorrusia', 'Birmania (Myanmar)', 'Bolivia', 'Bosnia y Herzegovina', 'Botsuana', 'Brasil', 'Brunéi', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Bután', 'Cabo Verde', 'Camboya', 'Camerún', 'Canadá', 'Catar', 'Chad', 'Chile', 'China', 'Chipre', 'Ciudad del Vaticano', 'Colombia', 'Comoras', 'Corea del Norte', 'Corea del Sur', 'Costa de Marfil', 'Costa Rica', 'Croacia', 'Cuba', 'Dinamarca', 'Dominica', 'Ecuador', 'Egipto', 'El Salvador', 'Emiratos Árabes Unidos', 'Eritrea', 'Eslovaquia', 'Eslovenia', 'España', 'Estados Unidos', 'Estonia', 'Esuatini (Suazilandia)', 'Etiopía', 'Filipinas', 'Finlandia', 'Fiyi', 'Francia', 'Gabón', 'Gambia', 'Georgia', 'Ghana', 'Granada', 'Grecia', 'Guatemala', 'Guyana', 'Guinea', 'Guinea-Bisáu', 'Guinea Ecuatorial', 'Haití', 'Honduras', 'Hungría', 'India', 'Indonesia', 'Irak', 'Irán', 'Irlanda', 'Islandia', 'Islas Marshall', 'Islas Salomón', 'Israel', 'Italia', 'Jamaica', 'Japón', 'Jordania', 'Kazajistán', 'Kenia', 'Kirguistán', 'Kiribati', 'Kosovo', 'Kuwait', 'Laos', 'Lesoto', 'Letonia', 'Líbano', 'Liberia', 'Libia', 'Liechtenstein', 'Lituania', 'Luxemburgo', 'Macedonia del Norte', 'Madagascar', 'Malasia', 'Malaui', 'Maldivas', 'Malí', 'Malta', 'Marruecos', 'Mauricio', 'Mauritania', 'México', 'Micronesia', 'Moldavia', 'Mónaco', 'Mongolia', 'Montenegro', 'Mozambique', 'Namibia', 'Nauru', 'Nepal', 'Nicaragua', 'Níger', 'Nigeria', 'Noruega', 'Nueva Zelanda', 'Omán', 'Países Bajos', 'Pakistán', 'Palaos', 'Palestina', 'Panamá', 'Papúa Nueva Guinea', 'Paraguay', 'Perú', 'Polonia', 'Portugal', 'Reino Unido', 'República Centroafricana', 'República Checa', 'República del Congo', 'República Democrática del Congo', 'República Dominicana', 'Ruanda', 'Rumania', 'Rusia', 'Samoa', 'San Cristóbal y Nieves', 'San Marino', 'San Vicente y las Granadinas', 'Santa Lucía', 'Santo Tomé y Príncipe', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leona', 'Singapur', 'Siria', 'Somalia', 'Sri Lanka', 'Sudáfrica', 'Sudán', 'Sudán del Sur', 'Suecia', 'Suiza', 'Surinam', 'Tailandia', 'Taiwán', 'Tanzania', 'Tayikistán', 'Timor Oriental', 'Togo', 'Tonga', 'Trinidad y Tobago', 'Túnez', 'Turkmenistán', 'Turquía', 'Tuvalu', 'Ucrania', 'Uganda', 'Uruguay', 'Uzbekistán', 'Vanuatu', 'Venezuela', 'Vietnam', 'Yemen', 'Yibuti', 'Zambia', 'Zimbabue'];
 const RISK_KEYWORDS = ['no quiero vivir', 'quitarme la vida', 'hacerme daño', 'suicid', 'no quiero seguir viviendo', 'acabar con todo', 'autolesion', 'autolesión'];
 const COMMUNITY_SEED = [{
   id: 'seed1',
@@ -2446,10 +2451,10 @@ function Onboarding({
       }
     }, /*#__PURE__*/React.createElement("option", {
       value: ""
-    }, "Selecciona..."), CRISIS_RESOURCES.filter(r => r.country !== 'Cualquier país').map(r => /*#__PURE__*/React.createElement("option", {
-      key: r.country,
-      value: r.country
-    }, r.country)), /*#__PURE__*/React.createElement("option", {
+    }, "Selecciona..."), ALL_COUNTRIES.map(c => /*#__PURE__*/React.createElement("option", {
+      key: c,
+      value: c
+    }, c)), /*#__PURE__*/React.createElement("option", {
       value: "Otro"
     }, "Otro")), /*#__PURE__*/React.createElement("button", {
       type: "button",
@@ -3264,7 +3269,39 @@ function Plan30({
   while (state.planDone[nextUnlockedDay]) nextUnlockedDay++;
   if (!isPlus) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in"
+      className: "scroll-area fade-in",
+      style: {
+        position: 'relative'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        inset: 0,
+        zIndex: 0,
+        overflow: 'hidden'
+      },
+      "aria-hidden": "true"
+    }, /*#__PURE__*/React.createElement("img", {
+      src: "backgrounds/plan.jpg",
+      alt: "",
+      style: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'top center',
+        display: 'block'
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(255,255,255,0.55)'
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'relative',
+        zIndex: 1
+      }
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back,
@@ -3282,11 +3319,43 @@ function Plan30({
       go: go,
       title: "Plan de 30 días",
       desc: "30 experiencias breves y guiadas para transformar el método en práctica diaria, con seguimiento de tu avance."
-    })));
+    }))));
   }
   if (!state.planStart) {
     return /*#__PURE__*/React.createElement("div", {
-      className: "scroll-area fade-in"
+      className: "scroll-area fade-in",
+      style: {
+        position: 'relative'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        inset: 0,
+        zIndex: 0,
+        overflow: 'hidden'
+      },
+      "aria-hidden": "true"
+    }, /*#__PURE__*/React.createElement("img", {
+      src: "backgrounds/plan.jpg",
+      alt: "",
+      style: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'top center',
+        display: 'block'
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(255,255,255,0.55)'
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'relative',
+        zIndex: 1
+      }
     }, /*#__PURE__*/React.createElement(TopBar, {
       title: "Plan de 30 días",
       onBack: back,
@@ -3324,10 +3393,42 @@ function Plan30({
           plan_done_days: []
         });
       }
-    }, "Comenzar mi plan de 30 días")));
+    }, "Comenzar mi plan de 30 días"))));
   }
   return /*#__PURE__*/React.createElement("div", {
-    className: "scroll-area fade-in"
+    className: "scroll-area fade-in",
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      zIndex: 0,
+      overflow: 'hidden'
+    },
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "backgrounds/plan.jpg",
+    alt: "",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      objectPosition: 'top center',
+      display: 'block'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      background: 'rgba(255,255,255,0.6)'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      zIndex: 1
+    }
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Plan de 30 días",
     onBack: back,
@@ -3411,7 +3512,7 @@ function Plan30({
       width: '100%',
       padding: 14
     }
-  }, "Entendido")));
+  }, "Entendido"))));
 }
 function DayModal({
   day,
@@ -8347,8 +8448,8 @@ function Community({
     style: {
       padding: 14,
       marginBottom: 14,
-      background: '#c2255c',
-      border: 'none'
+      background: 'var(--aqua)',
+      border: '1px solid var(--aqua)'
     }
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -8356,13 +8457,13 @@ function Community({
       letterSpacing: 'normal',
       fontWeight: 700,
       fontSize: 18.5,
-      color: '#fff',
+      color: 'var(--navy)',
       margin: 0
     }
   }, "Un espacio para caminar juntas 💗"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
-      color: '#fff',
+      color: 'var(--blue-dark)',
       opacity: 0.9,
       fontWeight: 600,
       marginTop: 4,
@@ -9823,10 +9924,12 @@ function Profile({
       marginBottom: 10,
       fontSize: 18.5
     }
-  }, CRISIS_RESOURCES.filter(r => r.country !== 'Cualquier país').map(r => /*#__PURE__*/React.createElement("option", {
-    key: r.country,
-    value: r.country
-  }, r.country))), /*#__PURE__*/React.createElement("button", {
+  }, ALL_COUNTRIES.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c)), /*#__PURE__*/React.createElement("option", {
+    value: "Otro"
+  }, "Otro")), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-primary",
     style: {
