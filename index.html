@@ -6289,30 +6289,109 @@ function AvancesTool({
     desc: "Con Renacer Plus ves tu registro completo, cuántos avances llevas esta semana y cuáles se repiten más."
   })));
 }
+
+// Los retos se agrupan en 3 categorías para que el banco crezca sin sentirse como una lista
+// interminable: conectar con personas, cultura/identidad y explorar el entorno.
+const RETO_CATEGORIES = [{
+  key: 'social',
+  label: 'Conexión con personas'
+}, {
+  key: 'cultural',
+  label: 'Identidad y cultura'
+}, {
+  key: 'exploracion',
+  label: 'Explorar tu entorno'
+}];
 const RETO_CHALLENGES = [{
   key: 'saluda',
+  category: 'social',
   text: 'Saluda a alguien que ves frecuentemente',
   emoji: '👋'
 }, {
-  key: 'lugar',
-  text: 'Visita un lugar nuevo de tu barrio',
-  emoji: '🚶‍♀️'
-}, {
-  key: 'actividad',
-  text: 'Busca una actividad relacionada con uno de tus intereses',
-  emoji: '🎨'
-}, {
   key: 'compatriota',
+  category: 'social',
   text: 'Habla con alguien de tu país sin quedarte únicamente dentro de tu comunidad',
   emoji: '🗣️'
 }, {
+  key: 'conversacion_nueva',
+  category: 'social',
+  text: 'Inicia una conversación con alguien que todavía no conoces',
+  emoji: '💬'
+}, {
+  key: 'reencuentro',
+  category: 'social',
+  text: 'Reconecta con alguien con quien perdiste el contacto',
+  emoji: '📞'
+}, {
+  key: 'agradecimiento',
+  category: 'social',
+  text: 'Agradece a alguien que te ha ayudado en este proceso',
+  emoji: '🙏'
+}, {
+  key: 'invita',
+  category: 'social',
+  text: 'Invita a alguien a tomar un café o dar un paseo',
+  emoji: '☕'
+}, {
   key: 'tradicion',
+  category: 'cultural',
   text: 'Comparte una tradición tuya con otra persona',
   emoji: '🎎'
 }, {
   key: 'costumbre',
+  category: 'cultural',
   text: 'Pregunta por una costumbre local',
   emoji: '❓'
+}, {
+  key: 'receta',
+  category: 'cultural',
+  text: 'Cocina o comparte una receta de tu país con alguien',
+  emoji: '🍲'
+}, {
+  key: 'idioma',
+  category: 'cultural',
+  text: 'Aprende o practica una palabra o expresión nueva del lugar donde vives',
+  emoji: '🔤'
+}, {
+  key: 'musica',
+  category: 'cultural',
+  text: 'Escucha o comparte una canción que te conecte con tus raíces',
+  emoji: '🎵'
+}, {
+  key: 'festividad',
+  category: 'cultural',
+  text: 'Investiga sobre una festividad local y su significado',
+  emoji: '🎉'
+}, {
+  key: 'lugar',
+  category: 'exploracion',
+  text: 'Visita un lugar nuevo de tu barrio',
+  emoji: '🚶‍♀️'
+}, {
+  key: 'actividad',
+  category: 'exploracion',
+  text: 'Busca una actividad relacionada con uno de tus intereses',
+  emoji: '🎨'
+}, {
+  key: 'transporte',
+  category: 'exploracion',
+  text: 'Usa un medio de transporte o una ruta que no habías probado',
+  emoji: '🚌'
+}, {
+  key: 'tramite_sola',
+  category: 'exploracion',
+  text: 'Resuelve un trámite o gestión tú sola, sin ayuda',
+  emoji: '📋'
+}, {
+  key: 'naturaleza',
+  category: 'exploracion',
+  text: 'Visita un parque, una plaza o un espacio natural cercano',
+  emoji: '🌳'
+}, {
+  key: 'grupo',
+  category: 'exploracion',
+  text: 'Busca un grupo o comunidad relacionado con tus intereses',
+  emoji: '👥'
 }];
 function RetoTool({
   go,
@@ -6335,6 +6414,13 @@ function RetoTool({
   const weeklyChallenge = RETO_CHALLENGES[weekIndex % RETO_CHALLENGES.length];
   const history = entries.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
   const completedKeys = new Set(entries.map(e => e.challengeKey));
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const thisWeekCount = history.filter(e => new Date(e.date).getTime() >= weekAgo).length;
+  const categoryBreakdown = RETO_CATEGORIES.map(cat => ({
+    key: cat.key,
+    label: cat.label,
+    count: entries.filter(e => (RETO_CHALLENGES.find(c => c.key === e.challengeKey) || {}).category === cat.key).length
+  })).filter(b => b.count > 0).sort((a, b) => b.count - a.count);
 
   // Free: solo un reto, para siempre (hasta que se suscriba). Plus: retos ilimitados con seguimiento.
   const showLocked = !isPlus && entries.length > 0 && !justSaved;
@@ -6454,13 +6540,20 @@ function RetoTool({
       fontWeight: 700,
       marginTop: 4
     }
-  }, weeklyChallenge.emoji, " ", weeklyChallenge.text)), !pickedKey ? /*#__PURE__*/React.createElement("div", {
+  }, weeklyChallenge.emoji, " ", weeklyChallenge.text)), !pickedKey ? /*#__PURE__*/React.createElement("div", null, RETO_CATEGORIES.map(cat => /*#__PURE__*/React.createElement("div", {
+    key: cat.key,
+    style: {
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR.retos
+  }, cat.label), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
       gap: 8
     }
-  }, RETO_CHALLENGES.map(c => /*#__PURE__*/React.createElement("button", {
+  }, RETO_CHALLENGES.filter(c => c.category === cat.key).map(c => /*#__PURE__*/React.createElement("button", {
     type: "button",
     key: c.key,
     onClick: () => setPickedKey(c.key),
@@ -6492,7 +6585,7 @@ function RetoTool({
       color: 'var(--rose)',
       fontWeight: 700
     }
-  }, "✓ ya lo hiciste"))))) : /*#__PURE__*/React.createElement("div", {
+  }, "✓ ya lo hiciste")))))))) : /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 16
@@ -6589,11 +6682,21 @@ function RetoTool({
   }, "Tu seguimiento"), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
-      padding: '14px 16px',
-      marginBottom: 12,
-      background: 'var(--rose-soft)',
-      border: 'none',
-      textAlign: 'center'
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: 'center',
+      padding: '8px 4px',
+      borderRadius: 12,
+      background: 'var(--rose-soft)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6603,11 +6706,45 @@ function RetoTool({
     }
   }, entries.length), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 16,
+      fontSize: 14.5,
       color: 'var(--text-secondary)',
       fontWeight: 600
     }
-  }, "retos completados en total")), history.map(e => {
+  }, "en total")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: 'center',
+      padding: '8px 4px',
+      borderRadius: 12,
+      background: 'var(--rose-soft)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 800,
+      color: 'var(--rose)'
+    }
+  }, thisWeekCount), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      color: 'var(--text-secondary)',
+      fontWeight: 600
+    }
+  }, "esta semana"))), categoryBreakdown.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 16.5,
+      color: 'var(--text-secondary)',
+      marginTop: 14,
+      marginBottom: 6
+    }
+  }, "Por categoría"), categoryBreakdown.map(b => /*#__PURE__*/React.createElement("div", {
+    key: b.key,
+    style: {
+      fontSize: 16.5,
+      marginBottom: 3
+    }
+  }, b.label, " — ", b.count, " ", b.count === 1 ? 'vez' : 'veces')))), history.map(e => {
     const c = RETO_CHALLENGES.find(x => x.key === e.challengeKey);
     return /*#__PURE__*/React.createElement("div", {
       key: e.id,
