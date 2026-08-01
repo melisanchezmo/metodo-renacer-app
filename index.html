@@ -91,10 +91,10 @@ window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUc
   @media (max-width:340px){ .tools-grid{grid-template-columns:1fr;} }
   .tool-grid-card{
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    gap:9px; padding:16px 8px; min-height:148px; border-radius:18px; border:1px solid var(--border);
+    gap:9px; padding:18px 10px; min-height:154px; border-radius:20px; border:1.5px solid transparent;
     background:#fff; cursor:pointer; text-align:center; transition:transform .12s ease, box-shadow .12s ease;
   }
-  .tool-grid-card:active{ transform:scale(0.96); box-shadow:inset 0 0 0 2px var(--baseline); }
+  .tool-grid-card:active{ transform:scale(0.96); }
   .tool-wide-card{
     display:flex; align-items:center; gap:14px; padding:16px; border-radius:18px; border:none;
     cursor:pointer; text-align:left; width:100%; transition:transform .12s ease;
@@ -3653,6 +3653,13 @@ const TOOL_BADGE_LABEL = {
   freePlus: 'GRATIS +',
   plus: '✦ PLUS'
 };
+function hexToRgba(hex, alpha) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16),
+    g = parseInt(h.substring(2, 4), 16),
+    b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 function ToolBadgePill({
   type,
   onDark
@@ -3664,8 +3671,8 @@ function ToolBadgePill({
     background: 'rgba(255,255,255,0.24)',
     color: '#fff'
   } : {
-    background: 'var(--rose-soft)',
-    color: 'var(--rose)'
+    background: 'rgba(43,23,16,0.12)',
+    color: 'var(--navy)'
   };
   return /*#__PURE__*/React.createElement("span", {
     className: "pill",
@@ -3702,7 +3709,30 @@ function ToolIconCircle({
     size: iconSize
   }));
 }
-const TOOLBOX_GRID_TINTS = ['var(--rose-soft)', 'var(--aqua-soft)', 'var(--gold-soft)', 'var(--orange-soft)'];
+
+// Mismos colores ya usados en la sección de crisis (nada nuevo fuera de la paleta de Método
+// Renacer) llevados a las tarjetas compactas, para que la cuadrícula se sienta tan viva como el
+// resto de la pantalla en lugar de quedar en blanco y gris.
+const TOOLBOX_GRID_THEMES = [{
+  bg: '#573529',
+  onDark: true
+},
+// rose / chocolate oscuro
+{
+  bg: '#c99a95',
+  onDark: false
+},
+// aqua / dusty rose
+{
+  bg: '#8a5f56',
+  onDark: true
+},
+// orange / castaño medio
+{
+  bg: '#e4c6c6',
+  onDark: false
+} // gold / rosa claro
+];
 function ToolsHome({
   go,
   back
@@ -3853,20 +3883,31 @@ function ToolsHome({
     }
   }, conocerteIds.map((id, i) => {
     const meta = TOOL_META[id];
+    const theme = TOOLBOX_GRID_THEMES[i % TOOLBOX_GRID_THEMES.length];
     return /*#__PURE__*/React.createElement("button", {
       type: "button",
       key: id,
       onClick: () => open(id, meta),
       className: "tool-grid-card",
+      style: {
+        background: theme.bg,
+        boxShadow: `0 6px 16px ${hexToRgba(theme.bg, 0.32)}`
+      },
       "aria-label": meta.name
     }, /*#__PURE__*/React.createElement(ToolIconCircle, {
       Icon: meta.Icon,
-      bg: TOOLBOX_GRID_TINTS[i % TOOLBOX_GRID_TINTS.length],
-      fg: "var(--rose)"
+      bg: theme.onDark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.6)',
+      fg: theme.onDark ? '#fff' : 'var(--navy)',
+      size: 56,
+      iconSize: 26
     }), /*#__PURE__*/React.createElement("div", {
-      className: "tool-grid-name"
+      className: "tool-grid-name",
+      style: {
+        color: theme.onDark ? '#fff' : 'var(--navy)'
+      }
     }, meta.name), /*#__PURE__*/React.createElement(ToolBadgePill, {
-      type: meta.badge
+      type: meta.badge,
+      onDark: theme.onDark
     }));
   })), /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -3884,20 +3925,31 @@ function ToolsHome({
     className: "tools-grid"
   }, construirIds.map((id, i) => {
     const meta = TOOL_META[id];
+    const theme = TOOLBOX_GRID_THEMES[i % TOOLBOX_GRID_THEMES.length];
     return /*#__PURE__*/React.createElement("button", {
       type: "button",
       key: id,
       onClick: () => open(id, meta),
       className: "tool-grid-card",
+      style: {
+        background: theme.bg,
+        boxShadow: `0 6px 16px ${hexToRgba(theme.bg, 0.32)}`
+      },
       "aria-label": meta.name
     }, /*#__PURE__*/React.createElement(ToolIconCircle, {
       Icon: meta.Icon,
-      bg: TOOLBOX_GRID_TINTS[i % TOOLBOX_GRID_TINTS.length],
-      fg: "var(--rose)"
+      bg: theme.onDark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.6)',
+      fg: theme.onDark ? '#fff' : 'var(--navy)',
+      size: 56,
+      iconSize: 26
     }), /*#__PURE__*/React.createElement("div", {
-      className: "tool-grid-name"
+      className: "tool-grid-name",
+      style: {
+        color: theme.onDark ? '#fff' : 'var(--navy)'
+      }
     }, meta.name), /*#__PURE__*/React.createElement(ToolBadgePill, {
-      type: meta.badge
+      type: meta.badge,
+      onDark: theme.onDark
     }));
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
