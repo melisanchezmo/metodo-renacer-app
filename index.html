@@ -1104,13 +1104,6 @@ const PROMPT_OF_DAY = 'Hoy me sentí un poco más parte de este lugar cuando...'
 // acompañar publicaciones parecidas, en vez de que todo quede mezclado bajo una sola etiqueta.
 const COMMUNITY_CATEGORIES = ['Diario de pertenencia', 'Recién llegadas', 'Identidad y trabajo', 'Conexión', 'Logros y avances', 'Pregunta o duda', 'Necesito apoyo'];
 const REPORT_REASONS = ['Contenido inapropiado u ofensivo', 'Acoso o lenguaje de odio', 'Información falsa o engañosa', 'Spam o publicidad', 'Comparte datos personales sensibles', 'Otro motivo'];
-
-// Combina el país de origen y el país actual en una sola etiqueta ("Colombia → España"),
-// respetando que cada persona puede elegir compartir uno, otro, ambos o ninguno.
-function communityLocationLabel(originCountry, currentCountry) {
-  if (originCountry && currentCountry && originCountry !== currentCountry) return `${originCountry} → ${currentCountry}`;
-  return currentCountry || originCountry || '';
-}
 const ONGOING_PROMPTS = ['¿Qué parte de tu duelo migratorio sigue pidiendo espacio hoy?', '¿Qué señal de alerta notó tu cuerpo hoy, y cómo la acompañaste?', '¿Qué parte de ti —la de antes y la que estás siendo— se hizo presente hoy?', '¿Qué hábito ancla sostuviste hoy, aunque fuera en su versión mínima?', '¿A quién de tu círculo seguro recurriste o quisiste recurrir hoy?', '¿Qué decisión pequeña de hoy llevó tu firma?', 'Si hoy fue un día difícil, ¿qué necesitas revisar, reparar o reiniciar?', '¿Qué extrañaste hoy, y qué necesidad había detrás de esa nostalgia?', '¿Qué hiciste hoy que tu cuerpo agradeció?', '¿En qué momento de hoy te reconociste a ti misma?', '¿Qué rutina pequeña te ayudó a sentir continuidad hoy?', '¿Qué gesto de pertenencia —grande o pequeño— ocurrió hoy?', '¿Qué parte de tu vida sientes que hoy tuvo sentido?', '¿Cómo te hablaste hoy cuando algo no salió como esperabas?', '¿Qué versión idealizada del pasado apareció hoy, y qué versión completa puedes recordar junto a ella?', '¿Qué necesitó hoy tu sistema nervioso: cuerpo, entorno o conexión?', '¿Qué etiqueta te pusiste hoy, y qué experiencia hay detrás de ella?', '¿Qué fricción pudiste reducir hoy para facilitarte la vida?', '¿A qué vínculo le dedicaste intención hoy, aunque fuera pequeña?', '¿Qué valor guió una elección tuya hoy?', '¿Qué desencadenante migratorio apareció hoy —una fecha, un olor, una noticia— y cómo lo atravesaste?', '¿Qué parte de hoy fue, en silencio, una transformación?', '¿Qué le dirías hoy a la mujer que comenzó este método?', '¿Qué raíz cuidaste hoy, y qué ala dejaste crecer?', '¿Qué mínimo no negociable cumpliste hoy, aunque el día fuera difícil?', '¿Qué aprendiste hoy sobre cómo hacer las cosas en este nuevo lugar?', '¿Qué agradeces de hoy, incluso si también hubo tristeza?', '¿Qué necesitas soltar esta semana para dejar de castigarte?'];
 function dayOfYear(d) {
   const start = new Date(d.getFullYear(), 0, 0);
@@ -1127,7 +1120,6 @@ function defaultState() {
       pin: null,
       pinEnabled: false,
       shareLocation: true,
-      shareOriginCountry: false,
       communityAlias: ''
     },
     onboarded: false,
@@ -9122,14 +9114,6 @@ function Community({
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [postError, setPostError] = useState('');
 
-  // Consentimientos independientes: cada persona decide si su país de origen, su país actual,
-  // ambos o ninguno aparecen junto a lo que publica (distinto del consentimiento del mapa
-  // agregado, que solo usa el país actual y vive en Perfil).
-  const shareCurrent = !!state.profile.shareLocation;
-  const shareOrigin = !!state.profile.shareOriginCountry;
-  const currentForPost = shareCurrent ? state.profile.currentCountry || '' : '';
-  const originForPost = shareOrigin ? state.profile.originCountry || '' : '';
-
   // --- Modo local simulado (sin cuenta / backend no configurado) ---
   // Máximo 2 publicaciones de ejemplo: mostrar las 3 hacía que la sección pareciera más
   // una demo ficticia que una comunidad real que apenas está comenzando.
@@ -9146,7 +9130,6 @@ function Community({
         id: uid(),
         tag: category,
         name: label,
-        country: 'Tú',
         text,
         replies: [],
         mine: true
@@ -9177,30 +9160,18 @@ function Community({
       return;
     }
     setPostError('');
+    // A pedido explícito de Melissa, las publicaciones y comentarios NUNCA muestran ni guardan
+    // el país de quien escribe (ni el actual ni el de origen): en una comunidad de mujeres
+    // migrantes, algunas en situaciones de riesgo, esa combinación podía ayudar a identificarlas.
     const label = (state.profile.communityAlias || '').trim() || (state.profile.name ? state.profile.name[0].toUpperCase() + '.' : 'Anónima');
-    const payload = {
+    const {
+      error
+    } = await sbClient.from('community_posts').insert({
       user_id: auth.session.user.id,
       author_label: label,
-      country: currentForPost || null,
-      origin_country: originForPost || null,
       tag: category,
       text
-    };
-    let {
-      error
-    } = await sbClient.from('community_posts').insert(payload);
-    if (error) {
-      // Compatibilidad hacia atrás: si la base de datos todavía no tiene la columna
-      // origin_country (falta ejecutar supabase-schema-comunidad-segura.sql), reintenta sin
-      // ese campo para que publicar nunca se rompa por completo mientras tanto.
-      const {
-        origin_country,
-        ...withoutOrigin
-      } = payload;
-      ({
-        error
-      } = await sbClient.from('community_posts').insert(withoutOrigin));
-    }
+    });
     if (error) {
       setPostError('No pudimos publicar. Intenta de nuevo en unos minutos.');
       return;
@@ -9498,12 +9469,7 @@ function Community({
         background: 'var(--text-muted)',
         color: '#fff'
       }
-    }, "Ejemplo")), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 16.5,
-        color: 'var(--text-muted)'
-      }
-    }, p.country)), /*#__PURE__*/React.createElement("div", {
+    }, "Ejemplo"))), /*#__PURE__*/React.createElement("div", {
       style: {
         fontWeight: 700,
         fontSize: 18,
@@ -9548,7 +9514,6 @@ function RealPostCard({
   const isAdmin = auth.authProfile?.is_admin === true;
   const myId = auth.session && auth.session.user.id;
   const comments = (post.community_comments || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  const locationLabel = communityLocationLabel(post.origin_country, post.country);
   const sendComment = async () => {
     if (!comment.trim()) return;
     if (containsRisk(comment)) {
@@ -9608,12 +9573,7 @@ function RealPostCard({
       background: 'var(--aqua-soft)',
       color: 'var(--blue-dark)'
     }
-  }, post.tag), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 16.5,
-      color: 'var(--text-muted)'
-    }
-  }, locationLabel)), /*#__PURE__*/React.createElement("div", {
+  }, post.tag)), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -11076,16 +11036,6 @@ function Profile({
       share_location: val
     });
   };
-  // Consentimiento independiente del anterior: ese controla el país actual (mapa + publicaciones),
-  // este solo decide si el país de origen aparece junto a lo que publicas en la Comunidad.
-  const toggleShareOriginCountry = val => {
-    update(prev => ({
-      profile: {
-        ...prev.profile,
-        shareOriginCountry: val
-      }
-    }));
-  };
   const exportData = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], {
       type: 'application/json'
@@ -11282,21 +11232,7 @@ function Profile({
     type: "checkbox",
     checked: state.profile.shareLocation,
     onChange: e => toggleShareLocation(e.target.checked)
-  }), "Compartir mi país actual en el mapa y en mis publicaciones"), auth.enabled && /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      marginTop: 10,
-      fontSize: 18,
-      color: 'var(--text-secondary)',
-      fontWeight: 600
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: !!state.profile.shareOriginCountry,
-    onChange: e => toggleShareOriginCountry(e.target.checked)
-  }), "Compartir también mi país de origen cuando publico en la comunidad")), /*#__PURE__*/React.createElement("div", {
+  }), "Compartir mi país en el mapa agregado de la comunidad")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 20
     }
