@@ -35,8 +35,8 @@ window.__RENACER_PAYPAL_PLAN_MONTHLY__ = "";
 window.__RENACER_PAYPAL_PLAN_ANNUAL__ = "";
 window.__RENACER_WOMPI_PUBLIC_KEY__ = "pub_prod_cNMSeytiZTut37Y8lkjptw6i48C7RaV6";
 window.__RENACER_WOMPI_API_BASE__ = "https://production.wompi.co/v1";
-window.__RENACER_WOMPI_PRICE_MONTHLY_COP__ = 16000;
-window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 128000;
+window.__RENACER_WOMPI_PRICE_MONTHLY_COP__ = 19900;
+window.__RENACER_WOMPI_PRICE_ANNUAL_COP__ = 159900;
 window.__RENACER_VAPID_PUBLIC_KEY__ = "BI7tvQXLeHZQM2PrgcULG5unZP-x3KsWxH2YYQeUcmJ3J9dzBut8q9WcNRAHRuNViKwVwgSopiT3r1NE1w-vaUQ";
 </script>
 <style>
@@ -9449,22 +9449,40 @@ function WompiCardForm({
 
 // Países cuya moneda local es el euro; el resto usa dólares, salvo Colombia (pesos colombianos).
 const EUR_COUNTRIES = ['España', 'Alemania', 'Países Bajos', 'Portugal'];
-const PLAN_PRICE_USD = {
-  monthly: 4.99,
-  annual: 39.99
+// Precios oficiales de Renacer Plus (vigentes desde agosto de 2026). El plan anual siempre
+// representa un ahorro de ~30% frente a pagar 12 meses por separado, nunca "meses gratis".
+const PLAN_PRICE = {
+  EUR: {
+    monthly: 5.99,
+    annual: 49.99
+  },
+  USD: {
+    monthly: 5.99,
+    annual: 49.99
+  }
 };
 function currencyForCountry(country) {
   if (country === 'Colombia') return 'COP';
   if (EUR_COUNTRIES.includes(country)) return 'EUR';
   return 'USD';
 }
+function priceFor(currency, cycle) {
+  if (currency === 'COP') return cycle === 'monthly' ? WOMPI_PRICE_MONTHLY_COP : WOMPI_PRICE_ANNUAL_COP;
+  return PLAN_PRICE[currency][cycle];
+}
+// Formatea un monto ya calculado en la moneda dada, siguiendo la notación en español
+// (coma decimal, punto de miles) que usa Melissa en las cifras oficiales: "5,99 €", "19.900 COP".
+function formatMoney(amount, currency) {
+  if (currency === 'COP') return `${Math.round(amount).toLocaleString('es-CO')} COP`;
+  const decimals = amount.toFixed(2).replace('.', ',');
+  return currency === 'EUR' ? `${decimals} €` : `${decimals} USD`;
+}
 function formatPrice(currency, cycle) {
-  if (currency === 'COP') {
-    const cop = cycle === 'monthly' ? WOMPI_PRICE_MONTHLY_COP : WOMPI_PRICE_ANNUAL_COP;
-    return `$${cop.toLocaleString('es-CO')}`;
-  }
-  const symbol = currency === 'EUR' ? '€' : '$';
-  return `${symbol}${PLAN_PRICE_USD[cycle].toFixed(2)}`;
+  return formatMoney(priceFor(currency, cycle), currency);
+}
+// Equivalencia mensual aproximada del plan anual, mostrada en letra pequeña debajo del total anual.
+function monthlyEquivalent(currency) {
+  return formatMoney(priceFor(currency, 'annual') / 12, currency);
 }
 function Subscribe({
   back
@@ -9476,7 +9494,7 @@ function Subscribe({
   } = useApp();
   const displayCurrency = currencyForCountry(state.profile.currentCountry);
   const [sdkReady, setSdkReady] = useState(false);
-  const [plan, setPlan] = useState('monthly');
+  const [plan, setPlan] = useState(null);
   const [provider, setProvider] = useState(() => {
     if (state.profile.currentCountry === 'Colombia' && WOMPI_ENABLED) return 'wompi';
     return PAYPAL_ENABLED ? 'paypal' : 'wompi';
@@ -9730,11 +9748,171 @@ function Subscribe({
       marginTop: 10,
       textAlign: 'center'
     }
-  }, "Es una suscripción (mensual o anual, no un pago único) — puedes cancelarla cuando quieras."), PAYPAL_ENABLED && WOMPI_ENABLED && /*#__PURE__*/React.createElement("div", {
+  }, "Es una suscripción (mensual o anual, no un pago único) — puedes cancelarla cuando quieras."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14,
+      margin: '20px 0 16px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      width: '100%',
+      padding: 18,
+      textAlign: 'center',
+      border: plan === 'monthly' ? '2px solid var(--blue)' : '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19
+    }
+  }, "Mensual"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 800,
+      color: 'var(--blue)',
+      margin: '6px 0 2px'
+    }
+  }, formatPrice(displayCurrency, 'monthly')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600
+    }
+  }, "al mes"), chargeCurrency !== displayCurrency && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      marginTop: 4
+    }
+  }, "Se cobra en realidad ", formatPrice(chargeCurrency, 'monthly')), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 10,
+      marginBottom: 14
+    }
+  }, "Acceso completo a Renacer Plus. Cancela cuando quieras."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setPlan('monthly'),
+    className: plan === 'monthly' ? 'btn-primary' : 'btn-secondary',
+    style: {
+      width: '100%',
+      padding: 13
+    }
+  }, plan === 'monthly' ? 'Plan mensual elegido ✓' : 'Elegir plan mensual')), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      width: '100%',
+      padding: 18,
+      textAlign: 'center',
+      position: 'relative',
+      border: plan === 'annual' ? '2px solid var(--blue)' : '2px solid var(--gold)',
+      background: plan === 'annual' ? '#fff' : 'var(--gold-soft)'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "pill",
+    style: {
+      position: 'absolute',
+      top: -12,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'var(--gold)',
+      color: 'var(--navy)',
+      fontSize: 12.5,
+      fontWeight: 800,
+      padding: '4px 14px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+      letterSpacing: 0.3
+    }
+  }, "RECOMENDADO"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 19,
+      marginTop: 6
+    }
+  }, "Anual"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 800,
+      color: 'var(--blue)',
+      margin: '6px 0 2px'
+    }
+  }, formatPrice(displayCurrency, 'annual')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600
+    }
+  }, "al año"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--text-muted)',
+      marginTop: 2
+    }
+  }, "equivale aproximadamente a ", monthlyEquivalent(displayCurrency), " al mes"), chargeCurrency !== displayCurrency && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      marginTop: 4
+    }
+  }, "Se cobra en realidad ", formatPrice(chargeCurrency, 'annual')), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 10,
+      marginBottom: 2
+    }
+  }, "Mejor precio · ahorra aproximadamente un 30 %"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 0,
+      marginBottom: 14
+    }
+  }, "Acceso completo a Renacer Plus. Cancela cuando quieras."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setPlan('annual'),
+    className: plan === 'annual' ? 'btn-primary' : 'btn-secondary',
+    style: {
+      width: '100%',
+      padding: 13
+    }
+  }, plan === 'annual' ? 'Plan anual elegido ✓' : 'Elegir plan anual'))), plan && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      background: 'var(--aqua)',
+      border: '1px solid var(--aqua)',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15.5,
+      color: 'var(--navy)',
+      fontWeight: 600,
+      margin: 0,
+      lineHeight: 1.5
+    }
+  }, "Esta suscripción se renueva automáticamente cada mes o cada año, según el plan seleccionado. Puedes cancelarla cuando quieras desde tu cuenta y mantendrás el acceso hasta que finalice el periodo pagado.")), chargeCurrency !== displayCurrency && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      textAlign: 'center',
+      marginTop: 0,
+      marginBottom: 14
+    }
+  }, "El importe final puede variar ligeramente según el tipo de cambio aplicado por tu banco o plataforma de pago."), PAYPAL_ENABLED && WOMPI_ENABLED && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
-      margin: '14px 0 4px'
+      margin: '0 0 14px'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -9760,100 +9938,7 @@ function Subscribe({
       color: provider === 'wompi' ? '#fff' : 'var(--text-secondary)',
       cursor: 'pointer'
     }
-  }, "Tarjeta (Wompi)")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
-      margin: '20px 0 16px'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => setPlan('monthly'),
-    className: "card",
-    style: {
-      width: '100%',
-      padding: 16,
-      textAlign: 'center',
-      cursor: 'pointer',
-      border: plan === 'monthly' ? '2px solid var(--blue)' : '1px solid var(--border)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 19
-    }
-  }, "Mensual"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 25,
-      fontWeight: 800,
-      color: 'var(--blue)',
-      margin: '4px 0'
-    }
-  }, formatPrice(displayCurrency, 'monthly')), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16.5,
-      color: 'var(--text-muted)'
-    }
-  }, displayCurrency, " / mes"), chargeCurrency !== displayCurrency && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16.5,
-      color: 'var(--text-muted)',
-      marginTop: 2
-    }
-  }, "≈ ", formatPrice(chargeCurrency, 'monthly'), " ", chargeCurrency)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'relative'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "pill",
-    style: {
-      position: 'absolute',
-      top: -11,
-      right: 16,
-      zIndex: 1,
-      background: 'var(--gold)',
-      color: 'var(--navy)',
-      fontSize: 13,
-      fontWeight: 800,
-      padding: '4px 12px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.18)'
-    }
-  }, "Ahorra 33%"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => setPlan('annual'),
-    className: "card",
-    style: {
-      width: '100%',
-      padding: 16,
-      textAlign: 'center',
-      cursor: 'pointer',
-      border: plan === 'annual' ? '2px solid var(--blue)' : '1px solid var(--border)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 19
-    }
-  }, "Anual"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 25,
-      fontWeight: 800,
-      color: 'var(--blue)',
-      margin: '4px 0'
-    }
-  }, formatPrice(displayCurrency, 'annual')), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16.5,
-      color: 'var(--text-muted)'
-    }
-  }, displayCurrency, " / año · mejor precio"), chargeCurrency !== displayCurrency && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16.5,
-      color: 'var(--text-muted)',
-      marginTop: 2
-    }
-  }, "≈ ", formatPrice(chargeCurrency, 'annual'), " ", chargeCurrency)))), !auth.enabled || !PAYPAL_ENABLED && !WOMPI_ENABLED ? /*#__PURE__*/React.createElement("div", {
+  }, "Tarjeta (Wompi)")), !auth.enabled || !PAYPAL_ENABLED && !WOMPI_ENABLED ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 16,
@@ -9904,7 +9989,7 @@ function Subscribe({
       textAlign: 'center',
       marginTop: 12
     }
-  }, status))), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
+  }, status)))), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
     onClose: () => setShowAuth(false)
   }), confirmCancel && /*#__PURE__*/React.createElement(Modal, {
     onClose: () => {
