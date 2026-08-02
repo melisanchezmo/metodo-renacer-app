@@ -1100,6 +1100,10 @@ const COMMUNITY_SEED = [{
 }];
 const PROMPT_OF_DAY = 'Hoy me sentí un poco más parte de este lugar cuando...';
 
+// Cuántas publicaciones se traen por página en la Comunidad (ver Community/loadReal): evita
+// traer TODO el historial de golpe cuando la comunidad crece.
+const COMMUNITY_PAGE_SIZE = 20;
+
 // Categorías fijas para publicar en la Comunidad: ayudan a que sea más fácil encontrar y
 // acompañar publicaciones parecidas, en vez de que todo quede mezclado bajo una sola etiqueta.
 const COMMUNITY_CATEGORIES = ['Diario de pertenencia', 'Recién llegadas', 'Identidad y trabajo', 'Conexión', 'Logros y avances', 'Pregunta o duda', 'Necesito apoyo'];
@@ -9171,15 +9175,42 @@ function Community({
   };
 
   // --- Modo real (con cuenta): posts y comentarios en Supabase ---
+  // Se cargan de a páginas (COMMUNITY_PAGE_SIZE por vez) en vez de traer TODAS las publicaciones
+  // de golpe: con una comunidad grande, traerlas todas cada vez que se abre la pantalla se vuelve
+  // cada vez más lento y además Supabase deja de devolver filas después de cierto límite (por
+  // defecto 1000), lo que haría que las publicaciones más antiguas desaparecieran sin aviso.
   const [realPosts, setRealPosts] = useState(null); // null = cargando
-  const loadReal = () => {
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadReal = count => {
+    const n = count || COMMUNITY_PAGE_SIZE;
     sbClient.from('community_posts').select('*, community_comments(*, community_comment_likes(user_id))').order('created_at', {
       ascending: false
-    }).then(({
+    }).limit(n).then(({
       data,
       error
     }) => {
-      if (!error) setRealPosts(data || []);
+      if (!error) {
+        setRealPosts(data || []);
+        setHasMore((data || []).length === n);
+      }
+    });
+  };
+  const loadMore = () => {
+    if (!realPosts || !realPosts.length || loadingMore) return;
+    setLoadingMore(true);
+    const oldest = realPosts[realPosts.length - 1].created_at;
+    sbClient.from('community_posts').select('*, community_comments(*, community_comment_likes(user_id))').order('created_at', {
+      ascending: false
+    }).lt('created_at', oldest).limit(COMMUNITY_PAGE_SIZE).then(({
+      data,
+      error
+    }) => {
+      setLoadingMore(false);
+      if (!error) {
+        setRealPosts(prev => [...(prev || []), ...(data || [])]);
+        setHasMore((data || []).length === COMMUNITY_PAGE_SIZE);
+      }
     });
   };
   useEffect(() => {
@@ -9457,11 +9488,22 @@ function Community({
       fontSize: 18,
       padding: 20
     }
-  }, "Todavía no hay publicaciones. ¡Sé la primera en compartir algo!") : realPosts.map(p => /*#__PURE__*/React.createElement(RealPostCard, {
+  }, "Todavía no hay publicaciones. ¡Sé la primera en compartir algo!") : /*#__PURE__*/React.createElement(React.Fragment, null, realPosts.map(p => /*#__PURE__*/React.createElement(RealPostCard, {
     key: p.id,
     post: p,
-    onChanged: loadReal
-  })) : localPosts.map(p => {
+    onChanged: () => loadReal(realPosts.length)
+  })), hasMore && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: loadMore,
+    disabled: loadingMore,
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 12,
+      marginTop: 4,
+      marginBottom: 10
+    }
+  }, loadingMore ? 'Cargando...' : 'Ver publicaciones anteriores')) : localPosts.map(p => {
     const isExample = !p.mine;
     return /*#__PURE__*/React.createElement("div", {
       key: p.id,
