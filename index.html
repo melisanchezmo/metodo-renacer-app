@@ -2990,7 +2990,16 @@ function Onboarding({
         cursor: 'pointer',
         marginTop: 14
       }
-    }, "🔒 Tus respuestas son privadas. Conoce cómo protegemos tus datos."), !canContinue && /*#__PURE__*/React.createElement("p", {
+    }, "🔒 Tus respuestas son privadas. Conoce cómo protegemos tus datos."), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: 'var(--text-muted)',
+        fontWeight: 600,
+        fontSize: 15,
+        marginTop: 14,
+        marginBottom: 0,
+        lineHeight: 1.4
+      }
+    }, "Esto no crea ninguna cuenta: solo personaliza tu experiencia. Podrás hacer tu radiografía sin registrarte."), !canContinue && /*#__PURE__*/React.createElement("p", {
       style: {
         textAlign: 'center',
         color: 'var(--text-muted)',
@@ -11266,7 +11275,16 @@ function Profile({
         }
       }
     }
-  }, "Guardar"), /*#__PURE__*/React.createElement("div", {
+  }, "Guardar"), auth.enabled && !auth.session && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14.5,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: 8,
+      marginBottom: 0,
+      lineHeight: 1.4
+    }
+  }, "Esto se guarda solo en este dispositivo. Para no perderlo si cambias de teléfono, crea una cuenta gratuita más abajo."), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 28
     }
@@ -11280,7 +11298,7 @@ function Profile({
       marginBottom: 10,
       marginTop: 0
     }
-  }, "Cuenta y sincronización en la nube"), !auth.enabled && /*#__PURE__*/React.createElement("div", {
+  }, "Crear una cuenta gratuita"), !auth.enabled && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14,
@@ -11288,7 +11306,7 @@ function Profile({
       color: 'var(--text-secondary)',
       fontWeight: 600
     }
-  }, "Próximamente: crea una cuenta para sincronizar tu diario y progreso entre dispositivos, y participar en la comunidad. Por ahora tus datos se guardan solo en este dispositivo."), auth.enabled && !auth.session && /*#__PURE__*/React.createElement("button", {
+  }, "Próximamente: crea una cuenta para guardar tu nombre y participar en la comunidad desde cualquier dispositivo. Tu diario y tus herramientas se guardan solo en este dispositivo."), auth.enabled && !auth.session && /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowAuth(true),
     className: "card",
@@ -11313,7 +11331,7 @@ function Profile({
       fontWeight: 600,
       marginTop: 2
     }
-  }, "Sincroniza tu progreso y comenta en la comunidad")), auth.enabled && auth.session && /*#__PURE__*/React.createElement("div", {
+  }, "Guarda tu nombre y participa en la comunidad desde cualquier dispositivo")), auth.enabled && auth.session && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14
@@ -11335,7 +11353,7 @@ function Profile({
       fontWeight: 700,
       color: isPlus ? 'var(--gold-dark)' : 'var(--text-secondary)'
     }
-  }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu progreso se sincroniza automáticamente."), /*#__PURE__*/React.createElement("button", {
+  }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu nombre y tu participación en la comunidad se sincronizan automáticamente. Tu diario y tus herramientas se guardan en este dispositivo."), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: auth.signOut,
     className: "btn-secondary",
