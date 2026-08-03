@@ -10581,7 +10581,8 @@ function currencySpanishName(currency) {
   return 'dólares estadounidenses (USD)';
 }
 function Subscribe({
-  back
+  back,
+  backLabel
 }) {
   const auth = useAuth();
   const isPlus = useIsPlus();
@@ -10692,7 +10693,7 @@ function Subscribe({
   }, /*#__PURE__*/React.createElement(TopBar, {
     title: "Renacer Plus",
     onBack: back,
-    backLabel: "Volver a perfil"
+    backLabel: backLabel || 'Volver a perfil'
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: 20
@@ -11530,7 +11531,12 @@ function Shell() {
   const [screen, setScreen] = useState('home');
   const [param, setParam] = useState(null);
   const [stack, setStack] = useState(['home']);
+  // Recuerda desde qué pantalla se abrió "Renacer Plus": se puede llegar ahí desde Inicio (tarjeta
+  // "Tu siguiente paso"), desde una herramienta con contenido Plus, o desde el Perfil. Sin esto, el
+  // botón "Volver" siempre regresaba al Perfil sin importar de dónde venía la persona.
+  const [subscribeOrigin, setSubscribeOrigin] = useState('profile');
   const go = (s, p = null) => {
+    if (s === 'subscribe' && screen !== 'subscribe') setSubscribeOrigin(screen);
     setScreen(s);
     setParam(p);
     setStack(prev => [...prev, s]);
@@ -11573,9 +11579,39 @@ function Shell() {
   });else if (screen === 'profile') content = /*#__PURE__*/React.createElement(Profile, {
     back: () => backTo('home'),
     go: go
-  });else if (screen === 'subscribe') content = /*#__PURE__*/React.createElement(Subscribe, {
-    back: () => backTo('profile')
-  });else content = /*#__PURE__*/React.createElement(Home, {
+  });else if (screen === 'subscribe') {
+    const SUBSCRIBE_ORIGINS = {
+      home: {
+        s: 'home',
+        label: 'Volver a inicio'
+      },
+      plan: {
+        s: 'home',
+        label: 'Volver a inicio'
+      },
+      tools: {
+        s: 'tools',
+        label: 'Volver a herramientas'
+      },
+      tool: {
+        s: 'tools',
+        label: 'Volver a herramientas'
+      },
+      journal: {
+        s: 'tools',
+        label: 'Volver a herramientas'
+      },
+      profile: {
+        s: 'profile',
+        label: 'Volver a perfil'
+      }
+    };
+    const origin = SUBSCRIBE_ORIGINS[subscribeOrigin] || SUBSCRIBE_ORIGINS.profile;
+    content = /*#__PURE__*/React.createElement(Subscribe, {
+      back: () => backTo(origin.s),
+      backLabel: origin.label
+    });
+  } else content = /*#__PURE__*/React.createElement(Home, {
     go: go
   });
   const mainTabs = ['home', 'modules', 'plan', 'tools', 'community'];
