@@ -1170,7 +1170,11 @@ function defaultState() {
     communityPosts: [],
     settings: {
       notifications: true
-    }
+    },
+    // Recordatorios para crear cuenta gratuita (ver SignupNudgeCard / hook useSignupMilestone):
+    // se guardan para que, una vez cerrados, no se vuelvan a mostrar en este dispositivo.
+    signupBannerDismissed: false,
+    signupMilestoneShown: false
   };
 }
 const AppCtx = createContext(null);
@@ -3130,14 +3134,142 @@ function Onboarding({
   }
 }
 
+/* ============================= RECORDATORIO DE CUENTA GRATUITA ============================= */
+// Tarjeta discreta y descartable en Inicio para quien todavía no tiene cuenta: solo comunica
+// beneficios reales (nombre, Comunidad y Renacer Plus entre dispositivos), nunca "guarda tu
+// progreso/diario", porque eso no es cierto (ver Profile: eso vive solo en cada dispositivo).
+function SignupNudgeCard({
+  onCreateAccount,
+  onDismiss
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      position: 'relative',
+      border: '1px dashed var(--aqua)',
+      background: 'var(--aqua-soft)'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onDismiss,
+    "aria-label": "Cerrar recordatorio de cuenta",
+    style: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      background: 'none',
+      border: 'none',
+      fontSize: 17,
+      color: 'var(--text-muted)',
+      cursor: 'pointer',
+      padding: 6,
+      lineHeight: 1
+    }
+  }, "✕"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 17.5,
+      color: 'var(--blue-dark)',
+      paddingRight: 26
+    }
+  }, "Todavía no has creado tu cuenta"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, "Crea una cuenta gratuita para guardar tu nombre, participar en la Comunidad y acceder a Renacer Plus desde cualquier dispositivo."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onCreateAccount,
+    className: "btn-secondary",
+    style: {
+      padding: '9px 16px',
+      marginTop: 10,
+      fontSize: 15.5
+    }
+  }, "Crear cuenta gratuita"));
+}
+
+// Aviso único (no se repite) que aparece la primera vez que alguien sin cuenta acumula uso real
+// de la app (al menos 2 entradas en su cuaderno, sin importar de qué herramienta o módulo vengan).
+function SignupMilestoneModal({
+  onCreateAccount,
+  onClose
+}) {
+  return /*#__PURE__*/React.createElement(Modal, {
+    onClose: onClose
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0,
+      color: 'var(--navy)'
+    }
+  }, "Tu proceso vale la pena guardar"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      lineHeight: 1.5
+    }
+  }, "Ya llevas un buen recorrido en Método Renacer. Crea una cuenta gratuita para guardar tu nombre, participar en la Comunidad y acceder a Renacer Plus desde cualquier dispositivo."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onCreateAccount,
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      padding: 14,
+      marginBottom: 8
+    }
+  }, "Crear cuenta gratuita"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onClose,
+    className: "btn-secondary",
+    style: {
+      width: '100%',
+      padding: 14
+    }
+  }, "Ahora no"));
+}
+
 /* ============================= HOME ============================= */
 function Home({
   go
 }) {
   const {
-    state
+    state,
+    update
   } = useApp();
+  const auth = useAuth();
   const isPlus = useIsPlus();
+  const needsAccount = auth.enabled && !auth.session;
+  const [showAuth, setShowAuth] = useState(false);
+  const [showMilestone, setShowMilestone] = useState(false);
+
+  // El aviso puntual solo se muestra UNA vez por dispositivo: en cuanto se cumple la condición,
+  // marcamos signupMilestoneShown de inmediato (no solo al cerrarlo) para que no reaparezca
+  // aunque la persona salga de Inicio antes de interactuar con él.
+  useEffect(() => {
+    if (auth.authReady && needsAccount && !state.signupMilestoneShown && state.journal.length >= 2) {
+      update({
+        signupMilestoneShown: true
+      });
+      setShowMilestone(true);
+    }
+  }, [auth.authReady, needsAccount, state.signupMilestoneShown, state.journal.length]);
+  const dismissBanner = () => update({
+    signupBannerDismissed: true
+  });
+  // Decir "ahora no" en el aviso puntual también oculta la tarjeta de Inicio: si ya dijo que no
+  // le interesa por ahora, mostrarle el mismo recordatorio otra vez en la misma pantalla sería
+  // insistente.
+  const dismissMilestone = () => {
+    setShowMilestone(false);
+    update({
+      signupBannerDismissed: true
+    });
+  };
   const last = state.diagnostics[state.diagnostics.length - 1];
   const doneCount = Object.keys(state.moduleProgress).filter(k => state.moduleProgress[k]?.completed).length;
   const careInfo = last ? getCareMessage(last.scores) : null;
@@ -3409,8 +3541,23 @@ function Home({
       fontWeight: 600,
       marginTop: 2
     }
-  }, "Escríbele por WhatsApp →")))), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
+  }, "Escríbele por WhatsApp →")))), needsAccount && !state.signupBannerDismissed && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 20px 20px'
+    }
+  }, /*#__PURE__*/React.createElement(SignupNudgeCard, {
+    onCreateAccount: () => setShowAuth(true),
+    onDismiss: dismissBanner
+  })), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
     onClose: () => setShowContinuo(false)
+  }), showAuth && /*#__PURE__*/React.createElement(AuthModal, {
+    onClose: () => setShowAuth(false)
+  }), showMilestone && /*#__PURE__*/React.createElement(SignupMilestoneModal, {
+    onCreateAccount: () => {
+      setShowMilestone(false);
+      setShowAuth(true);
+    },
+    onClose: dismissMilestone
   }));
 }
 
