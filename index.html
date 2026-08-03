@@ -8281,6 +8281,7 @@ function ThreeRTool({
   back
 }) {
   const {
+    state,
     update,
     addJournalEntry
   } = useApp();
@@ -8290,7 +8291,17 @@ function ThreeRTool({
     reinicia: ''
   });
   const [risk, setRisk] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const threeREntries = state.threeREntries || [];
+  const setField = (key, v) => {
+    setForm(prev => ({
+      ...prev,
+      [key]: v
+    }));
+    setJustSaved(false);
+  };
   const save = () => {
+    if (!form.revisa.trim() && !form.repara.trim() && !form.reinicia.trim()) return;
     update(prev => ({
       threeREntries: [{
         id: uid(),
@@ -8309,6 +8320,7 @@ function ThreeRTool({
     });
     const anyRisk = Object.values(form).some(containsRisk);
     if (anyRisk) setRisk(true);
+    setJustSaved(true);
     setForm({
       revisa: '',
       repara: '',
@@ -8333,9 +8345,24 @@ function ThreeRTool({
     style: {
       fontSize: 18.5,
       fontStyle: 'italic',
-      color: 'var(--rose)'
+      color: 'var(--rose)',
+      marginTop: 0
     }
-  }, "Recaer emocionalmente no significa que hayas perdido lo construido. Significa que algo necesita ser atendido de nuevo."), /*#__PURE__*/React.createElement("div", {
+  }, "Recaer emocionalmente no significa que hayas perdido lo construido. Significa que algo necesita ser atendido de nuevo."), justSaved && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginBottom: 16,
+      background: 'var(--gold-soft)',
+      border: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16.5,
+      fontWeight: 700,
+      color: 'var(--text-primary)'
+    }
+  }, "✓ Guardado en tu registro. Puedes verlo más abajo, en \"Entradas anteriores\".")), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 16
@@ -8343,24 +8370,15 @@ function ThreeRTool({
   }, /*#__PURE__*/React.createElement(MiniField, {
     label: "Revisa: ¿qué ocurre, qué lo activó y qué necesidad está desatendida?",
     value: form.revisa,
-    onChange: v => setForm({
-      ...form,
-      revisa: v
-    })
+    onChange: v => setField('revisa', v)
   }), /*#__PURE__*/React.createElement(MiniField, {
     label: "Repara: ¿qué necesitas atender primero — descanso, alimentación, apoyo, límites?",
     value: form.repara,
-    onChange: v => setForm({
-      ...form,
-      repara: v
-    })
+    onChange: v => setField('repara', v)
   }), /*#__PURE__*/React.createElement(MiniField, {
     label: "Reinicia: ¿cuál es la acción mínima que vuelve a abrir el camino?",
     value: form.reinicia,
-    onChange: v => setForm({
-      ...form,
-      reinicia: v
-    })
+    onChange: v => setField('reinicia', v)
   }), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn-primary",
@@ -8370,7 +8388,40 @@ function ThreeRTool({
       marginTop: 6
     },
     onClick: save
-  }, "Guardar"))), risk && /*#__PURE__*/React.createElement(RiskModal, {
+  }, "Guardar")), threeREntries.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    color: TOOL_ACCENT_COLOR['3r']
+  }, "Entradas anteriores"), threeREntries.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.id,
+    className: "card",
+    style: {
+      padding: 12,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      color: 'var(--text-muted)'
+    }
+  }, fmtDate(e.date)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Revisa:"), " ", e.revisa || '—'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Repara:"), " ", e.repara || '—'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Reinicia:"), " ", e.reinicia || '—'))))), risk && /*#__PURE__*/React.createElement(RiskModal, {
     onClose: () => setRisk(false)
   }));
 }
