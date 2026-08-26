@@ -1481,6 +1481,53 @@ function LocationSync({
   return children;
 }
 
+/* ============================= RADIOGRAFÍA: guardarla en la nube para cualquier cuenta ============================= */
+// A diferencia de CloudSync (que solo sincroniza el estado completo para Renacer Plus), esto
+// guarda específicamente el resultado de la radiografía inicial en la fila de `profiles` de
+// CUALQUIER cuenta (gratis o Plus). Así, si alguien crea su cuenta al terminar el diagnóstico
+// (ver Onboarding) y luego cambia de teléfono o reinstala la app, puede iniciar sesión y
+// recuperar su radiografía en vez de perderla. Si la columna `diagnostics` todavía no existe en
+// Supabase (falta correr la migración), la actualización simplemente falla en silencio y la app
+// sigue funcionando de forma local, sin romperse.
+function DiagnosticCloudSync({
+  children
+}) {
+  const auth = useAuth();
+  const {
+    state,
+    update
+  } = useApp();
+  const syncedForUser = useRef(null);
+  useEffect(() => {
+    if (!auth.enabled || !auth.authReady || !auth.session || !auth.authProfile) return;
+    const userId = auth.session.user.id;
+    if (syncedForUser.current === userId) return;
+    syncedForUser.current = userId;
+    const cloudDiagnostics = Array.isArray(auth.authProfile.diagnostics) ? auth.authProfile.diagnostics : [];
+    const localDiagnostics = state.diagnostics || [];
+    if (cloudDiagnostics.length > 0 && cloudDiagnostics.length >= localDiagnostics.length) {
+      // Esta cuenta ya tenía una radiografía guardada (por ejemplo, al iniciar sesión en un
+      // dispositivo nuevo): la restauramos en vez de dejar la de este dispositivo.
+      update(prev => ({
+        diagnostics: cloudDiagnostics,
+        onboarded: true,
+        profile: {
+          ...prev.profile,
+          name: auth.authProfile.name || prev.profile.name,
+          currentCountry: auth.authProfile.current_country || prev.profile.currentCountry
+        }
+      }));
+    } else if (localDiagnostics.length > 0) {
+      // Primera vez que esta cuenta guarda una radiografía (o este dispositivo tiene más
+      // reciente): la subimos.
+      auth.updateAuthProfile({
+        diagnostics: localDiagnostics
+      });
+    }
+  }, [auth.enabled, auth.authReady, auth.session && auth.session.user.id, auth.authProfile]);
+  return children;
+}
+
 // Requisito mínimo de contraseña, validado tanto al crear la cuenta como al restablecerla.
 // Devuelve un mensaje de error amable en español, o '' si la contraseña cumple los requisitos.
 function passwordIssue(pw) {
@@ -2028,7 +2075,7 @@ function PolicyModal({
     title: "Quién trata tus datos"
   }, "Método Renacer es un proyecto de acompañamiento psicoeducativo dirigido por Melissa Sánchez, psicóloga. Ella es responsable de los datos que recopila esta aplicación."), /*#__PURE__*/React.createElement(LegalSection, {
     title: "Qué datos recopilamos"
-  }, "Si usas la app sin crear cuenta, tus respuestas se guardan solo en tu dispositivo. Si creas una cuenta, además guardamos tu correo electrónico, tu nombre (o el alias que elijas), tu país, y los datos que registras en la app (diario, radiografías, progreso), para poder sincronizarlos entre tus dispositivos."), /*#__PURE__*/React.createElement(LegalSection, {
+  }, "Si usas la app sin crear cuenta, tus respuestas se guardan solo en tu dispositivo. Si creas una cuenta, además guardamos tu correo electrónico, tu nombre (o el alias que elijas), tu país, y el resultado de tu radiografía inicial, para que no se pierda si cambias de dispositivo. Si además tienes Renacer Plus, también sincronizamos tu diario y tu progreso completo entre dispositivos."), /*#__PURE__*/React.createElement(LegalSection, {
     title: "Para qué los usamos"
   }, "Usamos tus datos únicamente para ofrecerte la app y sus funciones: guardar tu progreso, sincronizarlo, mostrar el mapa agregado de la comunidad (nunca tu ubicación exacta) y, si eliges publicar, mostrar tus publicaciones a otras usuarias."), /*#__PURE__*/React.createElement(LegalSection, {
     title: "Con quién los compartimos"
@@ -2593,7 +2640,7 @@ function PrivacyModal({
       lineHeight: 1.6,
       margin: 0
     }
-  }, "Mientras no crees una cuenta, tus respuestas (radiografías, diario, progreso) se guardan solo en este dispositivo. Si creas una cuenta, también se guardan de forma segura en la nube para que puedas sincronizarlas entre dispositivos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
+  }, "Mientras no crees una cuenta, tus respuestas se guardan solo en este dispositivo. Al crear tu cuenta gratuita (te la pediremos justo después de tu radiografía), el resultado de tu radiografía se guarda también de forma segura en la nube, para que no se pierda si cambias de dispositivo o reinstalas la app. Tu diario y tu progreso en las demás herramientas se guardan solo en este dispositivo, salvo que tengas Renacer Plus, que además los sincroniza entre dispositivos.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
     style: {
       fontWeight: 700,
       color: 'var(--navy)',
@@ -2752,6 +2799,7 @@ function Onboarding({
   const {
     update
   } = useApp();
+  const auth = useAuth();
   const [step, setStep] = useState(0);
   const [scores, setScores] = useState(() => {
     const o = {};
@@ -2769,6 +2817,101 @@ function Onboarding({
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [showPrivacy, setShowPrivacy] = useState(false);
+
+  // Paso 3 (cuenta obligatoria antes de ver el resultado de la radiografía).
+  const [accountMode, setAccountMode] = useState('signup'); // 'signup' | 'login' | 'forgot'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [accountBusy, setAccountBusy] = useState(false);
+  const [accountNotice, setAccountNotice] = useState('');
+  const [showAccountPolicy, setShowAccountPolicy] = useState(false);
+  const [showAccountTerms, setShowAccountTerms] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [signupDone, setSignupDone] = useState(false);
+
+  // Guarda localmente la radiografía recién respondida (sin marcar el onboarding como completo
+  // todavía: eso se hace aparte, en completeOnboarding, para poder mostrar antes la pantalla de
+  // "cuenta creada" cuando corresponda). Si la cuenta ya existía y tenía su propia radiografía
+  // guardada, DiagnosticCloudSync se encargará de restaurarla en cuanto cargue el perfil,
+  // reemplazando esta.
+  const commitDiagnosticLocally = () => {
+    update(prev => ({
+      profile: {
+        ...prev.profile,
+        name,
+        currentCountry: country || 'Colombia'
+      },
+      diagnostics: [{
+        id: uid(),
+        date: nowISO(),
+        scores
+      }]
+    }));
+  };
+  const completeOnboarding = () => {
+    update({
+      onboarded: true
+    });
+    onDone();
+  };
+  const submitAccount = async () => {
+    if (!email.trim()) {
+      setAccountNotice('Escribe tu correo electrónico.');
+      return;
+    }
+    if (accountMode === 'signup') {
+      const issue = passwordIssue(password);
+      if (issue) {
+        setAccountNotice(issue);
+        return;
+      }
+      if (!acceptedTerms) {
+        setAccountNotice('Debes aceptar la Política de privacidad y los Términos y condiciones para crear tu cuenta.');
+        return;
+      }
+      setAccountBusy(true);
+      setAccountNotice('');
+      const {
+        error
+      } = await auth.signUp(email, password, name, country || 'Colombia');
+      setAccountBusy(false);
+      if (error) {
+        setAccountNotice(error.message);
+        return;
+      }
+      commitDiagnosticLocally();
+      setSignupDone(true);
+    } else {
+      if (!password) {
+        setAccountNotice('Escribe tu contraseña.');
+        return;
+      }
+      setAccountBusy(true);
+      setAccountNotice('');
+      const {
+        error
+      } = await auth.signIn(email, password);
+      setAccountBusy(false);
+      if (error) {
+        setAccountNotice(error.message);
+        return;
+      }
+      commitDiagnosticLocally();
+      completeOnboarding();
+    }
+  };
+  const submitAccountForgot = async () => {
+    if (!email.trim()) {
+      setAccountNotice('Escribe tu correo electrónico.');
+      return;
+    }
+    setAccountBusy(true);
+    setAccountNotice('');
+    await auth.sendPasswordReset(email);
+    setAccountBusy(false);
+    setResetSent(true);
+  };
   if (step === 0) return /*#__PURE__*/React.createElement("div", {
     className: "scroll-area fade-in",
     style: {
@@ -3003,7 +3146,7 @@ function Onboarding({
         marginBottom: 0,
         lineHeight: 1.4
       }
-    }, "Esto no crea ninguna cuenta: solo personaliza tu experiencia. Podrás hacer tu radiografía sin registrarte."), !canContinue && /*#__PURE__*/React.createElement("p", {
+    }, "Esto no crea ninguna cuenta: solo personaliza tu experiencia. Al final de tu radiografía te pediremos crear una cuenta gratuita con contraseña, para que tu resultado quede guardado y no se pierda si cambias de dispositivo."), !canContinue && /*#__PURE__*/React.createElement("p", {
       style: {
         textAlign: 'center',
         color: 'var(--text-muted)',
@@ -3115,29 +3258,279 @@ function Onboarding({
       },
       onClick: () => {
         if (!allAnswered) return;
-        update(prev => ({
-          profile: {
-            ...prev.profile,
-            name,
-            currentCountry: country || 'Colombia'
-          },
-          diagnostics: [{
-            id: uid(),
-            date: nowISO(),
-            scores
-          }],
-          onboarded: true
-        }));
-        onDone();
+        if (auth.enabled) {
+          setStep(3);
+        } else {
+          commitDiagnosticLocally();
+          completeOnboarding();
+        }
       }
     }, "Ver mi radiografía"));
+  }
+  if (step === 3) {
+    if (signupDone) {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "scroll-area fade-in",
+        style: {
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+          justifyContent: 'center',
+          textAlign: 'center'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 44
+        }
+      }, "✓"), /*#__PURE__*/React.createElement("h2", {
+        style: {
+          color: 'var(--navy)'
+        }
+      }, "¡Cuenta creada!"), /*#__PURE__*/React.createElement("p", {
+        style: {
+          color: 'var(--text-secondary)',
+          fontWeight: 600,
+          fontSize: 18.5,
+          lineHeight: 1.5
+        }
+      }, "Revisa tu correo para confirmar tu cuenta (revisa también la carpeta de Spam o Correo no deseado). Ya puedes ver tu radiografía; tu resultado está guardado con tu cuenta para que no lo pierdas si cambias de dispositivo."), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn-primary",
+        style: {
+          padding: 16,
+          fontSize: 20,
+          marginTop: 12
+        },
+        onClick: completeOnboarding
+      }, "Ver mi radiografía"));
+    }
+    if (accountMode === 'forgot') {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "scroll-area fade-in",
+        style: {
+          padding: 24
+        }
+      }, /*#__PURE__*/React.createElement("h2", {
+        style: {
+          color: 'var(--navy)'
+        }
+      }, "Recuperar contraseña"), resetSent ? /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 18,
+          color: 'var(--text-secondary)',
+          fontWeight: 600,
+          lineHeight: 1.5
+        }
+      }, "Si ese correo está registrado, te enviamos un enlace para crear una nueva contraseña. Revisa tu bandeja de entrada (y la carpeta de Spam o Correo no deseado) en los próximos minutos.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontSize: 18,
+          color: 'var(--text-secondary)',
+          fontWeight: 600,
+          lineHeight: 1.5
+        }
+      }, "Escribe el correo con el que creaste tu cuenta. Te enviaremos un enlace para elegir una nueva contraseña."), /*#__PURE__*/React.createElement(MiniField, {
+        label: "Correo electrónico",
+        value: email,
+        onChange: setEmail,
+        type: "email"
+      }), accountNotice && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 18,
+          color: 'var(--rose)',
+          marginBottom: 8
+        }
+      }, accountNotice), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        className: "btn-primary",
+        style: {
+          width: '100%',
+          padding: 14
+        },
+        disabled: accountBusy,
+        onClick: submitAccountForgot
+      }, accountBusy ? 'Enviando...' : 'Enviar enlace de recuperación')), /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        onClick: () => {
+          setAccountMode('login');
+          setAccountNotice('');
+          setResetSent(false);
+        },
+        style: {
+          background: 'none',
+          border: 'none',
+          color: 'var(--blue)',
+          fontSize: 18,
+          fontWeight: 600,
+          marginTop: 12,
+          cursor: 'pointer',
+          padding: 0,
+          display: 'block'
+        }
+      }, "← Volver a iniciar sesión"));
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      className: "scroll-area fade-in",
+      style: {
+        padding: 24
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => {
+        setStep(2);
+        setAccountNotice('');
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--text-muted)',
+        fontSize: 16,
+        fontWeight: 700,
+        cursor: 'pointer',
+        padding: 0,
+        marginBottom: 10,
+        display: 'block'
+      }
+    }, "← Volver"), /*#__PURE__*/React.createElement("h2", {
+      style: {
+        color: 'var(--navy)',
+        marginBottom: 4
+      }
+    }, accountMode === 'signup' ? 'Crea tu cuenta para ver tu radiografía' : 'Inicia sesión para ver tu radiografía'), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        fontSize: 18,
+        lineHeight: 1.5
+      }
+    }, accountMode === 'signup' ? 'Para que tu resultado no se pierda si cambias de dispositivo o reinstalas la app, necesitamos que crees una cuenta con correo y contraseña.' : 'Ingresa con el correo y la contraseña de tu cuenta para recuperar tu radiografía guardada.'), /*#__PURE__*/React.createElement(MiniField, {
+      label: "Correo electrónico",
+      value: email,
+      onChange: setEmail,
+      type: "email"
+    }), /*#__PURE__*/React.createElement(PasswordField, {
+      label: "Contraseña",
+      value: password,
+      onChange: setPassword
+    }), accountMode === 'signup' && /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 15.5,
+        color: 'var(--text-muted)',
+        fontWeight: 600,
+        marginTop: -4,
+        marginBottom: 14,
+        lineHeight: 1.4
+      }
+    }, "Usa al menos 8 caracteres, incluyendo una letra y un número."), accountMode === 'login' && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => {
+        setAccountMode('forgot');
+        setAccountNotice('');
+        setResetSent(false);
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--blue)',
+        fontSize: 16.5,
+        fontWeight: 600,
+        marginTop: -4,
+        marginBottom: 14,
+        cursor: 'pointer',
+        padding: 0,
+        display: 'block'
+      }
+    }, "¿Olvidaste tu contraseña?"), accountMode === 'signup' && /*#__PURE__*/React.createElement("label", {
+      style: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 8,
+        fontSize: 15.5,
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        lineHeight: 1.4,
+        margin: '2px 0 14px',
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: acceptedTerms,
+      onChange: e => setAcceptedTerms(e.target.checked),
+      style: {
+        marginTop: 2,
+        flexShrink: 0
+      }
+    }), /*#__PURE__*/React.createElement("span", null, "He leído y acepto la ", /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => setShowAccountPolicy(true),
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--blue)',
+        textDecoration: 'underline',
+        fontWeight: 700,
+        cursor: 'pointer',
+        padding: 0,
+        font: 'inherit'
+      }
+    }, "Política de privacidad"), " y los ", /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => setShowAccountTerms(true),
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--blue)',
+        textDecoration: 'underline',
+        fontWeight: 700,
+        cursor: 'pointer',
+        padding: 0,
+        font: 'inherit'
+      }
+    }, "Términos y condiciones"), ".")), accountNotice && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        color: 'var(--rose)',
+        marginBottom: 8
+      }
+    }, accountNotice), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "btn-primary",
+      style: {
+        width: '100%',
+        padding: 14
+      },
+      disabled: accountBusy,
+      onClick: submitAccount
+    }, accountBusy ? 'Un momento...' : accountMode === 'signup' ? 'Crear mi cuenta y ver mi radiografía' : 'Entrar y ver mi radiografía'), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => {
+        setAccountMode(accountMode === 'signup' ? 'login' : 'signup');
+        setAccountNotice('');
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--blue)',
+        fontSize: 18,
+        fontWeight: 600,
+        marginTop: 14,
+        cursor: 'pointer',
+        padding: 0,
+        display: 'block'
+      }
+    }, accountMode === 'signup' ? '¿Ya tienes una cuenta? Inicia sesión' : '¿Aún no tienes cuenta? Créala'), showAccountPolicy && /*#__PURE__*/React.createElement(PolicyModal, {
+      onClose: () => setShowAccountPolicy(false)
+    }), showAccountTerms && /*#__PURE__*/React.createElement(TermsModal, {
+      onClose: () => setShowAccountTerms(false)
+    }));
   }
 }
 
 /* ============================= RECORDATORIO DE CUENTA GRATUITA ============================= */
 // Tarjeta discreta y descartable en Inicio para quien todavía no tiene cuenta: solo comunica
-// beneficios reales (nombre, Comunidad y Renacer Plus entre dispositivos), nunca "guarda tu
-// progreso/diario", porque eso no es cierto (ver Profile: eso vive solo en cada dispositivo).
+// beneficios reales (nombre, radiografía, Comunidad y Renacer Plus entre dispositivos), nunca
+// "guarda tu diario/progreso" gratis, porque eso no es cierto salvo que tengas Renacer Plus
+// (ver Profile: el diario y las demás herramientas viven solo en cada dispositivo sin Plus).
 function SignupNudgeCard({
   onCreateAccount,
   onDismiss
@@ -3181,7 +3574,7 @@ function SignupNudgeCard({
       marginTop: 4,
       lineHeight: 1.4
     }
-  }, "Crea una cuenta gratuita para guardar tu nombre, participar en la Comunidad y acceder a Renacer Plus desde cualquier dispositivo."), /*#__PURE__*/React.createElement("button", {
+  }, "Crea una cuenta gratuita para guardar tu nombre y tu radiografía, participar en la Comunidad y acceder a Renacer Plus desde cualquier dispositivo."), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: onCreateAccount,
     className: "btn-secondary",
@@ -11478,7 +11871,7 @@ function Profile({
       fontWeight: 600,
       marginTop: 2
     }
-  }, "Guarda tu nombre y participa en la comunidad desde cualquier dispositivo")), auth.enabled && auth.session && /*#__PURE__*/React.createElement("div", {
+  }, "Guarda tu nombre y tu radiografía, y participa en la comunidad desde cualquier dispositivo")), auth.enabled && auth.session && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14
@@ -11500,7 +11893,7 @@ function Profile({
       fontWeight: 700,
       color: isPlus ? 'var(--gold-dark)' : 'var(--text-secondary)'
     }
-  }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu nombre y tu participación en la comunidad se sincronizan automáticamente. Tu diario y tus herramientas se guardan en este dispositivo."), /*#__PURE__*/React.createElement("button", {
+  }, isPlus ? 'Renacer Plus' : 'Gratis'), " · Tu nombre, tu radiografía y tu participación en la comunidad se sincronizan automáticamente.", isPlus ? ' Con Renacer Plus, tu diario y tus herramientas también se sincronizan entre dispositivos.' : ' Tu diario y tus herramientas se guardan solo en este dispositivo.'), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: auth.signOut,
     className: "btn-secondary",
@@ -11831,6 +12224,13 @@ function Root() {
   } = useApp();
   const auth = useAuth();
   const [onboarded, setOnboarded] = useState(state.onboarded);
+  // Si alguien inicia sesión durante el onboarding (por ejemplo, porque ya tenía una cuenta de
+  // antes y la app la reconoce como "ya registrada"), DiagnosticCloudSync restaura su radiografía
+  // y pone state.onboarded en true. Como ese cambio llega por props y no por setOnboarded, este
+  // efecto lo refleja aquí para saltar directo a la app en vez de dejarla atascada en Onboarding.
+  useEffect(() => {
+    if (state.onboarded && !onboarded) setOnboarded(true);
+  }, [state.onboarded]);
   // Sin importar en qué parte de la app estuviera antes de irse a revisar su correo (incluso
   // si todavía no había completado el diagnóstico inicial), priorizamos que elija su nueva
   // contraseña antes de mostrarle cualquier otra pantalla.
@@ -11843,7 +12243,7 @@ function Root() {
   return /*#__PURE__*/React.createElement(Shell, null);
 }
 function App() {
-  return /*#__PURE__*/React.createElement(AuthProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(CloudSync, null, /*#__PURE__*/React.createElement(LocationSync, null, /*#__PURE__*/React.createElement(Root, null)))));
+  return /*#__PURE__*/React.createElement(AuthProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(CloudSync, null, /*#__PURE__*/React.createElement(LocationSync, null, /*#__PURE__*/React.createElement(DiagnosticCloudSync, null, /*#__PURE__*/React.createElement(Root, null))))));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 </script>
