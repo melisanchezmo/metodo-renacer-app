@@ -1174,7 +1174,12 @@ function defaultState() {
     // Recordatorios para crear cuenta gratuita (ver SignupNudgeCard / hook useSignupMilestone):
     // se guardan para que, una vez cerrados, no se vuelvan a mostrar en este dispositivo.
     signupBannerDismissed: false,
-    signupMilestoneShown: false
+    signupMilestoneShown: false,
+    // Correo con el que se creó una cuenta cuya confirmación por correo todavía está pendiente
+    // en este dispositivo. Mientras exista, la app muestra "confirma tu correo" en vez de
+    // "crea tu cuenta" (que sería confuso: la persona ya la creó, solo falta un clic en su
+    // correo). Se limpia solo en cuanto detectamos una sesión activa (ver DiagnosticCloudSync).
+    pendingAccountEmail: null
   };
 }
 const AppCtx = createContext(null);
@@ -1365,6 +1370,28 @@ function AuthProvider({
       error
     };
   };
+  // Reenvía el correo de confirmación de cuenta. Se usa cuando alguien creó su cuenta pero
+  // todavía no ha confirmado el correo (por ejemplo, no le llegó o lo perdió entre el spam),
+  // para que no se quede atascado sin poder iniciar sesión.
+  const resendConfirmation = async email => {
+    if (!enabled) return {
+      error: {
+        message: 'No disponible.'
+      }
+    };
+    const {
+      error
+    } = await sbClient.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
+    });
+    return {
+      error
+    };
+  };
   return /*#__PURE__*/React.createElement(AuthCtx.Provider, {
     value: {
       enabled,
@@ -1379,7 +1406,8 @@ function AuthProvider({
       updateAuthProfile,
       refreshProfile,
       sendPasswordReset,
-      updatePassword
+      updatePassword,
+      resendConfirmation
     }
   }, children);
 }
@@ -1498,6 +1526,15 @@ function DiagnosticCloudSync({
     update
   } = useApp();
   const syncedForUser = useRef(null);
+  // En cuanto detectamos una sesión activa de verdad, ya no hace falta seguir mostrando
+  // "confirma tu correo": la confirmación claramente ya ocurrió (con este correo u otro).
+  useEffect(() => {
+    if (auth.enabled && auth.authReady && auth.session && state.pendingAccountEmail) {
+      update({
+        pendingAccountEmail: null
+      });
+    }
+  }, [auth.enabled, auth.authReady, auth.session && auth.session.user.id]);
   useEffect(() => {
     if (!auth.enabled || !auth.authReady || !auth.session || !auth.authProfile) return;
     const userId = auth.session.user.id;
@@ -1631,7 +1668,14 @@ function AuthModal({
       const {
         error
       } = await auth.signUp(email, password, state.profile.name, state.profile.currentCountry);
-      if (error) setNotice(error.message);else setNotice('Cuenta creada. Revisa tu correo para confirmar tu cuenta antes de iniciar sesión (si no lo ves en tu bandeja de entrada en unos minutos, revisa también la carpeta de Spam o Correo no deseado).');
+      if (error) {
+        setNotice(error.message);
+      } else {
+        setNotice('Te enviamos un correo a ' + email + ' para confirmar tu cuenta antes de iniciar sesión (si ya tenías una cuenta con este correo sin confirmar, te reenviamos ese mismo enlace). Si no lo ves en tu bandeja de entrada en unos minutos, revisa también la carpeta de Spam o Correo no deseado.');
+        update({
+          pendingAccountEmail: email
+        });
+      }
       setBusy(false);
     } else {
       if (!password) {
@@ -2881,6 +2925,9 @@ function Onboarding({
         return;
       }
       commitDiagnosticLocally();
+      update({
+        pendingAccountEmail: email
+      });
       setSignupDone(true);
     } else {
       if (!password) {
@@ -3287,14 +3334,21 @@ function Onboarding({
         style: {
           color: 'var(--navy)'
         }
-      }, "¡Cuenta creada!"), /*#__PURE__*/React.createElement("p", {
+      }, "¡Ya casi!"), /*#__PURE__*/React.createElement("p", {
         style: {
           color: 'var(--text-secondary)',
           fontWeight: 600,
           fontSize: 18.5,
           lineHeight: 1.5
         }
-      }, "Revisa tu correo para confirmar tu cuenta (revisa también la carpeta de Spam o Correo no deseado). Ya puedes ver tu radiografía; tu resultado está guardado con tu cuenta para que no lo pierdas si cambias de dispositivo."), /*#__PURE__*/React.createElement("button", {
+      }, "Te enviamos un correo a ", /*#__PURE__*/React.createElement("b", null, email), " para confirmar tu cuenta (revisa también la carpeta de Spam o Correo no deseado). Si ya tenías una cuenta con este correo sin confirmar, te reenviamos ese mismo enlace. Ábrelo para activarla del todo."), /*#__PURE__*/React.createElement("p", {
+        style: {
+          color: 'var(--text-muted)',
+          fontWeight: 600,
+          fontSize: 16,
+          lineHeight: 1.5
+        }
+      }, "Mientras tanto, ya puedes ver tu radiografía; en cuanto confirmes tu correo, tu resultado quedará a salvo para que no lo pierdas si cambias de dispositivo."), /*#__PURE__*/React.createElement("button", {
         type: "button",
         className: "btn-primary",
         style: {
@@ -3526,6 +3580,97 @@ function Onboarding({
   }
 }
 
+/* ============================= CONFIRMACIÓN DE CORREO PENDIENTE ============================= */
+// Se muestra en vez de "Crear cuenta" cuando la persona YA creó una cuenta en este dispositivo
+// pero todavía no confirmó su correo (Supabase exige ese paso antes de dar una sesión activa).
+// Mostrar "crea tu cuenta" en ese momento sería el mismo tipo de confusión que esta función
+// completa busca evitar: la persona ya hizo el paso, solo falta un clic en su correo.
+function PendingConfirmationCard({
+  email,
+  onResend,
+  onUseDifferentEmail,
+  onDismiss,
+  resending,
+  resendNotice
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      position: 'relative',
+      border: '1px dashed var(--aqua)',
+      background: 'var(--aqua-soft)'
+    }
+  }, onDismiss && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onDismiss,
+    "aria-label": "Cerrar recordatorio de cuenta",
+    style: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      background: 'none',
+      border: 'none',
+      fontSize: 17,
+      color: 'var(--text-muted)',
+      cursor: 'pointer',
+      padding: 6,
+      lineHeight: 1
+    }
+  }, "✕"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 17.5,
+      color: 'var(--blue-dark)',
+      paddingRight: onDismiss ? 26 : 0
+    }
+  }, "Confirma tu correo para activar tu cuenta"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: 'var(--text-secondary)',
+      fontWeight: 600,
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, "Te enviamos un enlace a ", /*#__PURE__*/React.createElement("b", null, email), ". Ábrelo para activar tu cuenta y guardar tu radiografía (revisa también la carpeta de Spam o Correo no deseado)."), resendNotice && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      fontWeight: 600,
+      marginTop: 8
+    }
+  }, resendNotice), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 14,
+      alignItems: 'center',
+      marginTop: 10,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onResend,
+    disabled: resending,
+    className: "btn-secondary",
+    style: {
+      padding: '9px 16px',
+      fontSize: 15.5
+    }
+  }, resending ? 'Enviando...' : 'Reenviar correo'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onUseDifferentEmail,
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'var(--blue)',
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: 'pointer',
+      padding: 0
+    }
+  }, "¿Usaste otro correo? Inténtalo de nuevo")));
+}
+
 /* ============================= RECORDATORIO DE CUENTA GRATUITA ============================= */
 // Tarjeta discreta y descartable en Inicio para quien todavía no tiene cuenta: solo comunica
 // beneficios reales (nombre, radiografía, Comunidad y Renacer Plus entre dispositivos), nunca
@@ -3637,20 +3782,41 @@ function Home({
   const auth = useAuth();
   const isPlus = useIsPlus();
   const needsAccount = auth.enabled && !auth.session;
+  const pendingEmail = state.pendingAccountEmail;
   const [showAuth, setShowAuth] = useState(false);
   const [showMilestone, setShowMilestone] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendNotice, setResendNotice] = useState('');
+  const resendConfirmationEmail = async () => {
+    if (!pendingEmail) return;
+    setResendBusy(true);
+    setResendNotice('');
+    const {
+      error
+    } = await auth.resendConfirmation(pendingEmail);
+    setResendBusy(false);
+    setResendNotice(error ? error.message : 'Correo reenviado. Revisa tu bandeja de entrada (y la carpeta de Spam).');
+  };
+  const useDifferentEmail = () => {
+    update({
+      pendingAccountEmail: null
+    });
+    setResendNotice('');
+    setShowAuth(true);
+  };
 
-  // El aviso puntual solo se muestra UNA vez por dispositivo: en cuanto se cumple la condición,
-  // marcamos signupMilestoneShown de inmediato (no solo al cerrarlo) para que no reaparezca
-  // aunque la persona salga de Inicio antes de interactuar con él.
+  // El aviso puntual solo se muestra UNA vez por dispositivo, y no si ya está pendiente de
+  // confirmar un correo (insistir en "crea tu cuenta" ahí sería la misma confusión de siempre):
+  // en cuanto se cumple la condición, marcamos signupMilestoneShown de inmediato (no solo al
+  // cerrarlo) para que no reaparezca aunque la persona salga de Inicio antes de interactuar.
   useEffect(() => {
-    if (auth.authReady && needsAccount && !state.signupMilestoneShown && state.journal.length >= 2) {
+    if (auth.authReady && needsAccount && !pendingEmail && !state.signupMilestoneShown && state.journal.length >= 2) {
       update({
         signupMilestoneShown: true
       });
       setShowMilestone(true);
     }
-  }, [auth.authReady, needsAccount, state.signupMilestoneShown, state.journal.length]);
+  }, [auth.authReady, needsAccount, pendingEmail, state.signupMilestoneShown, state.journal.length]);
   const dismissBanner = () => update({
     signupBannerDismissed: true
   });
@@ -3938,7 +4104,14 @@ function Home({
     style: {
       padding: '0 20px 20px'
     }
-  }, /*#__PURE__*/React.createElement(SignupNudgeCard, {
+  }, pendingEmail ? /*#__PURE__*/React.createElement(PendingConfirmationCard, {
+    email: pendingEmail,
+    onResend: resendConfirmationEmail,
+    onUseDifferentEmail: useDifferentEmail,
+    onDismiss: dismissBanner,
+    resending: resendBusy,
+    resendNotice: resendNotice
+  }) : /*#__PURE__*/React.createElement(SignupNudgeCard, {
     onCreateAccount: () => setShowAuth(true),
     onDismiss: dismissBanner
   })), showContinuo && /*#__PURE__*/React.createElement(ContinuousEntryModal, {
@@ -11699,7 +11872,26 @@ function Profile({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendNotice, setResendNotice] = useState('');
   const isPlus = auth.authProfile && auth.authProfile.subscription_status === 'plus';
+  const resendConfirmationEmail = async () => {
+    if (!state.pendingAccountEmail) return;
+    setResendBusy(true);
+    setResendNotice('');
+    const {
+      error
+    } = await auth.resendConfirmation(state.pendingAccountEmail);
+    setResendBusy(false);
+    setResendNotice(error ? error.message : 'Correo reenviado. Revisa tu bandeja de entrada (y la carpeta de Spam).');
+  };
+  const useDifferentEmail = () => {
+    update({
+      pendingAccountEmail: null
+    });
+    setResendNotice('');
+    setShowAuth(true);
+  };
   const toggleShareLocation = val => {
     update(prev => ({
       profile: {
@@ -11846,7 +12038,13 @@ function Profile({
       color: 'var(--text-secondary)',
       fontWeight: 600
     }
-  }, "Próximamente: crea una cuenta para guardar tu nombre y participar en la comunidad desde cualquier dispositivo. Tu diario y tus herramientas se guardan solo en este dispositivo."), auth.enabled && !auth.session && /*#__PURE__*/React.createElement("button", {
+  }, "Próximamente: crea una cuenta para guardar tu nombre y participar en la comunidad desde cualquier dispositivo. Tu diario y tus herramientas se guardan solo en este dispositivo."), auth.enabled && !auth.session && state.pendingAccountEmail && /*#__PURE__*/React.createElement(PendingConfirmationCard, {
+    email: state.pendingAccountEmail,
+    onResend: resendConfirmationEmail,
+    onUseDifferentEmail: useDifferentEmail,
+    resending: resendBusy,
+    resendNotice: resendNotice
+  }), auth.enabled && !auth.session && !state.pendingAccountEmail && /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowAuth(true),
     className: "card",
