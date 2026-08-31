@@ -599,6 +599,50 @@ const WOMPI_PRICE_MONTHLY_COP = Number(window.__RENACER_WOMPI_PRICE_MONTHLY_COP_
 const WOMPI_PRICE_ANNUAL_COP = Number(window.__RENACER_WOMPI_PRICE_ANNUAL_COP__) || 0;
 const WOMPI_ENABLED = !!(WOMPI_PUBLIC_KEY && WOMPI_PRICE_MONTHLY_COP && WOMPI_PRICE_ANNUAL_COP);
 const VAPID_PUBLIC_KEY = window.__RENACER_VAPID_PUBLIC_KEY__ || '';
+
+/* ============================= LISTA DE CORREO / MARKETING (opcional) =============================
+   Formulario "HTML" (no el widget de MailerLite) de la cuenta de Melissa: es un enlace público
+   pensado justamente para que cualquier sitio le envíe un correo por POST, sin necesitar ninguna
+   clave privada. Solo se usa cuando la persona marca voluntariamente la casilla de newsletter al
+   crear su cuenta (ver AuthModal y Onboarding); nunca se envía nada sin ese marcado explícito. */
+const MAILERLITE_SUBSCRIBE_URL = 'https://assets.mailerlite.com/jsonp/2606403/forms/197306287011136602/subscribe';
+function subscribeToNewsletter(email) {
+  try {
+    if (!email || !MAILERLITE_SUBSCRIBE_URL) return;
+    const frameName = 'ml-subscribe-frame';
+    let frame = document.getElementById(frameName);
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.id = frameName;
+      frame.name = frameName;
+      frame.style.display = 'none';
+      document.body.appendChild(frame);
+    }
+    const form = document.createElement('form');
+    form.action = MAILERLITE_SUBSCRIBE_URL;
+    form.method = 'POST';
+    form.target = frameName;
+    form.style.display = 'none';
+    const addField = (name, value) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+    addField('fields[email]', email);
+    addField('ml-submit', '1');
+    addField('anticsrf', 'true');
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => form.remove(), 3000);
+  } catch (e) {
+    // Nunca debe romper el flujo de creación de cuenta por esto: si falla, simplemente no
+    // quedó suscrita a la lista de correo, pero su cuenta se crea con normalidad.
+    console.error('No se pudo suscribir a la lista de correo', e);
+  }
+}
+
 // Convierte la llave pública VAPID (base64url) al formato binario que pide pushManager.subscribe().
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -1643,6 +1687,7 @@ function AuthModal({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [wantsNewsletter, setWantsNewsletter] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [resetSent, setResetSent] = useState(false);
@@ -1671,6 +1716,7 @@ function AuthModal({
       if (error) {
         setNotice(error.message);
       } else {
+        if (wantsNewsletter) subscribeToNewsletter(email);
         setNotice('Te enviamos un correo a ' + email + ' para confirmar tu cuenta antes de iniciar sesión (si ya tenías una cuenta con este correo sin confirmar, te reenviamos ese mismo enlace). Si no lo ves en tu bandeja de entrada en unos minutos, revisa también la carpeta de Spam o Correo no deseado.');
         update({
           pendingAccountEmail: email
@@ -1891,7 +1937,27 @@ function AuthModal({
       padding: 0,
       font: 'inherit'
     }
-  }, "Términos y condiciones"), ".")), notice && /*#__PURE__*/React.createElement("div", {
+  }, "Términos y condiciones"), ".")), mode === 'signup' && /*#__PURE__*/React.createElement("label", {
+  style: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 8,
+    fontSize: 15.5,
+    color: 'var(--text-secondary)',
+    fontWeight: 600,
+    lineHeight: 1.4,
+    margin: '0 0 14px',
+    cursor: 'pointer'
+  }
+}, /*#__PURE__*/React.createElement("input", {
+  type: "checkbox",
+  checked: wantsNewsletter,
+  onChange: e => setWantsNewsletter(e.target.checked),
+  style: {
+    marginTop: 2,
+    flexShrink: 0
+  }
+}), /*#__PURE__*/React.createElement("span", null, "Quiero recibir correos de Melissa con contenido, recursos y ofertas (opcional).")), notice && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       color: 'var(--rose)',
@@ -2873,6 +2939,7 @@ function Onboarding({
   const [showAccountTerms, setShowAccountTerms] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [signupDone, setSignupDone] = useState(false);
+  const [wantsNewsletter, setWantsNewsletter] = useState(false);
 
   // Guarda localmente la radiografía recién respondida (sin marcar el onboarding como completo
   // todavía: eso se hace aparte, en completeOnboarding, para poder mostrar antes la pantalla de
@@ -2924,6 +2991,7 @@ function Onboarding({
         setAccountNotice(error.message);
         return;
       }
+      if (wantsNewsletter) subscribeToNewsletter(email);
       commitDiagnosticLocally();
       update({
         pendingAccountEmail: email
@@ -3540,7 +3608,27 @@ function Onboarding({
         padding: 0,
         font: 'inherit'
       }
-    }, "Términos y condiciones"), ".")), accountNotice && /*#__PURE__*/React.createElement("div", {
+    }, "Términos y condiciones"), ".")), accountMode === 'signup' && /*#__PURE__*/React.createElement("label", {
+      style: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 8,
+        fontSize: 15.5,
+        color: 'var(--text-secondary)',
+        fontWeight: 600,
+        lineHeight: 1.4,
+        margin: '0 0 14px',
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: wantsNewsletter,
+      onChange: e => setWantsNewsletter(e.target.checked),
+      style: {
+        marginTop: 2,
+        flexShrink: 0
+      }
+    }), /*#__PURE__*/React.createElement("span", null, "Quiero recibir correos de Melissa con contenido, recursos y ofertas (opcional).")), accountNotice && /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 18,
         color: 'var(--rose)',
